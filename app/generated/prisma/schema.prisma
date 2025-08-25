@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Invitaciones principales
+model Invitation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Información de la invitación
+  guestName     String
+  guestNickname String?
+  guestPhone    String?
+  maxGuests     Int     @default(1)
+
+  // Respuesta del invitado
+  hasResponded Boolean   @default(false)
+  isAttending  Boolean?
+  guestCount   Int?
+  respondedAt  DateTime?
+
+  // Relaciones
+  tokens InvitationToken[]
+
+  @@map("invitations")
+}
+
+// Tokens únicos para cada invitación
+model InvitationToken {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Token único
+  token String @unique
+
+  // Estado del token (se quema después del primer uso)
+  isUsed Boolean @default(false)
+
+  // Información de uso del token
+  firstAccessAt DateTime?
+  lastAccessAt  DateTime?
+  deviceId      String?
+  userAgent     String?
+  accessCount   Int       @default(0)
+
+  // Relaciones
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+
+  @@map("invitation_tokens")
+}
+
+// Usuarios del backoffice (administradores)
+model AdminUser {
+  id String @id @default(cuid())
+
+  // Información del usuario
+  username String @unique
+  password String
+
+  @@map("admin_users")
+}
