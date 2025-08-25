@@ -21,33 +21,7 @@ import {
 } from '@heroui/react'
 import { X, ExternalLink, Calendar, Phone, Users, CheckCircle, XCircle, Clock, Copy, Check } from 'lucide-react'
 
-interface InvitationToken {
-  id: string
-  token: string
-  isUsed: boolean
-  firstAccessAt: Date | null
-  lastAccessAt: Date | null
-  deviceId: string | null
-  userAgent: string | null
-  accessCount: number
-  createdAt: Date
-  updatedAt: Date
-}
-
-interface InvitationWithTokens {
-  id: string
-  guestName: string
-  guestNickname: string | null
-  guestPhone: string | null
-  maxGuests: number
-  hasResponded: boolean
-  isAttending: boolean | null
-  guestCount: number | null
-  respondedAt: Date | null
-  createdAt: Date
-  updatedAt: Date
-  tokens: InvitationToken[]
-}
+import { InvitationWithTokens, InvitationToken } from '@/app/backoffice/invitations/types'
 
 interface InvitationDetailModalProps {
   invitation: InvitationWithTokens
@@ -116,13 +90,6 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
         <ModalHeader className="flex flex-col gap-1">
           <div className="flex items-center justify-between w-full">
             <h2 className="text-xl font-bold">Detalles de la Invitación</h2>
-            <Button
-              isIconOnly
-              variant="light"
-              onPress={handleClose}
-            >
-              <X size={20} />
-            </Button>
           </div>
         </ModalHeader>
         

@@ -10,8 +10,10 @@ import {
   ModalFooter,
   Button,
   Input,
+  NumberInput,
   Form
 } from '@heroui/react'
+import InvitationStatusSelect from './InvitationStatusSelect'
 
 interface Invitation {
   id: string
@@ -40,8 +42,10 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
     guestName: '',
     guestNickname: '',
     guestPhone: '',
-    maxGuests: '1'
+    maxGuests: 1
   })
+  const [invitationStatus, setInvitationStatus] = useState('pending')
+  const [guestCount, setGuestCount] = useState(1)
 
   // Actualizar el formulario cuando cambie la invitación
   useEffect(() => {
@@ -50,8 +54,20 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
         guestName: invitation.guestName,
         guestNickname: invitation.guestNickname || '',
         guestPhone: invitation.guestPhone || '',
-        maxGuests: invitation.maxGuests.toString()
+        maxGuests: invitation.maxGuests
       })
+
+      // Determinar el estado de la invitación
+      if (!invitation.hasResponded) {
+        setInvitationStatus('pending')
+        setGuestCount(1)
+      } else if (invitation.isAttending) {
+        setInvitationStatus('attending')
+        setGuestCount(invitation.guestCount || 1)
+      } else {
+        setInvitationStatus('not_attending')
+        setGuestCount(1)
+      }
     }
   }, [invitation])
 
@@ -74,10 +90,12 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
 
   const handleClose = () => {
     setError('')
+    setInvitationStatus('pending')
+    setGuestCount(1)
     onClose()
   }
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -140,18 +158,30 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
                 onChange={(e) => handleInputChange('guestPhone', e.target.value)}
               />
 
-              <Input
+              <NumberInput
                 label="Máximo de Invitados"
                 name="maxGuests"
-                type="number"
-                min="1"
-                max="10"
+                min={1}
+                max={10}
                 variant="bordered"
                 isRequired
                 description="Número máximo de invitados permitidos"
                 value={formData.maxGuests}
-                onChange={(e) => handleInputChange('maxGuests', e.target.value)}
+                onValueChange={(value) => handleInputChange('maxGuests', value)}
               />
+
+              <InvitationStatusSelect
+                status={invitationStatus}
+                guestCount={guestCount}
+                maxGuests={formData.maxGuests}
+                onStatusChange={setInvitationStatus}
+                onGuestCountChange={setGuestCount}
+              />
+
+              {/* Campos ocultos para enviar los valores */}
+              <input type="hidden" name="hasResponded" value={invitationStatus !== 'pending' ? 'true' : 'false'} />
+              <input type="hidden" name="isAttending" value={invitationStatus === 'attending' ? 'true' : 'false'} />
+              <input type="hidden" name="guestCount" value={invitationStatus === 'attending' ? guestCount : ''} />
             </div>
           </ModalBody>
           

@@ -10,6 +10,7 @@ import {
   ModalFooter,
   Button,
   Input,
+  NumberInput,
   Form
 } from '@heroui/react'
 
@@ -21,6 +22,7 @@ interface CreateInvitationModalProps {
 
 export default function CreateInvitationModal({ isOpen, onClose, onSuccess }: CreateInvitationModalProps) {
   const [error, setError] = useState('')
+
 
   const handleAction = async (formData: FormData) => {
     try {
@@ -92,17 +94,17 @@ export default function CreateInvitationModal({ isOpen, onClose, onSuccess }: Cr
                 description="Número de teléfono (opcional)"
               />
 
-              <Input
+              <NumberInput
                 label="Máximo de Invitados"
                 name="maxGuests"
-                type="number"
-                min="1"
-                max="10"
-                defaultValue="1"
+                min={1}
+                max={10}
+                defaultValue={1}
                 variant="bordered"
                 isRequired
                 description="Número máximo de invitados permitidos"
               />
+
             </div>
           </ModalBody>
           
