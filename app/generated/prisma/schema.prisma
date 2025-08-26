@@ -38,11 +38,9 @@ model InvitationToken {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Token único
-  token String @unique
-
-  // Estado del token (se quema después del primer uso)
-  isUsed Boolean @default(false)
+  // Estado del token (se puede revocar sin eliminar)
+  isActive Boolean @default(true)
+  isUsed   Boolean @default(false)
 
   // Información de uso del token
   firstAccessAt DateTime?

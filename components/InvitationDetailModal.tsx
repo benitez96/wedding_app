@@ -17,11 +17,14 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Divider
+  Divider,
+  useDisclosure,
+  Tooltip
 } from '@heroui/react'
-import { X, ExternalLink, Calendar, Phone, Users, CheckCircle, XCircle, Clock, Copy, Check } from 'lucide-react'
+import { X, ExternalLink, Calendar, Phone, Users, CheckCircle, XCircle, Clock, Copy, Check, Plus, Ban, Trash2, RotateCcw } from 'lucide-react'
 
 import { InvitationWithTokens, InvitationToken } from '@/app/backoffice/invitations/types'
+import { createInvitationToken, revokeInvitationToken, reactivateInvitationToken, deleteInvitationToken } from '@/app/actions/invitations'
 
 interface InvitationDetailModalProps {
   invitation: InvitationWithTokens
@@ -29,6 +32,7 @@ interface InvitationDetailModalProps {
 
 export default function InvitationDetailModal({ invitation }: InvitationDetailModalProps) {
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
+  const [isCreatingToken, setIsCreatingToken] = useState(false)
   const router = useRouter()
 
   const handleClose = () => {
@@ -38,12 +42,29 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
   const formatDate = (date: Date | null) => {
     if (!date) return '-'
     return new Date(date).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const getDeviceInfo = (userAgent: string | null) => {
+    if (!userAgent || userAgent === 'Unknown') return 'Desconocido'
+    
+    // Detectar navegador
+    if (userAgent.includes('Chrome')) return 'Chrome'
+    if (userAgent.includes('Firefox')) return 'Firefox'
+    if (userAgent.includes('Safari')) return 'Safari'
+    if (userAgent.includes('Edge')) return 'Edge'
+    
+    // Detectar dispositivo móvil
+    if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone')) {
+      return 'Móvil'
+    }
+    
+    return 'Desktop'
   }
 
   const getStatusChip = (invitation: InvitationWithTokens) => {
@@ -57,32 +78,93 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
   }
 
   const getTokenStatusChip = (token: InvitationToken) => {
+    if (!token.isActive) {
+      return <Chip color="danger" variant="flat" size="sm">Revocado</Chip>
+    }
     if (token.isUsed) {
       return <Chip color="success" variant="flat" size="sm">Usado</Chip>
     }
     return <Chip color="default" variant="flat" size="sm">Disponible</Chip>
   }
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (tokenId: string) => {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopiedToken(text)
+      const invitationUrl = `${window.location.origin}/r/${tokenId}`
+      await navigator.clipboard.writeText(invitationUrl)
+      setCopiedToken(tokenId)
       setTimeout(() => setCopiedToken(null), 2000)
     } catch (error) {
       console.error('Error al copiar al portapapeles:', error)
     }
   }
 
-  const openInvitationLink = (token: string) => {
-    const url = `${window.location.origin}/r/${token}`
+  const openInvitationLink = (tokenId: string) => {
+    const url = `${window.location.origin}/r/${tokenId}`
     window.open(url, '_blank')
+  }
+
+  const handleCreateToken = async () => {
+    setIsCreatingToken(true)
+    try {
+      const result = await createInvitationToken(invitation.id)
+      if (result.success) {
+        // Recargar la página para mostrar el nuevo token
+        router.refresh()
+      } else {
+        console.error('Error al crear token:', result.error)
+        // Aquí podrías mostrar un toast de error
+      }
+    } catch (error) {
+      console.error('Error al crear token:', error)
+    } finally {
+      setIsCreatingToken(false)
+    }
+  }
+
+  const handleRevokeToken = async (tokenId: string) => {
+    try {
+      const result = await revokeInvitationToken(tokenId)
+      if (result.success) {
+        router.refresh()
+      } else {
+        console.error('Error al revocar token:', result.error)
+      }
+    } catch (error) {
+      console.error('Error al revocar token:', error)
+    }
+  }
+
+  const handleReactivateToken = async (tokenId: string) => {
+    try {
+      const result = await reactivateInvitationToken(tokenId)
+      if (result.success) {
+        router.refresh()
+      } else {
+        console.error('Error al reactivar token:', result.error)
+      }
+    } catch (error) {
+      console.error('Error al reactivar token:', error)
+    }
+  }
+
+  const handleDeleteToken = async (tokenId: string) => {
+    try {
+      const result = await deleteInvitationToken(tokenId)
+      if (result.success) {
+        router.refresh()
+      } else {
+        console.error('Error al eliminar token:', result.error)
+      }
+    } catch (error) {
+      console.error('Error al eliminar token:', error)
+    }
   }
 
   return (
     <Modal 
       isOpen={true} 
       onClose={handleClose}
-      size="4xl"
+      size="full"
       placement="center"
       scrollBehavior="inside"
       backdrop="blur"
@@ -177,9 +259,24 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
             <CardBody>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Tokens de Acceso</h3>
-                <Chip color="primary" variant="flat" size="sm">
-                  {invitation.tokens.length} token{invitation.tokens.length !== 1 ? 's' : ''}
-                </Chip>
+                <div className="flex items-center gap-2">
+                  <Chip color="primary" variant="flat" size="sm">
+                    {invitation.tokens.length} token{invitation.tokens.length !== 1 ? 's' : ''}
+                  </Chip>
+                  <Tooltip content="Crear nuevo token de acceso">
+                    <Button
+                      size="sm"
+                      color="primary"
+                      variant="flat"
+                      startContent={<Plus size={16} />}
+                      onPress={handleCreateToken}
+                      isLoading={isCreatingToken}
+                      isDisabled={isCreatingToken}
+                    >
+                      Generar Token
+                    </Button>
+                  </Tooltip>
+                </div>
               </div>
               
               <Table 
@@ -191,6 +288,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                   <TableColumn>TOKEN</TableColumn>
                   <TableColumn>ESTADO</TableColumn>
                   <TableColumn>ACCESOS</TableColumn>
+                  <TableColumn>DISPOSITIVO</TableColumn>
                   <TableColumn>PRIMER ACCESO</TableColumn>
                   <TableColumn>ÚLTIMO ACCESO</TableColumn>
                   <TableColumn>ACCIONES</TableColumn>
@@ -201,27 +299,55 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <code className="text-xs bg-default-100 px-2 py-1 rounded font-mono">
-                            {token.token.substring(0, 8)}...
+                            {token.id.substring(0, 8)}...
                           </code>
-                          <Button
-                            size="sm"
-                            variant="light"
-                            isIconOnly
-                            onPress={() => copyToClipboard(token.token)}
-                          >
-                            {copiedToken === token.token ? (
-                              <Check size={14} className="text-success" />
-                            ) : (
-                              <Copy size={14} />
-                            )}
-                          </Button>
+                          <Tooltip content="Copiar invitación">
+                            <Button
+                              size="sm"
+                              variant="light"
+                              isIconOnly
+                              onPress={() => copyToClipboard(token.id)}
+                            >
+                              {copiedToken === token.id ? (
+                                <Check size={14} className="text-success" />
+                              ) : (
+                                <Copy size={14} />
+                              )}
+                            </Button>
+                          </Tooltip>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getTokenStatusChip(token)}
+                        <Tooltip 
+                          content={
+                            token.isUsed && token.deviceId 
+                              ? "Token vinculado a un dispositivo específico. No se puede usar desde otros dispositivos."
+                              : undefined
+                          }
+                        >
+                          <div>
+                            {getTokenStatusChip(token)}
+                          </div>
+                        </Tooltip>
                       </TableCell>
                       <TableCell>
                         {token.accessCount}
+                      </TableCell>
+                      <TableCell>
+                        {token.userAgent ? (
+                          <div className="text-xs">
+                            <div className="font-medium text-primary">
+                              {getDeviceInfo(token.userAgent)}
+                            </div>
+                            <div className="text-default-500 max-w-[200px] overflow-x-auto whitespace-nowrap">
+                              {token.userAgent}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-default-400 italic">
+                            No usado aún
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         {formatDate(token.firstAccessAt)}
@@ -231,20 +357,56 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button
-                            size="sm"
-                            variant="light"
-                            color="primary"
-                            isIconOnly
-                            onPress={() => openInvitationLink(token.token)}
-                          >
-                            <ExternalLink size={14} />
-                          </Button>
-                          {token.deviceId && (
-                            <div className="text-xs text-default-500 ml-2">
-                              ID: {token.deviceId.substring(0, 8)}...
-                            </div>
+                          <Tooltip content="Abrir invitación">
+                            <Button
+                              size="sm"
+                              variant="light"
+                              color="primary"
+                              isIconOnly
+                              onPress={() => openInvitationLink(token.id)}
+                              isDisabled={!token.isActive}
+                            >
+                              <ExternalLink size={14} />
+                            </Button>
+                          </Tooltip>
+                          
+                          {token.isActive ? (
+                            <Tooltip content="Revocar token">
+                              <Button
+                                size="sm"
+                                variant="light"
+                                color="warning"
+                                isIconOnly
+                                onPress={() => handleRevokeToken(token.id)}
+                              >
+                                <Ban size={14} />
+                              </Button>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip content="Reactivar token">
+                              <Button
+                                size="sm"
+                                variant="light"
+                                color="success"
+                                isIconOnly
+                                onPress={() => handleReactivateToken(token.id)}
+                              >
+                                <RotateCcw size={14} />
+                              </Button>
+                            </Tooltip>
                           )}
+                          
+                          <Tooltip content="Eliminar token">
+                            <Button
+                              size="sm"
+                              variant="light"
+                              color="danger"
+                              isIconOnly
+                              onPress={() => handleDeleteToken(token.id)}
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>

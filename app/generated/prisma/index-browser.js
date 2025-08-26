@@ -138,7 +138,7 @@ exports.Prisma.InvitationTokenScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  token: 'token',
+  isActive: 'isActive',
   isUsed: 'isUsed',
   firstAccessAt: 'firstAccessAt',
   lastAccessAt: 'lastAccessAt',

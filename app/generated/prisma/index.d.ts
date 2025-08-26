@@ -2278,7 +2278,7 @@ export namespace Prisma {
     id: string | null
     createdAt: Date | null
     updatedAt: Date | null
-    token: string | null
+    isActive: boolean | null
     isUsed: boolean | null
     firstAccessAt: Date | null
     lastAccessAt: Date | null
@@ -2292,7 +2292,7 @@ export namespace Prisma {
     id: string | null
     createdAt: Date | null
     updatedAt: Date | null
-    token: string | null
+    isActive: boolean | null
     isUsed: boolean | null
     firstAccessAt: Date | null
     lastAccessAt: Date | null
@@ -2306,7 +2306,7 @@ export namespace Prisma {
     id: number
     createdAt: number
     updatedAt: number
-    token: number
+    isActive: number
     isUsed: number
     firstAccessAt: number
     lastAccessAt: number
@@ -2330,7 +2330,7 @@ export namespace Prisma {
     id?: true
     createdAt?: true
     updatedAt?: true
-    token?: true
+    isActive?: true
     isUsed?: true
     firstAccessAt?: true
     lastAccessAt?: true
@@ -2344,7 +2344,7 @@ export namespace Prisma {
     id?: true
     createdAt?: true
     updatedAt?: true
-    token?: true
+    isActive?: true
     isUsed?: true
     firstAccessAt?: true
     lastAccessAt?: true
@@ -2358,7 +2358,7 @@ export namespace Prisma {
     id?: true
     createdAt?: true
     updatedAt?: true
-    token?: true
+    isActive?: true
     isUsed?: true
     firstAccessAt?: true
     lastAccessAt?: true
@@ -2459,7 +2459,7 @@ export namespace Prisma {
     id: string
     createdAt: Date
     updatedAt: Date
-    token: string
+    isActive: boolean
     isUsed: boolean
     firstAccessAt: Date | null
     lastAccessAt: Date | null
@@ -2492,7 +2492,7 @@ export namespace Prisma {
     id?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    token?: boolean
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: boolean
     lastAccessAt?: boolean
@@ -2507,7 +2507,7 @@ export namespace Prisma {
     id?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    token?: boolean
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: boolean
     lastAccessAt?: boolean
@@ -2522,7 +2522,7 @@ export namespace Prisma {
     id?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    token?: boolean
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: boolean
     lastAccessAt?: boolean
@@ -2537,7 +2537,7 @@ export namespace Prisma {
     id?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    token?: boolean
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: boolean
     lastAccessAt?: boolean
@@ -2547,7 +2547,7 @@ export namespace Prisma {
     invitationId?: boolean
   }
 
-  export type InvitationTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "token" | "isUsed" | "firstAccessAt" | "lastAccessAt" | "deviceId" | "userAgent" | "accessCount" | "invitationId", ExtArgs["result"]["invitationToken"]>
+  export type InvitationTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "isActive" | "isUsed" | "firstAccessAt" | "lastAccessAt" | "deviceId" | "userAgent" | "accessCount" | "invitationId", ExtArgs["result"]["invitationToken"]>
   export type InvitationTokenInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     invitation?: boolean | InvitationDefaultArgs<ExtArgs>
   }
@@ -2567,7 +2567,7 @@ export namespace Prisma {
       id: string
       createdAt: Date
       updatedAt: Date
-      token: string
+      isActive: boolean
       isUsed: boolean
       firstAccessAt: Date | null
       lastAccessAt: Date | null
@@ -3002,7 +3002,7 @@ export namespace Prisma {
     readonly id: FieldRef<"InvitationToken", 'String'>
     readonly createdAt: FieldRef<"InvitationToken", 'DateTime'>
     readonly updatedAt: FieldRef<"InvitationToken", 'DateTime'>
-    readonly token: FieldRef<"InvitationToken", 'String'>
+    readonly isActive: FieldRef<"InvitationToken", 'Boolean'>
     readonly isUsed: FieldRef<"InvitationToken", 'Boolean'>
     readonly firstAccessAt: FieldRef<"InvitationToken", 'DateTime'>
     readonly lastAccessAt: FieldRef<"InvitationToken", 'DateTime'>
@@ -4428,7 +4428,7 @@ export namespace Prisma {
     id: 'id',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    token: 'token',
+    isActive: 'isActive',
     isUsed: 'isUsed',
     firstAccessAt: 'firstAccessAt',
     lastAccessAt: 'lastAccessAt',
@@ -4639,7 +4639,7 @@ export namespace Prisma {
     id?: StringFilter<"InvitationToken"> | string
     createdAt?: DateTimeFilter<"InvitationToken"> | Date | string
     updatedAt?: DateTimeFilter<"InvitationToken"> | Date | string
-    token?: StringFilter<"InvitationToken"> | string
+    isActive?: BoolFilter<"InvitationToken"> | boolean
     isUsed?: BoolFilter<"InvitationToken"> | boolean
     firstAccessAt?: DateTimeNullableFilter<"InvitationToken"> | Date | string | null
     lastAccessAt?: DateTimeNullableFilter<"InvitationToken"> | Date | string | null
@@ -4654,7 +4654,7 @@ export namespace Prisma {
     id?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    token?: SortOrder
+    isActive?: SortOrder
     isUsed?: SortOrder
     firstAccessAt?: SortOrderInput | SortOrder
     lastAccessAt?: SortOrderInput | SortOrder
@@ -4667,12 +4667,12 @@ export namespace Prisma {
 
   export type InvitationTokenWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    token?: string
     AND?: InvitationTokenWhereInput | InvitationTokenWhereInput[]
     OR?: InvitationTokenWhereInput[]
     NOT?: InvitationTokenWhereInput | InvitationTokenWhereInput[]
     createdAt?: DateTimeFilter<"InvitationToken"> | Date | string
     updatedAt?: DateTimeFilter<"InvitationToken"> | Date | string
+    isActive?: BoolFilter<"InvitationToken"> | boolean
     isUsed?: BoolFilter<"InvitationToken"> | boolean
     firstAccessAt?: DateTimeNullableFilter<"InvitationToken"> | Date | string | null
     lastAccessAt?: DateTimeNullableFilter<"InvitationToken"> | Date | string | null
@@ -4681,13 +4681,13 @@ export namespace Prisma {
     accessCount?: IntFilter<"InvitationToken"> | number
     invitationId?: StringFilter<"InvitationToken"> | string
     invitation?: XOR<InvitationScalarRelationFilter, InvitationWhereInput>
-  }, "id" | "token">
+  }, "id">
 
   export type InvitationTokenOrderByWithAggregationInput = {
     id?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    token?: SortOrder
+    isActive?: SortOrder
     isUsed?: SortOrder
     firstAccessAt?: SortOrderInput | SortOrder
     lastAccessAt?: SortOrderInput | SortOrder
@@ -4709,7 +4709,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"InvitationToken"> | string
     createdAt?: DateTimeWithAggregatesFilter<"InvitationToken"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"InvitationToken"> | Date | string
-    token?: StringWithAggregatesFilter<"InvitationToken"> | string
+    isActive?: BoolWithAggregatesFilter<"InvitationToken"> | boolean
     isUsed?: BoolWithAggregatesFilter<"InvitationToken"> | boolean
     firstAccessAt?: DateTimeNullableWithAggregatesFilter<"InvitationToken"> | Date | string | null
     lastAccessAt?: DateTimeNullableWithAggregatesFilter<"InvitationToken"> | Date | string | null
@@ -4867,7 +4867,7 @@ export namespace Prisma {
     id?: string
     createdAt?: Date | string
     updatedAt?: Date | string
-    token: string
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: Date | string | null
     lastAccessAt?: Date | string | null
@@ -4881,7 +4881,7 @@ export namespace Prisma {
     id?: string
     createdAt?: Date | string
     updatedAt?: Date | string
-    token: string
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: Date | string | null
     lastAccessAt?: Date | string | null
@@ -4895,7 +4895,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    token?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     isUsed?: BoolFieldUpdateOperationsInput | boolean
     firstAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4909,7 +4909,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    token?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     isUsed?: BoolFieldUpdateOperationsInput | boolean
     firstAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4923,7 +4923,7 @@ export namespace Prisma {
     id?: string
     createdAt?: Date | string
     updatedAt?: Date | string
-    token: string
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: Date | string | null
     lastAccessAt?: Date | string | null
@@ -4937,7 +4937,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    token?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     isUsed?: BoolFieldUpdateOperationsInput | boolean
     firstAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4950,7 +4950,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    token?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     isUsed?: BoolFieldUpdateOperationsInput | boolean
     firstAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5274,7 +5274,7 @@ export namespace Prisma {
     id?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    token?: SortOrder
+    isActive?: SortOrder
     isUsed?: SortOrder
     firstAccessAt?: SortOrder
     lastAccessAt?: SortOrder
@@ -5292,7 +5292,7 @@ export namespace Prisma {
     id?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    token?: SortOrder
+    isActive?: SortOrder
     isUsed?: SortOrder
     firstAccessAt?: SortOrder
     lastAccessAt?: SortOrder
@@ -5306,7 +5306,7 @@ export namespace Prisma {
     id?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    token?: SortOrder
+    isActive?: SortOrder
     isUsed?: SortOrder
     firstAccessAt?: SortOrder
     lastAccessAt?: SortOrder
@@ -5652,7 +5652,7 @@ export namespace Prisma {
     id?: string
     createdAt?: Date | string
     updatedAt?: Date | string
-    token: string
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: Date | string | null
     lastAccessAt?: Date | string | null
@@ -5665,7 +5665,7 @@ export namespace Prisma {
     id?: string
     createdAt?: Date | string
     updatedAt?: Date | string
-    token: string
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: Date | string | null
     lastAccessAt?: Date | string | null
@@ -5707,7 +5707,7 @@ export namespace Prisma {
     id?: StringFilter<"InvitationToken"> | string
     createdAt?: DateTimeFilter<"InvitationToken"> | Date | string
     updatedAt?: DateTimeFilter<"InvitationToken"> | Date | string
-    token?: StringFilter<"InvitationToken"> | string
+    isActive?: BoolFilter<"InvitationToken"> | boolean
     isUsed?: BoolFilter<"InvitationToken"> | boolean
     firstAccessAt?: DateTimeNullableFilter<"InvitationToken"> | Date | string | null
     lastAccessAt?: DateTimeNullableFilter<"InvitationToken"> | Date | string | null
@@ -5793,7 +5793,7 @@ export namespace Prisma {
     id?: string
     createdAt?: Date | string
     updatedAt?: Date | string
-    token: string
+    isActive?: boolean
     isUsed?: boolean
     firstAccessAt?: Date | string | null
     lastAccessAt?: Date | string | null
@@ -5806,7 +5806,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    token?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     isUsed?: BoolFieldUpdateOperationsInput | boolean
     firstAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5819,7 +5819,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    token?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     isUsed?: BoolFieldUpdateOperationsInput | boolean
     firstAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -5832,7 +5832,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    token?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     isUsed?: BoolFieldUpdateOperationsInput | boolean
     firstAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastAccessAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

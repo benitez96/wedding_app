@@ -14,7 +14,7 @@ export interface Invitation {
 
 export interface InvitationToken {
   id: string
-  token: string
+  isActive: boolean
   isUsed: boolean
   firstAccessAt: Date | null
   lastAccessAt: Date | null

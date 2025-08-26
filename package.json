@@ -30,6 +30,7 @@
     "clsx": "2.1.1",
     "framer-motion": "11.18.2",
     "intl-messageformat": "10.7.16",
+    "jose": "^6.0.13",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.540.0",
     "next": "15.3.1",
