@@ -1,5 +1,5 @@
 import { Card, CardBody, CardHeader } from '@heroui/react'
-import { AlertTriangle, XCircle, Shield } from 'lucide-react'
+import { AlertTriangle, XCircle, Shield, Mail } from 'lucide-react'
 
 interface ErrorPageProps {
   searchParams: {
@@ -24,6 +24,20 @@ export default async function ErrorPage({ searchParams }: ErrorPageProps) {
           title: 'Invitación ya utilizada',
           description: 'Esta invitación ya ha sido utilizada. Cada enlace de invitación solo puede ser utilizado una vez.',
           icon: <Shield className="text-warning" size={48} />,
+          color: 'warning'
+        }
+      case 'necesita-invitacion':
+        return {
+          title: 'Necesitas una invitación',
+          description: 'Para acceder a esta página necesitas un enlace de invitación. Por favor, contacta a los novios para obtener tu invitación.',
+          icon: <Mail className="text-primary" size={48} />,
+          color: 'primary'
+        }
+      case 'error-verificando-autenticacion':
+        return {
+          title: 'Error de Autenticación',
+          description: 'Ocurrió un error al verificar tu autenticación. Por favor, intenta acceder nuevamente con tu enlace de invitación.',
+          icon: <AlertTriangle className="text-warning" size={48} />,
           color: 'warning'
         }
       case 'error-procesando-token':

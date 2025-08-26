@@ -480,3 +480,49 @@ export async function processInvitationToken(token: string) {
     return { success: false, action: 'error', error: 'error-procesando-token' }
   }
 }
+
+export async function getCurrentUser() {
+  try {
+    const cookieStore = await cookies()
+    const session = cookieStore.get('session')
+
+    if (!session) {
+      return { success: false, user: null }
+    }
+
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+    const { payload } = await jose.jwtVerify(session.value, secret, {
+      issuer: 'wedding-app',
+      audience: 'wedding-invitation',
+      algorithms: ['HS512']
+    })
+
+    // Verificar claims adicionales de seguridad
+    if (payload.iss !== 'wedding-app' || payload.aud !== 'wedding-invitation') {
+      return { success: false, user: null }
+    }
+
+    // Obtener información de la invitación
+    const invitation = await prisma.invitation.findUnique({
+      where: { id: payload.invitationId as string }
+    })
+
+    if (!invitation) {
+      return { success: false, user: null }
+    }
+
+    return { 
+      success: true, 
+      user: {
+        invitationId: payload.invitationId,
+        tokenId: payload.tokenId,
+        guestName: invitation.guestName,
+        guestNickname: invitation.guestNickname,
+        maxGuests: invitation.maxGuests
+      }
+    }
+  } catch (error) {
+    console.error('Error al obtener usuario actual:', error)
+    return { success: false, user: null }
+  }
+}
