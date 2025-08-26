@@ -3,13 +3,14 @@ import { getInvitationWithTokens } from '@/app/actions/invitations'
 import InvitationDetailModal from '@/components/InvitationDetailModal'
 
 interface InterceptedInvitationDetailProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function InterceptedInvitationDetail({ params }: InterceptedInvitationDetailProps) {
-  const result = await getInvitationWithTokens(params.id)
+  const resolvedParams = await params
+  const result = await getInvitationWithTokens(resolvedParams.id)
   
   if (!result.success || !result.data) {
     notFound()

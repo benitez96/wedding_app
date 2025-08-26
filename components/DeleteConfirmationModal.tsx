@@ -57,6 +57,14 @@ export default function DeleteConfirmationModal({ isOpen, onClose, onSuccess, in
       onClose={handleClose}
       size="sm"
       placement="center"
+      backdrop="blur"
+      classNames={{
+        backdrop: "bg-black/50 backdrop-blur-sm",
+        base: "border-1 border-default-200 bg-background",
+        header: "border-b-1 border-default-200",
+        body: "py-6",
+        footer: "border-t-1 border-default-200"
+      }}
     >
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
