@@ -21,7 +21,7 @@ export default async function ErrorPage({ searchParams }: ErrorPageProps) {
         }
       case 'token-ya-usado':
         return {
-          title: 'Invitación Ya Utilizada',
+          title: 'Invitación ya utilizada',
           description: 'Esta invitación ya ha sido utilizada. Cada enlace de invitación solo puede ser utilizado una vez.',
           icon: <Shield className="text-warning" size={48} />,
           color: 'warning'
@@ -56,22 +56,9 @@ export default async function ErrorPage({ searchParams }: ErrorPageProps) {
           <p className="text-default-600 mb-6">
             {errorInfo.description}
           </p>
-          
-          {message === 'token-ya-usado-otro-dispositivo' && (
-            <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-4">
-              <p className="text-warning-800 text-sm">
-                <strong>¿Necesitas ayuda?</strong><br />
-                Contacta a los organizadores para solicitar un nuevo enlace de invitación.
-              </p>
-            </div>
-          )}
-          
-          <a 
-            href="/"
-            className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
-          >
-            Volver al Inicio
-          </a>
+          <p className="text-default-600 mb-6">
+            Contactanos para obtener un nuevo enlace.
+          </p>
         </CardBody>
       </Card>
     </div>

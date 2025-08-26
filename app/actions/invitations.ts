@@ -6,6 +6,14 @@ import { Prisma } from '@prisma/client'
 import * as jose from 'jose'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
+import crypto from 'crypto'
+
+// Función para generar fingerprint del dispositivo
+async function generateDeviceFingerprint(userAgent: string): Promise<string> {
+  const hash = crypto.createHash('sha256')
+  hash.update(userAgent + process.env.JWT_SECRET || 'default-secret')
+  return hash.digest('hex').substring(0, 16) // Primeros 16 caracteres
+}
 
 export async function getInvitations(searchTerm?: string) {
   try {
@@ -364,11 +372,44 @@ export async function deleteInvitationToken(tokenId: string) {
 }
 
 export async function processInvitationToken(token: string) {
-  "use server"
   try {
     // Obtener user agent para información del dispositivo
     const headersList = await headers()
     const userAgent = headersList.get('user-agent') || 'Unknown'
+
+    const cookieStore = await cookies()
+    const session = cookieStore.get('session')
+
+    // Verificar si tiene una sesión activa
+    if (session) {
+      try {
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+        const { payload } = await jose.jwtVerify(session.value, secret, {
+          issuer: 'wedding-app',
+          audience: 'wedding-invitation',
+          algorithms: ['HS512']
+        })
+        
+        // Verificar claims adicionales de seguridad
+        if (payload.iss !== 'wedding-app' || payload.aud !== 'wedding-invitation') {
+          throw new Error('Invalid JWT claims')
+        }
+        
+        const currentDeviceFp = await generateDeviceFingerprint(userAgent)
+        if (payload.deviceFp !== currentDeviceFp) {
+          console.log('Device fingerprint mismatch, regenerating session')
+          cookieStore.delete('session')
+        } else {
+          if (payload.tokenId === token) {
+            return { success: true, action: 'redirect' }
+          }
+          
+          console.log('Token diferente al de la sesión, validando nuevo token')
+        }
+      } catch (jwtError) {
+        console.log('Sesión inválida, continuando con validación de token')
+      }
+    }
 
     // Buscar el token en la base de datos
     const invitationToken = await prisma.invitationToken.findUnique({
@@ -380,12 +421,12 @@ export async function processInvitationToken(token: string) {
 
     // Si el token no existe o está inactivo, retornar error
     if (!invitationToken || !invitationToken.isActive) {
-      return { success: false, error: 'token-invalido' }
+      return { success: false, action: 'error', error: 'token-invalido' }
     }
 
     // Verificar que el token no esté usado
     if (invitationToken.isUsed) {
-      return { success: false, error: 'token-ya-usado' }
+      return { success: false, action: 'error', error: 'token-ya-usado' }
     }
 
     // Marcar el token como usado y guardar user agent
@@ -397,23 +438,45 @@ export async function processInvitationToken(token: string) {
       }
     })
 
-    // Generar JWT simple solo con tokenId e invitationId
+    // Generar JWT con hardening de seguridad
     const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
     const sessionToken = await new jose.SignJWT({
       tokenId: token,
-      invitationId: invitationToken.invitation.id
+      invitationId: invitationToken.invitation.id,
+      // Agregar claims adicionales para mayor seguridad
+      iss: 'wedding-app', // Issuer
+      aud: 'wedding-invitation', // Audience
+      sub: invitationToken.invitation.id, // Subject
+      // Fingerprint del dispositivo para detectar cambios
+      deviceFp: await generateDeviceFingerprint(userAgent),
+      // Timestamp de creación para tracking
+      createdAt: Date.now()
     })
-      .setProtectedHeader({ alg: 'HS256' })
+      .setProtectedHeader({ 
+        alg: 'HS512', // Algoritmo más fuerte
+        typ: 'JWT',
+        kid: 'wedding-v1' // Key ID para versioning
+      })
       .setIssuedAt()
-      .setExpirationTime('30d')
+      .setNotBefore(new Date()) // No válido antes de ahora
+      .setExpirationTime('180d')
+      .setJti(crypto.randomUUID()) // JWT ID único
       .sign(secret)
+
+    // Setear la cookie
+    cookieStore.set('session', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 180 * 24 * 60 * 60 // 180 días
+    })
 
     return { 
       success: true, 
-      cookie: sessionToken 
+      action: 'authenticated'
     }
   } catch (error) {
     console.error('Error al procesar token:', error)
-    return { success: false, error: 'error-procesando-token' }
+    return { success: false, action: 'error', error: 'error-procesando-token' }
   }
 }
