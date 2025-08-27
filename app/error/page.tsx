@@ -60,7 +60,7 @@ export default async function ErrorPage({ searchParams }: ErrorPageProps) {
   const errorInfo = getErrorInfo(message)
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 p-4">
       <Card className="max-w-md w-full">
         <CardHeader className="flex flex-col items-center gap-4 pb-2">
           {errorInfo.icon}

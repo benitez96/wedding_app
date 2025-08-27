@@ -15,6 +15,24 @@ async function generateDeviceFingerprint(userAgent: string): Promise<string> {
   return hash.digest('hex').substring(0, 16) // Primeros 16 caracteres
 }
 
+// Helper function para validar tokens
+async function validateToken(tokenId: string) {
+  const token = await prisma.invitationToken.findUnique({
+    where: { id: tokenId },
+    include: { invitation: true }
+  })
+
+  if (!token || !token.isActive) {
+    return { valid: false, error: 'Token inválido o revocado' }
+  }
+
+  if (!token.invitation) {
+    return { valid: false, error: 'Invitación no encontrada' }
+  }
+
+  return { valid: true, token, invitation: token.invitation }
+}
+
 export async function getInvitations(searchTerm?: string) {
   try {
     const where = searchTerm ? {
@@ -502,12 +520,10 @@ export async function getCurrentUser() {
       return { success: false, user: null }
     }
 
-    // Obtener información de la invitación
-    const invitation = await prisma.invitation.findUnique({
-      where: { id: payload.invitationId as string }
-    })
-
-    if (!invitation) {
+    // Validar el token usando la helper function
+    const validation = await validateToken(payload.tokenId as string)
+    
+    if (!validation.valid || !validation.invitation) {
       return { success: false, user: null }
     }
 
@@ -516,13 +532,13 @@ export async function getCurrentUser() {
       user: {
         invitationId: payload.invitationId,
         tokenId: payload.tokenId,
-        guestName: invitation.guestName,
-        guestNickname: invitation.guestNickname,
-        maxGuests: invitation.maxGuests,
-        hasResponded: invitation.hasResponded,
-        isAttending: invitation.isAttending,
-        guestCount: invitation.guestCount,
-        respondedAt: invitation.respondedAt
+        guestName: validation.invitation.guestName,
+        guestNickname: validation.invitation.guestNickname,
+        maxGuests: validation.invitation.maxGuests,
+        hasResponded: validation.invitation.hasResponded,
+        isAttending: validation.invitation.isAttending,
+        guestCount: validation.invitation.guestCount,
+        respondedAt: validation.invitation.respondedAt
       }
     }
   } catch (error) {
@@ -531,29 +547,27 @@ export async function getCurrentUser() {
   }
 }
 
-export async function updateInvitationResponse(invitationId: string, data: {
+export async function updateInvitationResponse(tokenId: string, data: {
   isAttending: boolean
   guestCount?: number | null
   message?: string | null
 }) {
   try {
-    // Verificar que la invitación existe
-    const invitation = await prisma.invitation.findUnique({
-      where: { id: invitationId }
-    })
-
-    if (!invitation) {
-      return { success: false, error: 'Invitación no encontrada' }
+    // Validar el token usando la helper function
+    const validation = await validateToken(tokenId)
+    
+    if (!validation.valid || !validation.invitation) {
+      return { success: false, error: validation.error }
     }
 
     // Validar guestCount si isAttending es true
-    if (data.isAttending && (!data.guestCount || data.guestCount < 1 || data.guestCount > invitation.maxGuests)) {
+    if (data.isAttending && (!data.guestCount || data.guestCount < 1 || data.guestCount > validation.invitation.maxGuests)) {
       return { success: false, error: 'Número de asistentes debe estar entre 1 y el máximo permitido' }
     }
 
     // Actualizar la invitación
     const updatedInvitation = await prisma.invitation.update({
-      where: { id: invitationId },
+      where: { id: validation.invitation.id },
       data: {
         hasResponded: true,
         isAttending: data.isAttending,

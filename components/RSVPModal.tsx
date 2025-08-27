@@ -55,7 +55,7 @@ export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps
     setError('')
 
     try {
-      const result = await updateInvitationResponse(user.invitationId, {
+      const result = await updateInvitationResponse(user.tokenId, {
         isAttending: response === 'attending',
         guestCount: response === 'attending' ? guestCount : null
       })
