@@ -6,14 +6,7 @@ import { authenticateAdmin } from '@/app/actions/admin'
 import { Button, Input, Card, CardBody, CardHeader } from '@heroui/react'
 import { Eye, EyeOff, Lock, User } from 'lucide-react'
 
-// Función para loggear eventos de honeypot
-const logHoneypotEvent = (value: string) => {
-  console.log('🍯 Honeypot triggered:', {
-    value,
-    timestamp: new Date().toISOString(),
-    userAgent: navigator.userAgent
-  })
-}
+
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('')
@@ -28,20 +21,12 @@ export default function AdminLogin() {
     setIsLoading(true)
     setError('')
 
-    // Verificar honeypot
+    // Obtener el valor del honeypot para enviarlo al servidor
     const formData = new FormData(e.target as HTMLFormElement)
-    const honeypotValue = formData.get('website')
-    
-    if (honeypotValue) {
-      // Si el honeypot está lleno, es probablemente un bot
-      logHoneypotEvent(honeypotValue as string)
-      setError('Usuario o contraseña incorrectos')
-      setIsLoading(false)
-      return
-    }
+    const honeypotValue = formData.get('masterkey') as string
 
     try {
-      const result = await authenticateAdmin(username, password)
+      const result = await authenticateAdmin(username, password, honeypotValue)
       
       if (result.success) {
         // Redirigir al dashboard del backoffice
@@ -93,8 +78,7 @@ export default function AdminLogin() {
               <div className="absolute left-[-9999px] opacity-0 pointer-events-none">
                 <Input
                   type="text"
-                  name="website"
-                  placeholder="No llenar este campo"
+                  name="masterkey"
                   autoComplete="off"
                   tabIndex={-1}
                 />

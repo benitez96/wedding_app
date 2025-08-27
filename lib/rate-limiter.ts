@@ -199,6 +199,23 @@ export async function checkRateLimit(ip: string, actionType: keyof typeof RATE_L
   }
 }
 
+// Función para bloquear IP por honeypot (bloqueo inmediato y más largo)
+export async function blockIPForHoneypot(ip: string, actionType: keyof typeof RATE_LIMIT_CONFIGS, details?: string): Promise<void> {
+  const now = new Date()
+  // Bloqueo más largo para honeypot: 7 días
+  const blockedUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+  
+  // Crear bloqueo inmediato
+  await prisma.rateLimitBlock.create({
+    data: {
+      ip,
+      actionType,
+      blockedUntil,
+      reason: `Honeypot activado${details ? `: ${details}` : ''}`
+    }
+  })
+}
+
 // Función para limpiar datos antiguos (puede ejecutarse como cron job)
 export async function cleanupOldRateLimitData(): Promise<void> {
   const now = new Date()

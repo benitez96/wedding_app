@@ -4,7 +4,7 @@ import { cookies, headers } from 'next/headers'
 import * as jose from 'jose'
 import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
-import { getClientIP, recordAttempt } from '@/lib/rate-limiter'
+import { getClientIP, recordAttempt, blockIPForHoneypot } from '@/lib/rate-limiter'
 import { logSecurityEvent } from '@/lib/security-logger'
 
 // Función para generar fingerprint del dispositivo
@@ -17,8 +17,28 @@ async function generateDeviceFingerprint(userAgent: string): Promise<string> {
 }
 
 // Función para autenticar admin
-export async function authenticateAdmin(username: string, password: string) {
+export async function authenticateAdmin(username: string, password: string, honeypotValue?: string) {
   try {
+    // Verificar honeypot primero
+    if (honeypotValue) {
+      // Si el honeypot está lleno, es probablemente un bot
+      const clientIP = await getClientIP()
+      const headersList = await headers()
+      const userAgent = headersList.get('user-agent') || 'Unknown'
+      
+      // Bloquear la IP inmediatamente por 7 días
+      await blockIPForHoneypot(clientIP, 'admin-login', `Valor: ${honeypotValue}`)
+      
+      await logSecurityEvent({
+        type: 'honeypot-triggered',
+        ip: clientIP,
+        userAgent,
+        details: { honeypotValue, username }
+      })
+      
+      return { success: false, error: 'auth-error' }
+    }
+
     // Verificar rate limiting antes de procesar
     const clientIP = await getClientIP()
     const rateLimitResult = await recordAttempt(clientIP, 'admin-login', false)
