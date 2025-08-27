@@ -3,6 +3,7 @@ import { Button } from "@heroui/button";
 import { Section } from "@/components/section";
 import AnimatedSection from "@/components/AnimatedSection";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function CelebrationSection() {
   return (
@@ -18,6 +19,9 @@ export default function CelebrationSection() {
         <Button
           color="primary"
           startContent={<MapPin className="w-4 h-4" />}
+          as={Link}
+          href="https://maps.app.goo.gl/AjTWBW7Y25sENdw36"
+          target="_blank"
         >
           LLEGAR A LA CELEBRACIÓN
         </Button>

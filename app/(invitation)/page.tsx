@@ -12,11 +12,13 @@ import {
 } from "@/components/sections";
 import AnimatedDivider from "@/components/AnimatedDivider";
 import AuthGuard from "@/components/AuthGuard";
+import HeroMusicButton from "@/components/HeroMusicButton";
 
 export default function Home() {
   return (
     <AuthGuard>
       <>
+        <HeroMusicButton />
         <HeroSection />
         <QuoteSection />
         <DateSection />
