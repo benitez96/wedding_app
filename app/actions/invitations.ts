@@ -518,11 +518,54 @@ export async function getCurrentUser() {
         tokenId: payload.tokenId,
         guestName: invitation.guestName,
         guestNickname: invitation.guestNickname,
-        maxGuests: invitation.maxGuests
+        maxGuests: invitation.maxGuests,
+        hasResponded: invitation.hasResponded,
+        isAttending: invitation.isAttending,
+        guestCount: invitation.guestCount,
+        respondedAt: invitation.respondedAt
       }
     }
   } catch (error) {
     console.error('Error al obtener usuario actual:', error)
     return { success: false, user: null }
+  }
+}
+
+export async function updateInvitationResponse(invitationId: string, data: {
+  isAttending: boolean
+  guestCount?: number | null
+  message?: string | null
+}) {
+  try {
+    // Verificar que la invitación existe
+    const invitation = await prisma.invitation.findUnique({
+      where: { id: invitationId }
+    })
+
+    if (!invitation) {
+      return { success: false, error: 'Invitación no encontrada' }
+    }
+
+    // Validar guestCount si isAttending es true
+    if (data.isAttending && (!data.guestCount || data.guestCount < 1 || data.guestCount > invitation.maxGuests)) {
+      return { success: false, error: 'Número de asistentes debe estar entre 1 y el máximo permitido' }
+    }
+
+    // Actualizar la invitación
+    const updatedInvitation = await prisma.invitation.update({
+      where: { id: invitationId },
+      data: {
+        hasResponded: true,
+        isAttending: data.isAttending,
+        guestCount: data.isAttending ? data.guestCount : null,
+        respondedAt: new Date()
+      }
+    })
+
+    revalidatePath('/')
+    return { success: true, data: updatedInvitation }
+  } catch (error) {
+    console.error('Error al actualizar respuesta de invitación:', error)
+    return { success: false, error: 'Error al procesar la respuesta' }
   }
 }
