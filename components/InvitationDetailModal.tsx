@@ -23,8 +23,9 @@ import {
 } from '@heroui/react'
 import { X, ExternalLink, Calendar, Phone, Users, CheckCircle, XCircle, Clock, Copy, Check, Plus, Ban, Trash2, RotateCcw } from 'lucide-react'
 
-import { InvitationWithTokens, InvitationToken } from '@/app/backoffice/invitations/types'
+import { InvitationWithTokens, InvitationToken } from '@/app/backoffice/(protected)/invitations/types'
 import { createInvitationToken, revokeInvitationToken, reactivateInvitationToken, deleteInvitationToken } from '@/app/actions/invitations'
+import { formatDateTime } from '@/utils/date'
 
 interface InvitationDetailModalProps {
   invitation: InvitationWithTokens
@@ -37,17 +38,6 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
 
   const handleClose = () => {
     router.back()
-  }
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
   }
 
   const getDeviceInfo = (userAgent: string | null) => {
@@ -238,7 +228,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                       <div className="flex items-center gap-2">
                         <Calendar size={16} className="text-default-500" />
                         <span className="font-medium">Respondió el:</span>
-                        <span>{formatDate(invitation.respondedAt)}</span>
+                        <span>{formatDateTime(invitation.respondedAt)}</span>
                       </div>
                     </>
                   )}
@@ -249,7 +239,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
               
               <div className="flex items-center gap-2 text-sm text-default-500">
                 <Clock size={14} />
-                <span>Creada el {formatDate(invitation.createdAt)}</span>
+                                    <span>Creada el {formatDateTime(invitation.createdAt)}</span>
               </div>
             </CardBody>
           </Card>
@@ -350,10 +340,10 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                         )}
                       </TableCell>
                       <TableCell>
-                        {formatDate(token.firstAccessAt)}
+                        {formatDateTime(token.firstAccessAt)}
                       </TableCell>
                       <TableCell>
-                        {formatDate(token.lastAccessAt)}
+                        {formatDateTime(token.lastAccessAt)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">

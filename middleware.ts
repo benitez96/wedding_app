@@ -11,6 +11,8 @@ export async function middleware(request: NextRequest) {
     '/error',
     '/favicon.ico',
     '/logo.png',
+    '/r/', // Rutas de procesamiento de tokens
+    '/', // Sitio principal (se verifica autenticación en el componente)
   ]
 
   // Verificar si es una ruta pública

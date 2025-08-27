@@ -19,6 +19,7 @@ import { Edit, Trash2 } from 'lucide-react'
 import { Invitation } from './types'
 import EditInvitationModal from '@/components/EditInvitationModal'
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal'
+import { formatDate } from '@/utils/date'
 
 interface InvitationsTableProps {
   invitations: Invitation[]
@@ -35,11 +36,6 @@ export default function InvitationsTable({ invitations, searchTerm }: Invitation
 
   const handleRowClick = (invitation: Invitation) => {
     router.push(`/backoffice/invitations/${invitation.id}`)
-  }
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleDateString('es-ES')
   }
 
   const getStatusChip = (invitation: Invitation) => {

@@ -14,6 +14,8 @@ export function formatWeddingDate(dateString: string): string {
   return date.toLocaleDateString('es-ES', options);
 }
 
+import { ARGENTINA_TIMEZONE, ARGENTINA_LOCALE } from '@/config/timezone'
+
 export function getWeddingDate(): Date {
   const weddingDate = process.env.NEXT_PUBLIC_WEDDING_DATE || '20260214';
   const year = parseInt(weddingDate.substring(0, 4));
@@ -21,4 +23,49 @@ export function getWeddingDate(): Date {
   const day = parseInt(weddingDate.substring(6, 8));
   
   return new Date(year, month, day);
+}
+
+// Función para formatear fechas de manera consistente entre servidor y cliente
+export function formatDate(date: Date | null): string {
+  if (!date) return '-'
+  
+  // Convertir a zona horaria de Argentina usando Intl.DateTimeFormat
+  const formatter = new Intl.DateTimeFormat(ARGENTINA_LOCALE, {
+    timeZone: ARGENTINA_TIMEZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
+  
+  return formatter.format(date)
+}
+
+// Función para obtener la fecha actual en zona horaria de Argentina
+export function getCurrentDateArgentina(): Date {
+  const now = new Date()
+  const argentinaTime = new Date(now.toLocaleString(ARGENTINA_LOCALE, { timeZone: ARGENTINA_TIMEZONE }))
+  return argentinaTime
+}
+
+// Función para formatear fecha y hora en zona horaria de Argentina
+export function formatDateTime(date: Date | null): string {
+  if (!date) return '-'
+  
+  // Convertir a zona horaria de Argentina usando Intl.DateTimeFormat
+  const formatter = new Intl.DateTimeFormat(ARGENTINA_LOCALE, {
+    timeZone: ARGENTINA_TIMEZONE,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+  
+  return formatter.format(date)
+}
+
+// Función para convertir una fecha a zona horaria de Argentina
+export function toArgentinaTimeZone(date: Date): Date {
+  const argentinaTime = new Date(date.toLocaleString('en-US', { timeZone: ARGENTINA_TIMEZONE }))
+  return argentinaTime
 }
