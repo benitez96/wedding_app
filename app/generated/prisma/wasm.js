@@ -154,6 +154,24 @@ exports.Prisma.AdminUserScalarFieldEnum = {
   password: 'password'
 };
 
+exports.Prisma.RateLimitAttemptScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  ip: 'ip',
+  actionType: 'actionType',
+  success: 'success',
+  timestamp: 'timestamp'
+};
+
+exports.Prisma.RateLimitBlockScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  ip: 'ip',
+  actionType: 'actionType',
+  blockedUntil: 'blockedUntil',
+  reason: 'reason'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -173,7 +191,9 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   Invitation: 'Invitation',
   InvitationToken: 'InvitationToken',
-  AdminUser: 'AdminUser'
+  AdminUser: 'AdminUser',
+  RateLimitAttempt: 'RateLimitAttempt',
+  RateLimitBlock: 'RateLimitBlock'
 };
 
 /**

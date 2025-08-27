@@ -2,8 +2,10 @@ import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 
 import { siteConfig } from "@/config/site";
-import { Navbar, NavbarBrand, NavbarContent } from '@heroui/react'
-import { Heart } from 'lucide-react'
+import { Navbar, NavbarBrand, NavbarContent, Button, User } from '@heroui/react'
+import { Heart, LogOut } from 'lucide-react'
+import AdminAuthGuard from '@/components/AdminAuthGuard'
+import LogoutButton from './LogoutButton'
 
 export const metadata: Metadata = {
   title: {
@@ -38,7 +40,10 @@ export default function BackofficeLayout({
           </div>
         </NavbarBrand>
         <NavbarContent justify="end">
-          <span className="text-sm text-gray-500">Panel de Administración</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">Panel de Administración</span>
+            <LogoutButton />
+          </div>
         </NavbarContent>
       </Navbar>
 

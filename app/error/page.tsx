@@ -47,6 +47,13 @@ export default async function ErrorPage({ searchParams }: ErrorPageProps) {
           icon: <AlertTriangle className="text-danger" size={48} />,
           color: 'danger'
         }
+      case 'rate-limit-exceeded':
+        return {
+          title: 'Demasiados Intentos',
+          description: 'Has excedido el límite de intentos. Por favor, espera un tiempo antes de intentar nuevamente.',
+          icon: <Shield className="text-warning" size={48} />,
+          color: 'warning'
+        }
       default:
         return {
           title: 'Error Desconocido',

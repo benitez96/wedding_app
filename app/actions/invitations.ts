@@ -389,8 +389,23 @@ export async function deleteInvitationToken(tokenId: string) {
   }
 }
 
+import { getClientIP, recordAttempt } from '@/lib/rate-limiter'
+
 export async function processInvitationToken(token: string) {
   try {
+    // Verificar rate limiting antes de procesar
+    const clientIP = await getClientIP()
+    const rateLimitResult = await recordAttempt(clientIP, 'invitation-token', false)
+    
+    if (!rateLimitResult.allowed) {
+      return { 
+        success: false, 
+        action: 'error', 
+        error: 'rate-limit-exceeded',
+        blockedUntil: rateLimitResult.blockedUntil
+      }
+    }
+
     // Obtener user agent para información del dispositivo
     const headersList = await headers()
     const userAgent = headersList.get('user-agent') || 'Unknown'
@@ -439,11 +454,15 @@ export async function processInvitationToken(token: string) {
 
     // Si el token no existe o está inactivo, retornar error
     if (!invitationToken || !invitationToken.isActive) {
+      // Registrar intento fallido
+      await recordAttempt(clientIP, 'invitation-token', false)
       return { success: false, action: 'error', error: 'token-invalido' }
     }
 
     // Verificar que el token no esté usado
     if (invitationToken.isUsed) {
+      // Registrar intento fallido
+      await recordAttempt(clientIP, 'invitation-token', false)
       return { success: false, action: 'error', error: 'token-ya-usado' }
     }
 
@@ -468,7 +487,9 @@ export async function processInvitationToken(token: string) {
       // Fingerprint del dispositivo para detectar cambios
       deviceFp: await generateDeviceFingerprint(userAgent),
       // Timestamp de creación para tracking
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      // Tipo de sesión para diferenciar de admin
+      sessionType: 'invitation'
     })
       .setProtectedHeader({ 
         alg: 'HS512', // Algoritmo más fuerte
@@ -489,6 +510,9 @@ export async function processInvitationToken(token: string) {
       maxAge: 180 * 24 * 60 * 60 // 180 días
     })
 
+    // Registrar intento exitoso
+    await recordAttempt(clientIP, 'invitation-token', true)
+    
     return { 
       success: true, 
       action: 'authenticated'
@@ -547,39 +571,7 @@ export async function getCurrentUser() {
   }
 }
 
-export async function updateInvitationResponse(tokenId: string, data: {
-  isAttending: boolean
-  guestCount?: number | null
-  message?: string | null
-}) {
-  try {
-    // Validar el token usando la helper function
-    const validation = await validateToken(tokenId)
-    
-    if (!validation.valid || !validation.invitation) {
-      return { success: false, error: validation.error }
-    }
+// Importar y re-exportar el action protegido
+import { updateInvitationResponse as protectedUpdateInvitationResponse } from './protected-invitations'
 
-    // Validar guestCount si isAttending es true
-    if (data.isAttending && (!data.guestCount || data.guestCount < 1 || data.guestCount > validation.invitation.maxGuests)) {
-      return { success: false, error: 'Número de asistentes debe estar entre 1 y el máximo permitido' }
-    }
-
-    // Actualizar la invitación
-    const updatedInvitation = await prisma.invitation.update({
-      where: { id: validation.invitation.id },
-      data: {
-        hasResponded: true,
-        isAttending: data.isAttending,
-        guestCount: data.isAttending ? data.guestCount : null,
-        respondedAt: new Date()
-      }
-    })
-
-    revalidatePath('/')
-    return { success: true, data: updatedInvitation }
-  } catch (error) {
-    console.error('Error al actualizar respuesta de invitación:', error)
-    return { success: false, error: 'Error al procesar la respuesta' }
-  }
-}
+export const updateInvitationResponse = protectedUpdateInvitationResponse

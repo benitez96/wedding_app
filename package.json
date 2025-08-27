@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint --fix"
+    "lint": "eslint --fix",
+    "internal:create-admin": "tsx scripts/create-admin.ts",
+    "internal:cleanup-rate-limit": "tsx scripts/cleanup-rate-limit.ts"
   },
   "dependencies": {
     "@heroui/button": "2.2.24",

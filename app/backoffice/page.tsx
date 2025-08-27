@@ -1,10 +1,5 @@
+import { redirect } from 'next/navigation'
 
-
-
-export default function Backoffice() {
-  return (
-    <div>
-      <h1>Backoffice</h1>
-    </div>
-  );
+export default function BackofficeRedirect() {
+  redirect('/backoffice/dashboard')
 }

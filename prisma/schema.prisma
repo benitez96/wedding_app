@@ -68,3 +68,31 @@ model AdminUser {
   
   @@map("admin_users")
 }
+
+// Rate limiting - Intentos de acceso
+model RateLimitAttempt {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  // Información del intento
+  ip          String
+  actionType  String   // 'invitation-token', 'admin-login', 'invitation-actions'
+  success     Boolean  @default(false)
+  timestamp   DateTime @default(now())
+  
+  @@map("rate_limit_attempts")
+}
+
+// Rate limiting - Bloqueos de IP
+model RateLimitBlock {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  // Información del bloqueo
+  ip          String
+  actionType  String   // 'invitation-token', 'admin-login', 'invitation-actions'
+  blockedUntil DateTime
+  reason      String?
+  
+  @@map("rate_limit_blocks")
+}
