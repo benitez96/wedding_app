@@ -3,6 +3,7 @@
 import { withAdminAuth, AdminUser } from '@/lib/admin-auth'
 import prisma from '@/lib/prisma'
 import * as XLSX from 'xlsx'
+import { validateCSRFToken } from '@/lib/csrf'
 
 // Ejemplo de action protegido para obtener estadísticas
 export const getAdminStats = withAdminAuth(async (user: AdminUser) => {
@@ -42,8 +43,13 @@ export const getAllInvitations = withAdminAuth(async (user: AdminUser) => {
 })
 
 // Ejemplo de action protegido para eliminar una invitación
-export const deleteInvitation = withAdminAuth(async (user: AdminUser, invitationId: string) => {
+export const deleteInvitation = withAdminAuth(async (user: AdminUser, invitationId: string, csrfToken?: string) => {
   try {
+    // Validar CSRF token
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     await prisma.invitation.delete({
       where: { id: invitationId }
     })
@@ -64,12 +70,19 @@ export const updateInvitation = withAdminAuth(async (
     guestNickname?: string
     guestPhone?: string
     maxGuests?: number
+    csrfToken?: string
   }
 ) => {
   try {
+    // Validar CSRF token
+    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
+    const { csrfToken, ...updateData } = data
     const invitation = await prisma.invitation.update({
       where: { id: invitationId },
-      data
+      data: updateData
     })
 
     return { success: true, invitation }

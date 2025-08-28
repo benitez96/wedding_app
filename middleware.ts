@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import * as jose from 'jose'
+import { JWT_SECRET, SECURITY_CONFIG } from '@/lib/config'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -31,15 +32,15 @@ export async function middleware(request: NextRequest) {
 
     try {
       // Verificar el JWT de admin
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+      const secret = new TextEncoder().encode(JWT_SECRET)
       const { payload } = await jose.jwtVerify(adminSession.value, secret, {
-        issuer: 'wedding-app',
-        audience: 'wedding-admin',
-        algorithms: ['HS512']
+        issuer: SECURITY_CONFIG.JWT_ISSUER,
+        audience: SECURITY_CONFIG.JWT_ADMIN_AUDIENCE,
+        algorithms: [SECURITY_CONFIG.JWT_ALGORITHM]
       })
 
       // Verificar claims adicionales de seguridad
-      if (payload.iss !== 'wedding-app' || payload.aud !== 'wedding-admin') {
+      if (payload.iss !== SECURITY_CONFIG.JWT_ISSUER || payload.aud !== SECURITY_CONFIG.JWT_ADMIN_AUDIENCE) {
         throw new Error('Invalid JWT claims')
       }
 
@@ -67,19 +68,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/error?message=necesita-invitacion', request.url))
   }
 
-  try {
-    // Verificar el JWT de invitación
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
-    const { payload } = await jose.jwtVerify(invitationSession.value, secret, {
-      issuer: 'wedding-app',
-      audience: 'wedding-invitation',
-      algorithms: ['HS512']
-    })
+      try {
+      // Verificar el JWT de invitación
+      const secret = new TextEncoder().encode(JWT_SECRET)
+      const { payload } = await jose.jwtVerify(invitationSession.value, secret, {
+        issuer: SECURITY_CONFIG.JWT_ISSUER,
+        audience: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
+        algorithms: [SECURITY_CONFIG.JWT_ALGORITHM]
+      })
 
-    // Verificar claims adicionales de seguridad
-    if (payload.iss !== 'wedding-app' || payload.aud !== 'wedding-invitation') {
-      throw new Error('Invalid JWT claims')
-    }
+      // Verificar claims adicionales de seguridad
+      if (payload.iss !== SECURITY_CONFIG.JWT_ISSUER || payload.aud !== SECURITY_CONFIG.JWT_INVITATION_AUDIENCE) {
+        throw new Error('Invalid JWT claims')
+      }
 
     // Verificar que sea una sesión de invitación (no admin)
     if (payload.sessionType === 'admin') {

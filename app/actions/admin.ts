@@ -6,6 +6,9 @@ import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
 import { getClientIP, recordAttempt, blockIPForHoneypot } from '@/lib/rate-limiter'
 import { logSecurityEvent } from '@/lib/security-logger'
+import { JWT_SECRET, SECURITY_CONFIG } from '@/lib/config'
+import { adminLoginSchema, validateAndSanitize } from '@/utils/validation'
+import { validateCSRFToken } from '@/lib/csrf'
 
 // Función para generar fingerprint del dispositivo
 async function generateDeviceFingerprint(userAgent: string): Promise<string> {
@@ -17,23 +20,41 @@ async function generateDeviceFingerprint(userAgent: string): Promise<string> {
 }
 
 // Función para autenticar admin
-export async function authenticateAdmin(username: string, password: string, honeypotValue?: string) {
+export async function authenticateAdmin(username: string, password: string, honeypotValue?: string, csrfToken?: string) {
   try {
+    // Validar CSRF token si se proporciona
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'token-csrf-invalido' }
+    }
+
+    // Validar y sanitizar entrada
+    const validation = validateAndSanitize(adminLoginSchema, {
+      username,
+      password,
+      honeypotValue
+    })
+    
+    if (!validation.success) {
+      return { success: false, error: 'datos-invalidos' }
+    }
+    
+    const { data } = validation as { success: true; data: { username: string; password: string; honeypotValue?: string } }
+    
     // Verificar honeypot primero
-    if (honeypotValue) {
+    if (data.honeypotValue) {
       // Si el honeypot está lleno, es probablemente un bot
       const clientIP = await getClientIP()
       const headersList = await headers()
       const userAgent = headersList.get('user-agent') || 'Unknown'
       
       // Bloquear la IP inmediatamente por 7 días
-      await blockIPForHoneypot(clientIP, 'admin-login', `Valor: ${honeypotValue}`)
+      await blockIPForHoneypot(clientIP, 'admin-login', `Valor: ${data.honeypotValue}`)
       
       await logSecurityEvent({
         type: 'honeypot-triggered',
         ip: clientIP,
         userAgent,
-        details: { honeypotValue, username }
+        details: { honeypotValue: data.honeypotValue, username: data.username }
       })
       
       return { success: false, error: 'auth-error' }
@@ -63,7 +84,7 @@ export async function authenticateAdmin(username: string, password: string, hone
 
     // Buscar el usuario admin en la base de datos
     const adminUser = await prisma.adminUser.findUnique({
-      where: { username }
+      where: { username: data.username }
     })
 
     // Si el usuario no existe, retornar error genérico
@@ -74,13 +95,13 @@ export async function authenticateAdmin(username: string, password: string, hone
         type: 'login-failed',
         ip: clientIP,
         userAgent,
-        details: { reason: 'user-not-found', username }
+        details: { reason: 'user-not-found', username: data.username }
       })
       return { success: false, error: 'auth-error' }
     }
 
     // Verificar la contraseña
-    const isValidPassword = await bcrypt.compare(password, adminUser.password)
+    const isValidPassword = await bcrypt.compare(data.password, adminUser.password)
     if (!isValidPassword) {
       // Registrar intento fallido
       await recordAttempt(clientIP, 'admin-login', false)
@@ -88,13 +109,13 @@ export async function authenticateAdmin(username: string, password: string, hone
         type: 'login-failed',
         ip: clientIP,
         userAgent,
-        details: { reason: 'invalid-password', username }
+        details: { reason: 'invalid-password', username: data.username }
       })
       return { success: false, error: 'auth-error' }
     }
 
     // Generar JWT con hardening de seguridad
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+    const secret = new TextEncoder().encode(JWT_SECRET)
     const sessionToken = await new jose.SignJWT({
       userId: adminUser.id,
       username: adminUser.username,
@@ -110,13 +131,13 @@ export async function authenticateAdmin(username: string, password: string, hone
       sessionType: 'admin'
     })
       .setProtectedHeader({ 
-        alg: 'HS512', // Algoritmo más fuerte
+        alg: SECURITY_CONFIG.JWT_ALGORITHM,
         typ: 'JWT',
         kid: 'wedding-admin-v1' // Key ID para versioning
       })
       .setIssuedAt()
       .setNotBefore(new Date()) // No válido antes de ahora
-      .setExpirationTime('24h') // Sesión más corta para admin
+      .setExpirationTime(`${SECURITY_CONFIG.ADMIN_SESSION_DURATION}s`) // Sesión más corta para admin
       .setJti(crypto.randomUUID()) // JWT ID único
       .sign(secret)
 
@@ -124,9 +145,9 @@ export async function authenticateAdmin(username: string, password: string, hone
     const cookieStore = await cookies()
     cookieStore.set('admin-session', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 // 24 horas
+      secure: SECURITY_CONFIG.COOKIE_SECURE,
+      sameSite: SECURITY_CONFIG.COOKIE_SAME_SITE,
+      maxAge: SECURITY_CONFIG.ADMIN_SESSION_DURATION
     })
 
     // Registrar intento exitoso
@@ -161,15 +182,15 @@ export async function getCurrentAdmin() {
       return { success: false, user: null }
     }
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+    const secret = new TextEncoder().encode(JWT_SECRET)
     const { payload } = await jose.jwtVerify(session.value, secret, {
-      issuer: 'wedding-app',
-      audience: 'wedding-admin',
-      algorithms: ['HS512']
+      issuer: SECURITY_CONFIG.JWT_ISSUER,
+      audience: SECURITY_CONFIG.JWT_ADMIN_AUDIENCE,
+      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM]
     })
 
     // Verificar claims adicionales de seguridad
-    if (payload.iss !== 'wedding-app' || payload.aud !== 'wedding-admin') {
+    if (payload.iss !== SECURITY_CONFIG.JWT_ISSUER || payload.aud !== SECURITY_CONFIG.JWT_ADMIN_AUDIENCE) {
       return { success: false, user: null }
     }
 

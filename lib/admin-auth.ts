@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import * as jose from 'jose'
 import prisma from '@/lib/prisma'
+import { JWT_SECRET, SECURITY_CONFIG } from '@/lib/config'
 
 export interface AdminUser {
   id: string
@@ -16,15 +17,15 @@ export async function verifyAdminAuth(): Promise<{ success: boolean; user?: Admi
       return { success: false, error: 'no-session' }
     }
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+    const secret = new TextEncoder().encode(JWT_SECRET)
     const { payload } = await jose.jwtVerify(session.value, secret, {
-      issuer: 'wedding-app',
-      audience: 'wedding-admin',
-      algorithms: ['HS512']
+      issuer: SECURITY_CONFIG.JWT_ISSUER,
+      audience: SECURITY_CONFIG.JWT_ADMIN_AUDIENCE,
+      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM]
     })
 
     // Verificar claims adicionales de seguridad
-    if (payload.iss !== 'wedding-app' || payload.aud !== 'wedding-admin') {
+    if (payload.iss !== SECURITY_CONFIG.JWT_ISSUER || payload.aud !== SECURITY_CONFIG.JWT_ADMIN_AUDIENCE) {
       return { success: false, error: 'invalid-claims' }
     }
 

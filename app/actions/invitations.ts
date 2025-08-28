@@ -7,11 +7,14 @@ import * as jose from 'jose'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
 import crypto from 'crypto'
+import { JWT_SECRET, SECURITY_CONFIG } from '@/lib/config'
+import { invitationSchema, invitationResponseSchema, searchSchema, tokenSchema, validateAndSanitize, sanitizeString } from '@/utils/validation'
+import { validateCSRFToken } from '@/lib/csrf'
 
 // Función para generar fingerprint del dispositivo
 async function generateDeviceFingerprint(userAgent: string): Promise<string> {
   const hash = crypto.createHash('sha256')
-  hash.update(userAgent + process.env.JWT_SECRET || 'default-secret')
+  hash.update(userAgent + JWT_SECRET)
   return hash.digest('hex').substring(0, 16) // Primeros 16 caracteres
 }
 
@@ -35,6 +38,16 @@ async function validateToken(tokenId: string) {
 
 export async function getInvitations(searchTerm?: string) {
   try {
+    // Validar término de búsqueda
+    if (searchTerm) {
+      const validation = validateAndSanitize(searchSchema, { searchTerm })
+      if (!validation.success) {
+        return { success: false, error: 'Término de búsqueda inválido' }
+      }
+      const validatedData = validation as { success: true; data: { searchTerm?: string } }
+      searchTerm = sanitizeString(validatedData.data.searchTerm || '')
+    }
+    
     const where = searchTerm ? {
       OR: [
         {
@@ -67,6 +80,12 @@ export async function getInvitations(searchTerm?: string) {
 
 export async function createInvitation(formData: FormData) {
   try {
+    // Validar CSRF token
+    const csrfToken = formData.get('_csrf') as string
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     const guestName = formData.get('guestName') as string
     const guestNickname = formData.get('guestNickname') as string
     const guestPhone = formData.get('guestPhone') as string
@@ -75,26 +94,33 @@ export async function createInvitation(formData: FormData) {
     const isAttending = formData.get('isAttending') === 'true'
     const guestCount = formData.get('guestCount') ? parseInt(formData.get('guestCount') as string) : null
 
-    // Validaciones
-    if (!guestName || !maxGuests) {
-      return { success: false, error: 'Nombre del invitado y máximo de invitados son requeridos' }
+    // Validar y sanitizar datos
+    const validation = validateAndSanitize(invitationSchema, {
+      guestName,
+      guestNickname,
+      guestPhone,
+      maxGuests,
+      hasResponded,
+      isAttending,
+      guestCount
+    })
+
+    if (!validation.success) {
+      return { success: false, error: validation.error }
     }
 
-    // Validar guestCount si isAttending es true
-    if (isAttending && (!guestCount || guestCount < 1 || guestCount > maxGuests)) {
-      return { success: false, error: 'Número de asistentes debe estar entre 1 y el máximo permitido' }
-    }
+    const { data } = validation as { success: true; data: any }
 
     const invitation = await prisma.invitation.create({
       data: {
-        guestName,
-        guestNickname: guestNickname || null,
-        guestPhone: guestPhone || null,
-        maxGuests: Number(maxGuests),
-        hasResponded,
-        isAttending: hasResponded ? isAttending : null,
-        guestCount: hasResponded && isAttending ? guestCount : null,
-        respondedAt: hasResponded ? new Date() : null
+        guestName: data.guestName,
+        guestNickname: data.guestNickname || null,
+        guestPhone: data.guestPhone || null,
+        maxGuests: data.maxGuests,
+        hasResponded: data.hasResponded || false,
+        isAttending: data.hasResponded ? data.isAttending : null,
+        guestCount: data.hasResponded && data.isAttending ? data.guestCount : null,
+        respondedAt: data.hasResponded ? new Date() : null
       }
     })
 
@@ -108,6 +134,12 @@ export async function createInvitation(formData: FormData) {
 
 export async function updateInvitation(id: string, formData: FormData) {
   try {
+    // Validar CSRF token
+    const csrfToken = formData.get('_csrf') as string
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     const guestName = formData.get('guestName') as string
     const guestNickname = formData.get('guestNickname') as string
     const guestPhone = formData.get('guestPhone') as string
@@ -147,8 +179,13 @@ export async function updateInvitation(id: string, formData: FormData) {
   }
 }
 
-export async function deleteInvitation(id: string) {
+export async function deleteInvitation(id: string, csrfToken?: string) {
   try {
+    // Validar CSRF token
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     await prisma.invitation.delete({
       where: { id }
     })
@@ -319,8 +356,13 @@ export async function getFilteredInvitationsStats(searchTerm: string) {
   }
 }
 
-export async function createInvitationToken(invitationId: string) {
+export async function createInvitationToken(invitationId: string, csrfToken?: string) {
   try {
+    // Validar CSRF token
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     // Verificar que la invitación existe
     const invitation = await prisma.invitation.findUnique({
       where: { id: invitationId }
@@ -345,8 +387,13 @@ export async function createInvitationToken(invitationId: string) {
   }
 }
 
-export async function revokeInvitationToken(tokenId: string) {
+export async function revokeInvitationToken(tokenId: string, csrfToken?: string) {
   try {
+    // Validar CSRF token
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     const token = await prisma.invitationToken.update({
       where: { id: tokenId },
       data: { isActive: false }
@@ -360,8 +407,13 @@ export async function revokeInvitationToken(tokenId: string) {
   }
 }
 
-export async function reactivateInvitationToken(tokenId: string) {
+export async function reactivateInvitationToken(tokenId: string, csrfToken?: string) {
   try {
+    // Validar CSRF token
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     const token = await prisma.invitationToken.update({
       where: { id: tokenId },
       data: { isActive: true }
@@ -375,8 +427,13 @@ export async function reactivateInvitationToken(tokenId: string) {
   }
 }
 
-export async function deleteInvitationToken(tokenId: string) {
+export async function deleteInvitationToken(tokenId: string, csrfToken?: string) {
   try {
+    // Validar CSRF token
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     await prisma.invitationToken.delete({
       where: { id: tokenId }
     })
@@ -393,6 +450,12 @@ import { getClientIP, recordAttempt } from '@/lib/rate-limiter'
 
 export async function processInvitationToken(token: string) {
   try {
+    // Validar token
+    const tokenValidation = validateAndSanitize(tokenSchema, token)
+    if (!tokenValidation.success) {
+      return { success: false, action: 'error', error: 'token-invalido' }
+    }
+    
     // Verificar rate limiting antes de procesar
     const clientIP = await getClientIP()
     const rateLimitResult = await recordAttempt(clientIP, 'invitation-token', false)
@@ -445,8 +508,9 @@ export async function processInvitationToken(token: string) {
     }
 
     // Buscar el token en la base de datos
+    const validatedToken = (tokenValidation as { success: true; data: string }).data
     const invitationToken = await prisma.invitationToken.findUnique({
-      where: { id: token },
+      where: { id: validatedToken },
       include: {
         invitation: true
       }
@@ -468,7 +532,7 @@ export async function processInvitationToken(token: string) {
 
     // Marcar el token como usado y guardar user agent
     await prisma.invitationToken.update({
-      where: { id: token },
+      where: { id: validatedToken },
       data: {
         isUsed: true,
         userAgent: userAgent
@@ -476,13 +540,13 @@ export async function processInvitationToken(token: string) {
     })
 
     // Generar JWT con hardening de seguridad
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+    const secret = new TextEncoder().encode(JWT_SECRET)
     const sessionToken = await new jose.SignJWT({
-      tokenId: token,
+      tokenId: validatedToken,
       invitationId: invitationToken.invitation.id,
       // Agregar claims adicionales para mayor seguridad
-      iss: 'wedding-app', // Issuer
-      aud: 'wedding-invitation', // Audience
+      iss: SECURITY_CONFIG.JWT_ISSUER, // Issuer
+      aud: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE, // Audience
       sub: invitationToken.invitation.id, // Subject
       // Fingerprint del dispositivo para detectar cambios
       deviceFp: await generateDeviceFingerprint(userAgent),
@@ -492,22 +556,22 @@ export async function processInvitationToken(token: string) {
       sessionType: 'invitation'
     })
       .setProtectedHeader({ 
-        alg: 'HS512', // Algoritmo más fuerte
+        alg: SECURITY_CONFIG.JWT_ALGORITHM, // Algoritmo más fuerte
         typ: 'JWT',
         kid: 'wedding-v1' // Key ID para versioning
       })
       .setIssuedAt()
       .setNotBefore(new Date()) // No válido antes de ahora
-      .setExpirationTime('180d')
+      .setExpirationTime(`${SECURITY_CONFIG.INVITATION_SESSION_DURATION}s`)
       .setJti(crypto.randomUUID()) // JWT ID único
       .sign(secret)
 
     // Setear la cookie
     cookieStore.set('session', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 180 * 24 * 60 * 60 // 180 días
+      secure: SECURITY_CONFIG.COOKIE_SECURE,
+      sameSite: SECURITY_CONFIG.COOKIE_SAME_SITE,
+      maxAge: SECURITY_CONFIG.INVITATION_SESSION_DURATION
     })
 
     // Registrar intento exitoso

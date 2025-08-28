@@ -3,14 +3,21 @@
 import { withInvitationAuth, InvitationUser } from '@/lib/invitation-auth'
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { validateCSRFToken } from '@/lib/csrf'
 
 // Action protegido para actualizar respuesta de invitación
 export const updateInvitationResponse = withInvitationAuth(async (user: InvitationUser, data: {
   isAttending: boolean
   guestCount?: number | null
   message?: string | null
+  csrfToken?: string
 }) => {
   try {
+    // Validar CSRF token
+    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     // Validar guestCount si isAttending es true
     if (data.isAttending && (!data.guestCount || data.guestCount < 1 || data.guestCount > user.maxGuests)) {
       return { success: false, error: 'Número de asistentes debe estar entre 1 y el máximo permitido' }
@@ -38,6 +45,12 @@ export const updateInvitationResponse = withInvitationAuth(async (user: Invitati
 // Action protegido para subir fotos (cuando se implemente)
 export const uploadPhoto = withInvitationAuth(async (user: InvitationUser, formData: FormData) => {
   try {
+    // Validar CSRF token
+    const csrfToken = formData.get('_csrf') as string
+    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     // TODO: Implementar lógica de subida de fotos
     // Por ahora solo retornamos un placeholder
     
@@ -56,8 +69,14 @@ export const uploadPhoto = withInvitationAuth(async (user: InvitationUser, formD
 export const sendMessage = withInvitationAuth(async (user: InvitationUser, data: {
   message: string
   type?: 'wish' | 'memory' | 'advice'
+  csrfToken?: string
 }) => {
   try {
+    // Validar CSRF token
+    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken))) {
+      return { success: false, error: 'Token CSRF inválido' }
+    }
+
     // TODO: Implementar lógica de envío de mensajes
     // Por ahora solo retornamos un placeholder
     

@@ -6,6 +6,7 @@ import { Users, Heart } from 'lucide-react'
 import { getCurrentUser, updateInvitationResponse } from '@/app/actions/invitations'
 import CustomRadioGroup from './sections/RSVPStatus/CustomRadioGroup'
 import GuestCountSelector from './GuestCountSelector'
+import { useCSRF } from '@/hooks/useCSRF'
 
 interface RSVPModalProps {
   isOpen: boolean
@@ -19,6 +20,7 @@ export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps
   const [response, setResponse] = useState<'attending' | 'declining' | null>(null)
   const [guestCount, setGuestCount] = useState<number>(1)
   const [error, setError] = useState('')
+  const { csrfData } = useCSRF()
 
   useEffect(() => {
     if (isOpen) {
@@ -57,7 +59,8 @@ export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps
     try {
       const result = await updateInvitationResponse({
         isAttending: response === 'attending',
-        guestCount: response === 'attending' ? guestCount : null
+        guestCount: response === 'attending' ? guestCount : null,
+        csrfToken: csrfData?.token
       })
 
       if (result.success) {

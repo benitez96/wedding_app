@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { authenticateAdmin } from '@/app/actions/admin'
 import { Button, Input, Card, CardBody, CardHeader } from '@heroui/react'
 import { Eye, EyeOff, Lock, User } from 'lucide-react'
+import { useCSRF } from '@/hooks/useCSRF'
 
 
 
@@ -14,6 +15,7 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const { csrfData, addCSRFToFormData } = useCSRF()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,8 +27,11 @@ export default function AdminLogin() {
     const formData = new FormData(e.target as HTMLFormElement)
     const honeypotValue = formData.get('masterkey') as string
 
+    // Agregar token CSRF al formulario
+    addCSRFToFormData(formData)
+
     try {
-      const result = await authenticateAdmin(username, password, honeypotValue)
+      const result = await authenticateAdmin(username, password, honeypotValue, csrfData?.token)
       
       if (result.success) {
         // Redirigir al dashboard del backoffice

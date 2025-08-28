@@ -13,6 +13,7 @@ import {
   NumberInput,
   Form
 } from '@heroui/react'
+import { useCSRF } from '@/hooks/useCSRF'
 
 interface CreateInvitationModalProps {
   isOpen: boolean
@@ -22,10 +23,14 @@ interface CreateInvitationModalProps {
 
 export default function CreateInvitationModal({ isOpen, onClose, onSuccess }: CreateInvitationModalProps) {
   const [error, setError] = useState('')
+  const { addCSRFToFormData } = useCSRF()
 
 
   const handleAction = async (formData: FormData) => {
     try {
+      // Agregar token CSRF al formulario
+      addCSRFToFormData(formData)
+
       const result = await createInvitation(formData)
       
       if (result.success) {

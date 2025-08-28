@@ -14,6 +14,7 @@ import {
   Form
 } from '@heroui/react'
 import InvitationStatusSelect from './InvitationStatusSelect'
+import { useCSRF } from '@/hooks/useCSRF'
 
 interface Invitation {
   id: string
@@ -46,6 +47,7 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
   })
   const [invitationStatus, setInvitationStatus] = useState('pending')
   const [guestCount, setGuestCount] = useState(1)
+  const { addCSRFToFormData } = useCSRF()
 
   // Actualizar el formulario cuando cambie la invitación
   useEffect(() => {
@@ -75,6 +77,9 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
     if (!invitation) return
 
     try {
+      // Agregar token CSRF al formulario
+      addCSRFToFormData(formData)
+
       const result = await updateInvitation(invitation.id, formData)
       
       if (result.success) {
