@@ -1,6 +1,7 @@
 import { Card, CardBody, CardHeader } from '@heroui/react'
 import { Users, Mail, CheckCircle, XCircle } from 'lucide-react'
 import prisma from '@/lib/prisma'
+import ExportConfirmedGuestsButton from '@/components/ExportConfirmedGuestsButton'
 
 async function getDashboardStats() {
   const [
@@ -111,22 +112,13 @@ export default async function Backoffice() {
               <h4 className="font-medium text-gray-900">Gestionar Invitaciones</h4>
               <p className="text-sm text-gray-600 mt-1">Ver y editar todas las invitaciones</p>
             </a>
-            
-            <a 
-              href="/backoffice/invitations" 
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <h4 className="font-medium text-gray-900">Crear Nueva Invitación</h4>
-              <p className="text-sm text-gray-600 mt-1">Agregar un nuevo invitado</p>
-            </a>
-            
-            <a 
-              href="/backoffice/invitations" 
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <h4 className="font-medium text-gray-900">Generar Tokens</h4>
-              <p className="text-sm text-gray-600 mt-1">Crear tokens de acceso para invitados</p>
-            </a>
+
+
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">Exportar Confirmados</h4>
+              <p className="text-sm text-gray-600 mb-3">Descargar Excel con invitados confirmados</p>
+              <ExportConfirmedGuestsButton />
+            </div>
           </div>
         </CardBody>
       </Card>

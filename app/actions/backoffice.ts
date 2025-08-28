@@ -2,6 +2,7 @@
 
 import { withAdminAuth, AdminUser } from '@/lib/admin-auth'
 import prisma from '@/lib/prisma'
+import * as XLSX from 'xlsx'
 
 // Ejemplo de action protegido para obtener estadísticas
 export const getAdminStats = withAdminAuth(async (user: AdminUser) => {
@@ -75,5 +76,59 @@ export const updateInvitation = withAdminAuth(async (
   } catch (error) {
     console.error('Error actualizando invitación:', error)
     return { success: false, error: 'Error al actualizar la invitación' }
+  }
+})
+
+export const exportConfirmedGuestsToExcel = withAdminAuth(async (user: AdminUser) => {
+  try {
+    // Obtener todas las invitaciones confirmadas
+    const confirmedInvitations = await prisma.invitation.findMany({
+      where: {
+        isAttending: true,
+        hasResponded: true
+      },
+      select: {
+        guestName: true,
+        guestCount: true
+      },
+      orderBy: {
+        guestName: 'asc'
+      }
+    })
+
+    // Preparar los datos para el Excel
+    const excelData = confirmedInvitations.map(invitation => ({
+      'Invitado': invitation.guestName,
+      'Confirmados': invitation.guestCount || 1
+    }))
+
+    // Crear el workbook y worksheet
+    const workbook = XLSX.utils.book_new()
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
+
+    // Ajustar el ancho de las columnas
+    const columnWidths = [
+      { wch: 30 }, // Invitado
+      { wch: 15 }  // Confirmados
+    ]
+    worksheet['!cols'] = columnWidths
+
+    // Agregar el worksheet al workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Invitados Confirmados')
+
+    // Generar el buffer del archivo
+    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+
+    return {
+      success: true,
+      data: excelBuffer,
+      filename: `invitados-confirmados-${new Date().toISOString().split('T')[0]}.xlsx`
+    }
+  } catch (error) {
+    console.error('Error al exportar invitados confirmados:', error)
+    return {
+      success: false,
+      error: 'Error al generar el archivo Excel'
+    }
   }
 })

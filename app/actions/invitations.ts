@@ -2,7 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@/app/generated/prisma'
 import * as jose from 'jose'
 import { headers } from 'next/headers'
 import { cookies } from 'next/headers'
