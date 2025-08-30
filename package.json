@@ -12,6 +12,7 @@
     "internal:generate-secrets": "tsx scripts/generate-secrets.ts"
   },
   "dependencies": {
+    "@heroui/accordion": "^2.2.21",
     "@heroui/button": "2.2.24",
     "@heroui/code": "2.2.18",
     "@heroui/input": "2.4.25",
@@ -20,6 +21,7 @@
     "@heroui/listbox": "2.3.23",
     "@heroui/navbar": "2.2.22",
     "@heroui/react": "^2.8.2",
+    "@heroui/scroll-shadow": "^2.3.16",
     "@heroui/snippet": "2.2.25",
     "@heroui/switch": "2.2.22",
     "@heroui/system": "2.4.20",

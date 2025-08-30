@@ -8,3 +8,4 @@ export { default as GiftSection } from './GiftSection';
 export { default as InstagramSection } from './InstagramSection';
 export { default as RSVPSection } from './RSVPSection';
 export { default as PhotoUploadSection } from './PhotoUploadSection';
+export { default as AccommodationSection } from './AccommodationSection';
