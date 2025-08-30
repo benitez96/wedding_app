@@ -13,7 +13,7 @@ export default function ConfirmedRSVP({ guestCount, maxGuests, onOpenModal }: Co
   return (
     <>
       <Section.Icon>
-        <Image src="/icons/RSVP.gif" alt="Confirmar Asistencia" width={100} height={100} />
+        <Image src="/icons/disco-ball.gif" alt="Confirmar Asistencia" width={100} height={100} />
       </Section.Icon>
       <Section.Description isDecorative>
         ¡Gracias por confirmar tu asistencia!
