@@ -124,7 +124,7 @@ export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-primary" />
-                  <label className="font-medium">¿Cuántas personas van a asistir?</label>
+                  <span className="font-medium">¿Cuántas personas van a asistir?</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <GuestCountSelector

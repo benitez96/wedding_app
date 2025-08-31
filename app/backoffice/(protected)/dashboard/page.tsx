@@ -1,27 +1,44 @@
-import { Card, CardBody, CardHeader } from '@heroui/react'
+import { Card, CardBody, CardHeader } from '@heroui/card'
 import { Users, Mail, CheckCircle, XCircle } from 'lucide-react'
+import Link from 'next/link'
 import prisma from '@/lib/prisma'
 import ExportConfirmedGuestsButton from '@/components/ExportConfirmedGuestsButton'
 
-async function getDashboardStats() {
-  const [
-    totalInvitations,
-    respondedInvitations,
-    attendingInvitations,
-    notAttendingInvitations
-  ] = await Promise.all([
-    prisma.invitation.count(),
-    prisma.invitation.count({ where: { hasResponded: true } }),
-    prisma.invitation.count({ where: { isAttending: true } }),
-    prisma.invitation.count({ where: { isAttending: false } })
-  ])
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-  return {
-    totalInvitations,
-    respondedInvitations,
-    attendingInvitations,
-    notAttendingInvitations,
-    responseRate: totalInvitations > 0 ? Math.round((respondedInvitations / totalInvitations) * 100) : 0
+async function getDashboardStats() {
+  try {
+    const [
+      totalInvitations,
+      respondedInvitations,
+      attendingInvitations,
+      notAttendingInvitations
+    ] = await Promise.all([
+      prisma.invitation.count(),
+      prisma.invitation.count({ where: { hasResponded: true } }),
+      prisma.invitation.count({ where: { isAttending: true } }),
+      prisma.invitation.count({ where: { isAttending: false } })
+    ])
+
+    return {
+      totalInvitations,
+      respondedInvitations,
+      attendingInvitations,
+      notAttendingInvitations,
+      responseRate: totalInvitations > 0 ? Math.round((respondedInvitations / totalInvitations) * 100) : 0
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error)
+    // Return default values if database is not available
+    return {
+      totalInvitations: 0,
+      respondedInvitations: 0,
+      attendingInvitations: 0,
+      notAttendingInvitations: 0,
+      responseRate: 0
+    }
   }
 }
 
@@ -105,13 +122,13 @@ export default async function Backoffice() {
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <a 
+            <Link 
               href="/backoffice/invitations" 
               className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <h4 className="font-medium text-gray-900">Gestionar Invitaciones</h4>
               <p className="text-sm text-gray-600 mt-1">Ver y editar todas las invitaciones</p>
-            </a>
+            </Link>
 
 
             <div className="p-4 border border-gray-200 rounded-lg">

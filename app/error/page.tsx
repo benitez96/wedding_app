@@ -2,9 +2,9 @@ import { Card, CardBody, CardHeader } from '@heroui/react'
 import { AlertTriangle, XCircle, Shield, Mail } from 'lucide-react'
 
 interface ErrorPageProps {
-  searchParams: {
+  searchParams: Promise<{
     message?: string
-  }
+  }>
 }
 
 export default async function ErrorPage({ searchParams }: ErrorPageProps) {

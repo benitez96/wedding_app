@@ -193,7 +193,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                   {invitation.guestNickname && (
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Apodo:</span>
-                      <span className="italic">"{invitation.guestNickname}"</span>
+                      <span className="italic">&ldquo;{invitation.guestNickname}&rdquo;</span>
                     </div>
                   )}
                   

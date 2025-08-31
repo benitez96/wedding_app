@@ -1,0 +1,130 @@
+
+# Sitio principal (app)
+{$DOMAIN} {
+    # Compresión gzip
+    encode gzip
+
+    # Cache headers para archivos estáticos
+    @static {
+        file
+        path *.css *.js *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    # Headers de seguridad mejorados
+    header {
+        # Protección contra clickjacking
+        X-Frame-Options "DENY"
+        # Prevenir MIME sniffing
+        X-Content-Type-Options "nosniff"
+        # Protección XSS
+        X-XSS-Protection "1; mode=block"
+        # Política de referrer
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Content Security Policy
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+        # Permissions Policy
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()"
+        # HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # Ocultar información del servidor
+        -Server
+        -X-Powered-By
+        # Prevenir cache de contenido sensible
+        -Cache-Control
+    }
+
+    # Reverse proxy a la app (rate limiting se maneja en la aplicación)
+    reverse_proxy wedding-app:3000 {
+        header_up X-Real-IP {remote_host}
+        header_up Host {host}
+        health_uri /api/health
+        health_interval 30s
+        health_timeout 10s
+        health_status 200
+    }
+
+    # Bloqueo de bots mejorado
+    @blocked {
+        header_regexp User-Agent ".*(bot|crawler|spider|scraper|scraping|curl|wget|python|java|perl|ruby|php).*"
+    }
+    @suspicious {
+        header_regexp User-Agent ".*(sqlmap|nikto|nmap|dirb|gobuster|wfuzz|burp|zap).*"
+    }
+    respond @blocked 403
+    respond @suspicious 403
+
+
+
+    # Logs estructurados
+    log {
+        output file /var/log/caddy/access.log
+        format json
+        level INFO
+    }
+    
+    # Logs de errores
+    log {
+        output file /var/log/caddy/error.log
+        format json
+        level ERROR
+    }
+}
+
+# Endpoint de métricas de Caddy (interno)
+:2019 {
+    metrics
+    log {
+        output file /var/log/caddy/metrics.log
+        format json
+        level INFO
+    }
+}
+
+# Grafana (protegido con basic auth)
+grafana.{$DOMAIN} {
+    # Compresión gzip
+    encode gzip
+    
+    basic_auth /* {
+        admin {$BASIC_AUTH_HASH}
+    }
+    reverse_proxy grafana:3000
+    log {
+        output file /var/log/caddy/access.log
+        format json
+        level INFO
+    }
+}
+
+# Kibana (logs protegido con basic auth)
+logs.{$DOMAIN} {
+    # Compresión gzip
+    encode gzip
+    
+    basic_auth /* {
+        admin {$BASIC_AUTH_HASH}
+    }
+    reverse_proxy kibana:5601
+    log {
+        output file /var/log/caddy/access.log
+        format json
+        level INFO
+    }
+}
+
+# Prometheus (métricas protegido con basic auth)
+metrics.{$DOMAIN} {
+    # Compresión gzip
+    encode gzip
+    
+    basic_auth /* {
+        admin {$BASIC_AUTH_HASH}
+    }
+    reverse_proxy prometheus:9090
+    log {
+        output file /var/log/caddy/access.log
+        format json
+        level INFO
+    }
+}

@@ -64,7 +64,6 @@ const nextConfig = {
     // Configuración de seguridad adicional
     experimental: {
         // Deshabilitar telemetría
-        instrumentationHook: false
     },
 
     // Configuración de imágenes
@@ -105,4 +104,4 @@ const nextConfig = {
     }
 };
 
-module.exports = nextConfig;
+export default nextConfig;

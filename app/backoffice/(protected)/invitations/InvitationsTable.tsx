@@ -114,7 +114,7 @@ export default function InvitationsTable({ invitations, searchTerm }: Invitation
                       </div>
                       {invitation.guestNickname && (
                         <div className="text-sm text-default-500">
-                          "{invitation.guestNickname}"
+                          &ldquo;{invitation.guestNickname}&rdquo;
                         </div>
                       )}
                     </div>

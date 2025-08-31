@@ -1,9 +1,9 @@
 import TokenProcessor from './TokenProcessor'
 
 interface TokenPageProps {
-  params: {
+  params: Promise<{
     token: string
-  }
+  }>
 }
 
 export default async function TokenPage({ params }: TokenPageProps) {

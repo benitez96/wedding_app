@@ -13,7 +13,7 @@ export default function PendingRSVP({ onOpenModal }: PendingRSVPProps) {
       <Section.Icon>
         <Image src="/icons/RSVP.gif" alt="Confirmar Asistencia" width={100} height={100} />
       </Section.Icon>
-      <Section.Description isDecorative>Decile "Si acepto" a nuestra invitacion</Section.Description>
+      <Section.Description isDecorative>Decile &ldquo;Si acepto&rdquo; a nuestra invitacion</Section.Description>
       <Button
         color="primary"
         startContent={<Check className="w-4 h-4" />}
