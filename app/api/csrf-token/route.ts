@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Obtener token CSRF
+    // Obtener token CSRF (sin cookies)
     const { token, fieldName } = await getCSRFTokenForForm()
 
     const response = NextResponse.json({
