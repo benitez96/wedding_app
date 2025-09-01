@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
 import { Users, Heart } from 'lucide-react'
-import { getCurrentUser, updateInvitationResponse } from '@/app/actions/invitations'
+import { getCurrentUserData, updateInvitationResponse } from '@/app/actions/protected-invitations'
 import CustomRadioGroup from './sections/RSVPStatus/CustomRadioGroup'
 import GuestCountSelector from './GuestCountSelector'
 import { useCSRF } from '@/hooks/useCSRF'
@@ -30,7 +30,7 @@ export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps
 
   const loadUserData = async () => {
     try {
-      const result = await getCurrentUser()
+      const result = await getCurrentUserData()
       if (result.success && result.user) {
         setUser(result.user)
         

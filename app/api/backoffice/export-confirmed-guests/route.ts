@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { exportConfirmedGuestsToExcel } from '@/app/actions/backoffice'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
   try {
+    // Verificar autenticación de admin
+    const authResult = await verifyAdminAuth()
+    
+    if (!authResult.success || !authResult.user) {
+      return NextResponse.json(
+        { error: 'No autorizado' },
+        { status: 401 }
+      )
+    }
+
     const result = await exportConfirmedGuestsToExcel()
     
     if (!result.success) {

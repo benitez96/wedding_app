@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getInvitationWithTokens } from '@/app/actions/invitations'
+import { getInvitationWithTokens } from '@/app/actions/protected-admin-invitations'
 import InvitationDetailModal from '@/components/InvitationDetailModal'
 
 interface InterceptedInvitationDetailProps {

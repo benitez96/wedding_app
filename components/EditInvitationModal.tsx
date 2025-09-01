@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { updateInvitation } from '../app/actions/invitations'
+import { updateInvitation } from '../app/actions/protected-admin-invitations'
 import { 
   Modal, 
   ModalContent, 

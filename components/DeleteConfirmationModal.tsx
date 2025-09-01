@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { deleteInvitation } from '../app/actions/invitations'
+import { deleteInvitation } from '../app/actions/protected-admin-invitations'
 import { 
   Modal, 
   ModalContent, 

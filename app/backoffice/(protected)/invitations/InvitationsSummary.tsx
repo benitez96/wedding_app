@@ -1,5 +1,5 @@
 import { Card, CardBody } from '@heroui/react'
-import { getInvitationsStats } from '@/app/actions/invitations'
+import { getInvitationsStats } from '@/app/actions/protected-admin-invitations'
 import { InvitationsStats } from './types'
 
 interface InvitationsSummaryProps {

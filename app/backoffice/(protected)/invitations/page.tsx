@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getInvitations } from '@/app/actions/invitations'
+import { getInvitations } from '@/app/actions/protected-admin-invitations'
 import InvitationsTable from './InvitationsTable'
 import InvitationsHeader from './InvitationsHeader'
 import InvitationsSummary from './InvitationsSummary'

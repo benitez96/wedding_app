@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Section } from "@/components/section";
 import AnimatedSection from "@/components/AnimatedSection";
 import RSVPModal from "@/components/RSVPModal";
-import { getCurrentUser } from "@/app/actions/invitations";
+import { getCurrentUserData } from "@/app/actions/protected-invitations";
 import { PendingRSVP, ConfirmedRSVP, DeclinedRSVP } from "./RSVPStatus";
 
 export default function RSVPSection() {
@@ -18,7 +18,7 @@ export default function RSVPSection() {
 
   const loadUserData = async () => {
     try {
-      const result = await getCurrentUser();
+      const result = await getCurrentUserData();
       if (result.success && result.user) {
         setUser(result.user);
       }

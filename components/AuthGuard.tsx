@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser } from '@/app/actions/invitations'
+import { getCurrentUserData } from '@/app/actions/protected-invitations'
 import LoadingSpinner from './LoadingSpinner'
 
 interface AuthGuardProps {
@@ -17,7 +17,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const result = await getCurrentUser()
+        const result = await getCurrentUserData()
         
         if (result.success && result.user) {
           setIsAuthenticated(true)

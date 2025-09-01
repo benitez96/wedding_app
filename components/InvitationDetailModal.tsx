@@ -24,7 +24,7 @@ import {
 import { X, ExternalLink, Calendar, Phone, Users, CheckCircle, XCircle, Clock, Copy, Check, Plus, Ban, Trash2, RotateCcw } from 'lucide-react'
 
 import { InvitationWithTokens, InvitationToken } from '@/app/backoffice/(protected)/invitations/types'
-import { createInvitationToken, revokeInvitationToken, reactivateInvitationToken, deleteInvitationToken } from '@/app/actions/invitations'
+import { createInvitationToken, revokeInvitationToken, reactivateInvitationToken, deleteInvitationToken } from '@/app/actions/protected-admin-invitations'
 import { formatDateTime } from '@/utils/date'
 
 interface InvitationDetailModalProps {
