@@ -43,13 +43,21 @@ export async function getCSRFToken(): Promise<string> {
   const newToken = generateCSRFToken()
   const tokenHash = createCSRFHash(newToken)
   
-  // Guardar el hash en cookie
-  cookieStore.set(CSRF_CONFIG.SESSION_KEY, tokenHash, {
+  // Configuración de cookies mejorada para producción
+  const cookieOptions: any = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 60 * 60 // 1 hora
-  })
+  }
+  
+  // En producción, configurar dominio si está disponible
+  if (process.env.NODE_ENV === 'production' && process.env.DOMAIN) {
+    cookieOptions.domain = process.env.DOMAIN
+  }
+  
+  // Guardar el hash en cookie
+  cookieStore.set(CSRF_CONFIG.SESSION_KEY, tokenHash, cookieOptions)
   
   return newToken
 }
@@ -61,10 +69,25 @@ export async function validateCSRFToken(token: string): Promise<boolean> {
     const storedHash = cookieStore.get(CSRF_CONFIG.SESSION_KEY)
     
     if (!storedHash || !token) {
+      console.log('CSRF validation failed: missing token or stored hash', {
+        hasToken: !!token,
+        hasStoredHash: !!storedHash,
+        tokenLength: token?.length,
+        storedHashLength: storedHash?.value?.length
+      })
       return false
     }
     
-    return verifyCSRFToken(token, storedHash.value)
+    const isValid = verifyCSRFToken(token, storedHash.value)
+    
+    if (!isValid) {
+      console.log('CSRF validation failed: token mismatch', {
+        tokenLength: token.length,
+        storedHashLength: storedHash.value.length
+      })
+    }
+    
+    return isValid
   } catch (error) {
     console.error('Error validando CSRF token:', error)
     return false
