@@ -12,7 +12,7 @@ export default function GiftSection() {
           <Image src="/icons/regalo-2.gif" alt="Gift" width={100} height={100} />
         </Section.Icon>
         <Section.Title>REGALOS</Section.Title>
-        <Section.Description isDecorative>La asistencia es obligatoria pero el regalo es opcional</Section.Description>
+        <Section.Description isDecorative>Tu compañía es el mejor regalo, pero si deseás ayudarnos…</Section.Description>
         <Snippet 
           symbol=" " 
           color="primary" 

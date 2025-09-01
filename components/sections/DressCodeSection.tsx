@@ -21,11 +21,11 @@ export default function DressCodeSection() {
           Sugerencia de colores
         </Section.Description>
       <div className="flex flex-row gap-4 mt-4">
-        <span className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-850 inline-block" title="Negro"></span>
+        <span className="w-8 h-8 rounded-full bg-neutral-900 border-2 border-neutral-800 inline-block" title="Marrón"></span>
+        <span className="w-8 h-8 rounded-full bg-violet-800 border-2 border-violet-900 inline-block" title="Negro"></span>
         <span className="w-8 h-8 rounded-full bg-sky-900 border-2 border-sky-950 inline-block" title="Azul marino"></span>
-        <span className="w-8 h-8 rounded-full bg-amber-200 border-2 border-amber-300 inline-block" title="Beige"></span>
-        <span className="w-8 h-8 rounded-full bg-stone-400 border-2 border-stone-600 inline-block" title="Gris"></span>
-        <span className="w-8 h-8 rounded-full bg-yellow-700 border-2 border-yellow-800 inline-block" title="Marrón"></span>
+        <span className="w-8 h-8 rounded-full bg-pink-700 border-2 border-pink-800 inline-block" title="Beige"></span>
+        <span className="w-8 h-8 rounded-full bg-emerald-600 border-2 border-emerald-800 inline-block" title="Gris"></span>
       </div>
       </Section.Container>
     </AnimatedSection>
