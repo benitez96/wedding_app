@@ -55,7 +55,8 @@ export const createInvitation = withAdminAuth(async (user: AdminUser, formData: 
   try {
     // Validar CSRF token
     const csrfToken = formData.get('_csrf') as string
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    const csrfHash = formData.get('_csrf_hash') as string
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -110,7 +111,8 @@ export const updateInvitation = withAdminAuth(async (user: AdminUser, id: string
   try {
     // Validar CSRF token
     const csrfToken = formData.get('_csrf') as string
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    const csrfHash = formData.get('_csrf_hash') as string
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -154,10 +156,10 @@ export const updateInvitation = withAdminAuth(async (user: AdminUser, id: string
 })
 
 // Action protegido para eliminar invitación
-export const deleteInvitation = withAdminAuth(async (user: AdminUser, id: string, csrfToken?: string) => {
+export const deleteInvitation = withAdminAuth(async (user: AdminUser, id: string, csrfToken?: string, csrfHash?: string) => {
   try {
     // Validar CSRF token
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -256,10 +258,10 @@ export const getInvitationsStats = withAdminAuth(async (user: AdminUser) => {
 })
 
 // Action protegido para crear token de invitación
-export const createInvitationToken = withAdminAuth(async (user: AdminUser, invitationId: string, csrfToken?: string) => {
+export const createInvitationToken = withAdminAuth(async (user: AdminUser, invitationId: string, csrfToken?: string, csrfHash?: string) => {
   try {
     // Validar CSRF token
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -288,10 +290,10 @@ export const createInvitationToken = withAdminAuth(async (user: AdminUser, invit
 })
 
 // Action protegido para revocar token de invitación
-export const revokeInvitationToken = withAdminAuth(async (user: AdminUser, tokenId: string, csrfToken?: string) => {
+export const revokeInvitationToken = withAdminAuth(async (user: AdminUser, tokenId: string, csrfToken?: string, csrfHash?: string) => {
   try {
     // Validar CSRF token
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -309,10 +311,10 @@ export const revokeInvitationToken = withAdminAuth(async (user: AdminUser, token
 })
 
 // Action protegido para reactivar token de invitación
-export const reactivateInvitationToken = withAdminAuth(async (user: AdminUser, tokenId: string, csrfToken?: string) => {
+export const reactivateInvitationToken = withAdminAuth(async (user: AdminUser, tokenId: string, csrfToken?: string, csrfHash?: string) => {
   try {
     // Validar CSRF token
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -330,10 +332,10 @@ export const reactivateInvitationToken = withAdminAuth(async (user: AdminUser, t
 })
 
 // Action protegido para eliminar token de invitación
-export const deleteInvitationToken = withAdminAuth(async (user: AdminUser, tokenId: string, csrfToken?: string) => {
+export const deleteInvitationToken = withAdminAuth(async (user: AdminUser, tokenId: string, csrfToken?: string, csrfHash?: string) => {
   try {
     // Validar CSRF token
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 

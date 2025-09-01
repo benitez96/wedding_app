@@ -26,39 +26,40 @@ export function verifyCSRFToken(token: string, hash: string): boolean {
 }
 
 // Obtener token CSRF para formularios (sin cookies)
-export async function getCSRFTokenForForm(): Promise<{ token: string; fieldName: string }> {
+export async function getCSRFTokenForForm(): Promise<{ token: string; fieldName: string; hash: string }> {
   const token = generateCSRFToken()
+  const hash = createCSRFHash(token)
   return {
     token,
-    fieldName: CSRF_CONFIG.FORM_FIELD_NAME
+    fieldName: CSRF_CONFIG.FORM_FIELD_NAME,
+    hash
   }
 }
 
-// Validar token CSRF desde formulario (versión simplificada)
-export async function validateCSRFToken(token: string): Promise<boolean> {
+// Validar token CSRF desde formulario (versión completa)
+export async function validateCSRFToken(token: string, hash?: string): Promise<boolean> {
   try {
     if (!token) {
-      console.log('CSRF validation failed: no token provided')
       return false
     }
     
-    // En esta implementación simplificada, solo verificamos que el token tenga el formato correcto
-    // y que no sea demasiado corto (protección básica contra tokens vacíos o muy cortos)
+    // Si tenemos hash, validar contra él
+    if (hash) {
+      return verifyCSRFToken(token, hash)
+    }
+    
+    // Si no tenemos hash, verificar formato básico
     if (token.length < 32) {
-      console.log('CSRF validation failed: token too short', { tokenLength: token.length })
       return false
     }
     
     // Verificar que el token sea hexadecimal válido
     if (!/^[a-f0-9]+$/i.test(token)) {
-      console.log('CSRF validation failed: invalid token format')
       return false
     }
     
-    console.log('CSRF validation successful', { tokenLength: token.length })
     return true
   } catch (error) {
-    console.error('Error validando CSRF token:', error)
     return false
   }
 }
@@ -69,8 +70,9 @@ export function withCSRFProtection<R>(
 ) {
   return async (formData: FormData): Promise<R> => {
     const token = formData.get(CSRF_CONFIG.FORM_FIELD_NAME) as string
+    const hash = formData.get('_csrf_hash') as string
     
-    if (!token || !(await validateCSRFToken(token))) {
+    if (!token || !(await validateCSRFToken(token, hash))) {
       throw new Error('Token CSRF inválido')
     }
     

@@ -43,10 +43,10 @@ export const getAllInvitations = withAdminAuth(async (user: AdminUser) => {
 })
 
 // Ejemplo de action protegido para eliminar una invitación
-export const deleteInvitation = withAdminAuth(async (user: AdminUser, invitationId: string, csrfToken?: string) => {
+export const deleteInvitation = withAdminAuth(async (user: AdminUser, invitationId: string, csrfToken?: string, csrfHash?: string) => {
   try {
     // Validar CSRF token
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -71,15 +71,16 @@ export const updateInvitation = withAdminAuth(async (
     guestPhone?: string
     maxGuests?: number
     csrfToken?: string
+    csrfHash?: string
   }
 ) => {
   try {
     // Validar CSRF token
-    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken))) {
+    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken, data.csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
-    const { csrfToken, ...updateData } = data
+    const { csrfToken, csrfHash, ...updateData } = data
     const invitation = await prisma.invitation.update({
       where: { id: invitationId },
       data: updateData

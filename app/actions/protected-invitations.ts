@@ -11,10 +11,11 @@ export const updateInvitationResponse = withInvitationAuth(async (user: Invitati
   guestCount?: number | null
   message?: string | null
   csrfToken?: string
+  csrfHash?: string
 }) => {
   try {
     // Validar CSRF token
-    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken))) {
+    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken, data.csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -47,7 +48,8 @@ export const uploadPhoto = withInvitationAuth(async (user: InvitationUser, formD
   try {
     // Validar CSRF token
     const csrfToken = formData.get('_csrf') as string
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    const csrfHash = formData.get('_csrf_hash') as string
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 
@@ -70,10 +72,11 @@ export const sendMessage = withInvitationAuth(async (user: InvitationUser, data:
   message: string
   type?: 'wish' | 'memory' | 'advice'
   csrfToken?: string
+  csrfHash?: string
 }) => {
   try {
     // Validar CSRF token
-    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken))) {
+    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken, data.csrfHash))) {
       return { success: false, error: 'Token CSRF inválido' }
     }
 

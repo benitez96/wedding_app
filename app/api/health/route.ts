@@ -5,18 +5,14 @@ export async function GET() {
     // Verificar que la aplicación está funcionando
     return NextResponse.json(
       { 
-        status: 'healthy', 
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        status: 'ok'
       },
       { status: 200 }
     )
   } catch (error) {
     return NextResponse.json(
       { 
-        status: 'unhealthy', 
-        error: 'Health check failed',
-        timestamp: new Date().toISOString()
+        status: 'error'
       },
       { status: 503 }
     )

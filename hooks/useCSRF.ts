@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 interface CSRFData {
   token: string
   fieldName: string
+  hash: string
 }
 
 export function useCSRF() {
@@ -21,7 +22,8 @@ export function useCSRF() {
           const data = await response.json()
           setCsrfData({
             token: data.token,
-            fieldName: data.fieldName
+            fieldName: data.fieldName,
+            hash: data.hash
           })
         } else {
           setError('Error obteniendo token CSRF')
@@ -40,6 +42,7 @@ export function useCSRF() {
   const addCSRFToFormData = (formData: FormData) => {
     if (csrfData) {
       formData.append(csrfData.fieldName, csrfData.token)
+      formData.append('_csrf_hash', csrfData.hash)
     }
   }
 

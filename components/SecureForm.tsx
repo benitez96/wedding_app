@@ -19,6 +19,7 @@ export default function SecureForm({
   onError 
 }: SecureFormProps) {
   const [csrfToken, setCsrfToken] = useState<string>('')
+  const [csrfHash, setCsrfHash] = useState<string>('')
   const [fieldName, setFieldName] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -30,6 +31,7 @@ export default function SecureForm({
         if (response.ok) {
           const data = await response.json()
           setCsrfToken(data.token)
+          setCsrfHash(data.hash)
           setFieldName(data.fieldName)
         }
       } catch (error) {
@@ -47,9 +49,10 @@ export default function SecureForm({
     try {
       const formData = new FormData(e.currentTarget)
       
-      // Agregar token CSRF al formulario
+      // Agregar token CSRF y hash al formulario
       if (csrfToken && fieldName) {
         formData.append(fieldName, csrfToken)
+        formData.append('_csrf_hash', csrfHash)
       }
 
       const result = await action(formData)

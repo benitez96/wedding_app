@@ -8,23 +8,18 @@ export async function GET(request: NextRequest) {
     const referer = request.headers.get('referer')
     const host = request.headers.get('host')
     
-    console.log('CSRF token request:', {
-      origin,
-      referer,
-      host,
-      userAgent: request.headers.get('user-agent'),
-      nodeEnv: process.env.NODE_ENV
-    })
-    
-    // En producción, verificar origen de manera más flexible
+    // En producción, verificar origen de manera estricta
     if (process.env.NODE_ENV === 'production') {
-      const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || []
+      const allowedOrigins = process.env.CORS_ORIGIN?.split(',').filter(Boolean) || []
       const domain = process.env.DOMAIN
       
-      // Si no hay CORS_ORIGIN configurado, usar el DOMAIN
-      if (allowedOrigins.length === 0 && domain) {
-        allowedOrigins.push(`https://${domain}`)
-        allowedOrigins.push(`https://www.${domain}`)
+      // Validar que CORS_ORIGIN esté configurado
+      if (allowedOrigins.length === 0) {
+        console.error('CSRF: CORS_ORIGIN no configurado en producción')
+        return NextResponse.json(
+          { error: 'Configuración de seguridad incompleta' },
+          { status: 500 }
+        )
       }
       
       // Verificar si el origen está permitido
@@ -35,7 +30,7 @@ export async function GET(request: NextRequest) {
         })
         
         if (!isAllowed) {
-          console.log('CSRF: Origin not allowed', { origin, allowedOrigins })
+          console.error('CSRF: Origin not allowed', { origin, allowedOrigins })
           return NextResponse.json(
             { error: 'Origen no permitido' },
             { status: 403 }
@@ -44,12 +39,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Obtener token CSRF (sin cookies)
-    const { token, fieldName } = await getCSRFTokenForForm()
+    // Obtener token CSRF con hash
+    const { token, fieldName, hash } = await getCSRFTokenForForm()
 
     const response = NextResponse.json({
       token,
       fieldName,
+      hash,
       timestamp: Date.now()
     })
     

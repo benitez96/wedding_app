@@ -20,10 +20,10 @@ async function generateDeviceFingerprint(userAgent: string): Promise<string> {
 }
 
 // Función para autenticar admin
-export async function authenticateAdmin(username: string, password: string, honeypotValue?: string, csrfToken?: string) {
+export async function authenticateAdmin(username: string, password: string, honeypotValue?: string, csrfToken?: string, csrfHash?: string) {
   try {
     // Validar CSRF token si se proporciona
-    if (csrfToken && !(await validateCSRFToken(csrfToken))) {
+    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
       return { success: false, error: 'token-csrf-invalido' }
     }
 

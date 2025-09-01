@@ -70,7 +70,7 @@ export async function processInvitationToken(token: string) {
     // Verificar si tiene una sesión activa
     if (session) {
       try {
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+        const secret = new TextEncoder().encode(JWT_SECRET)
         const { payload } = await jose.jwtVerify(session.value, secret, {
           issuer: 'wedding-app',
           audience: 'wedding-invitation',
@@ -84,17 +84,23 @@ export async function processInvitationToken(token: string) {
         
         const currentDeviceFp = await generateDeviceFingerprint(userAgent)
         if (payload.deviceFp !== currentDeviceFp) {
-          console.log('Device fingerprint mismatch, regenerating session')
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Device fingerprint mismatch, regenerating session')
+          }
           cookieStore.delete('session')
         } else {
           if (payload.tokenId === token) {
             return { success: true, action: 'redirect' }
           }
           
-          console.log('Token diferente al de la sesión, validando nuevo token')
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Token diferente al de la sesión, validando nuevo token')
+          }
         }
       } catch (jwtError) {
-        console.log('Sesión inválida, continuando con validación de token')
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Sesión inválida, continuando con validación de token')
+        }
       }
     }
 
@@ -187,7 +193,7 @@ export async function getCurrentUser() {
       return { success: false, user: null }
     }
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret')
+    const secret = new TextEncoder().encode(JWT_SECRET)
     const { payload } = await jose.jwtVerify(session.value, secret, {
       issuer: 'wedding-app',
       audience: 'wedding-invitation',

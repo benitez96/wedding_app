@@ -85,9 +85,11 @@ export function validateAndSanitize<T>(schema: z.ZodSchema<T>, data: unknown): {
     return { success: true, data: validated }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // Log del error para debugging
-      console.error('Error de validación Zod:', (error as any).errors)
-      console.error('Datos recibidos:', data)
+      // Log del error para debugging (solo en desarrollo)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error de validación Zod:', (error as any).errors)
+        console.error('Datos recibidos:', data)
+      }
       
       // Obtener el primer error específico si está disponible
       const zodError = error as any
