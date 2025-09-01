@@ -1,5 +1,5 @@
 
-# Sitio principal (app)
+# Sitio principal (app) - Perfil de seguridad PÚBLICO
 {$DOMAIN} {
     # Compresión gzip
     encode gzip
@@ -54,18 +54,16 @@
     respond @blocked 403
     respond @suspicious 403
 
-
-
-    # Logs estructurados
+    # Logs compatibles con fail2ban - Perfil PÚBLICO
     log {
-        output file /var/log/caddy/access.log
+        output file /var/log/caddy/public_access.log
         format json
         level INFO
     }
     
     # Logs de errores
     log {
-        output file /var/log/caddy/error.log
+        output file /var/log/caddy/public_error.log
         format json
         level ERROR
     }
@@ -81,49 +79,85 @@
     }
 }
 
-# Grafana (protegido con basic auth)
+# Grafana (protegido con basic auth) - Perfil de seguridad RESTRICTIVO
 grafana.{$DOMAIN} {
     # Compresión gzip
     encode gzip
+    
+    # Headers de seguridad adicionales para herramientas de monitoreo
+    header {
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        -Server
+        -X-Powered-By
+    }
     
     basic_auth /* {
         admin {$BASIC_AUTH_HASH}
     }
     reverse_proxy grafana:3000
+    
+    # Logs compatibles con fail2ban - Perfil RESTRICTIVO
     log {
-        output file /var/log/caddy/access.log
+        output file /var/log/caddy/monitoring_access.log
         format json
         level INFO
     }
 }
 
-# Kibana (logs protegido con basic auth)
+# Kibana (logs protegido con basic auth) - Perfil de seguridad RESTRICTIVO
 logs.{$DOMAIN} {
     # Compresión gzip
     encode gzip
+    
+    # Headers de seguridad adicionales para herramientas de monitoreo
+    header {
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        -Server
+        -X-Powered-By
+    }
     
     basic_auth /* {
         admin {$BASIC_AUTH_HASH}
     }
     reverse_proxy kibana:5601
+    
+    # Logs compatibles con fail2ban - Perfil RESTRICTIVO
     log {
-        output file /var/log/caddy/access.log
+        output file /var/log/caddy/monitoring_access.log
         format json
         level INFO
     }
 }
 
-# Prometheus (métricas protegido con basic auth)
+# Prometheus (métricas protegido con basic auth) - Perfil de seguridad RESTRICTIVO
 metrics.{$DOMAIN} {
     # Compresión gzip
     encode gzip
+    
+    # Headers de seguridad adicionales para herramientas de monitoreo
+    header {
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        -Server
+        -X-Powered-By
+    }
     
     basic_auth /* {
         admin {$BASIC_AUTH_HASH}
     }
     reverse_proxy prometheus:9090
+    
+    # Logs compatibles con fail2ban - Perfil RESTRICTIVO
     log {
-        output file /var/log/caddy/access.log
+        output file /var/log/caddy/monitoring_access.log
         format json
         level INFO
     }

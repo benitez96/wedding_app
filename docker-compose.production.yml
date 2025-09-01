@@ -11,13 +11,17 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - app_logs:/app/logs
+      - /volumes/wedding-app/logs:/app/logs
     restart: unless-stopped
+    networks:
+      - app_network
+      - monitoring_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+
   # Base de datos
   db:
     image: postgres:17.6-alpine
@@ -27,14 +31,17 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - TZ=America/Argentina/Buenos_Aires
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /volumes/wedding-app/postgres:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - app_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d wedding_app"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # Stack de monitoreo - Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.1.2
     environment:
@@ -45,6 +52,8 @@ services:
       - node.name=wedding-app-node
       - bootstrap.memory_lock=true
       - TZ=America/Argentina/Buenos_Aires
+      - ingest.geoip.downloader.enabled=false
+      # GeoIP deshabilitado por restricciones de red interna
     ulimits:
       memlock:
         soft: -1
@@ -53,8 +62,10 @@ services:
         soft: 65536
         hard: 65536
     volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
+      - /volumes/wedding-app/elasticsearch:/usr/share/elasticsearch/data
     restart: unless-stopped
+    networks:
+      - monitoring_network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
@@ -62,18 +73,23 @@ services:
       retries: 5
       start_period: 60s
 
+  # Stack de monitoreo - Logstash
   logstash:
     image: docker.elastic.co/logstash/logstash:9.1.2
     environment:
       - TZ=America/Argentina/Buenos_Aires
     volumes:
-      - ./utils/logstash/pipeline:/usr/share/logstash/pipeline
-      - caddy_logs:/var/log/caddy:ro
+      - ./config/logstash/pipeline:/usr/share/logstash/pipeline
+      - /volumes/wedding-app/caddy/logs:/var/log/caddy:ro
+      - /var/log/fail2ban.log:/var/log/fail2ban.log:ro
     depends_on:
       elasticsearch:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - monitoring_network
 
+  # Stack de monitoreo - Kibana
   kibana:
     image: docker.elastic.co/kibana/kibana:9.1.2
     environment:
@@ -83,13 +99,17 @@ services:
       elasticsearch:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - monitoring_network
+
+  # Stack de monitoreo - Prometheus
   prometheus:
     image: prom/prometheus:v3.5.0
     environment:
       - TZ=America/Argentina/Buenos_Aires
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /volumes/wedding-app/prometheus:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -98,9 +118,12 @@ services:
       - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
     extra_hosts:
-      - "host.docker.internal:host-gateway"  # para scrapear node-exporter en host
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
+    networks:
+      - monitoring_network
 
+  # Stack de monitoreo - Node Exporter
   node-exporter:
     image: prom/node-exporter:v1.9.1
     environment:
@@ -109,6 +132,7 @@ services:
     pid: host
     restart: unless-stopped
 
+  # Stack de monitoreo - Grafana
   grafana:
     image: grafana/grafana:12.1.1
     environment:
@@ -118,9 +142,13 @@ services:
       - GF_SERVER_ROOT_URL=https://grafana.${DOMAIN}
       - TZ=America/Argentina/Buenos_Aires
     volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - /volumes/wedding-app/grafana:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
     restart: unless-stopped
+    networks:
+      - monitoring_network
+
+  # Reverse Proxy - Caddy (único servicio con acceso a internet)
   caddy:
     image: caddy:2-alpine
     ports:
@@ -133,24 +161,32 @@ services:
       - BASIC_AUTH_HASH=${BASIC_AUTH_HASH}
       - TZ=America/Argentina/Buenos_Aires
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-      - caddy_logs:/var/log/caddy
+      - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /volumes/wedding-app/caddy/data:/data
+      - /volumes/wedding-app/caddy/config:/config
+      - /volumes/wedding-app/caddy/logs:/var/log/caddy
     depends_on:
       - wedding-app
       - grafana
       - kibana
       - prometheus
     restart: unless-stopped
+    networks:
+      - public_network
+      - app_network
+      - monitoring_network
     command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
 
-volumes:
-  postgres_data:
-  elasticsearch_data:
-  prometheus_data:
-  grafana_data:
-  caddy_data:
-  caddy_config:
-  caddy_logs:
-  app_logs:
+networks:
+  public_network:
+    driver: bridge
+    internal: true  # Solo Caddy puede salir a internet
+  monitoring_network:
+    driver: bridge
+    internal: true  # Red interna, sin acceso a internet
+  app_network:
+    driver: bridge
+    internal: true  # Red interna para app y DB
+  # geoip_network:
+  #   driver: bridge
+  #   # Sin internal: true para permitir acceso a internet solo para GeoIP

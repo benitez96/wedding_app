@@ -1,0 +1,29 @@
+{
+  "description": "Pipeline para geolocalización de IPs en logs de wedding-app",
+  "processors": [
+    {
+      "geoip": {
+        "field": "remote_addr",
+        "target_field": "geoip",
+        "database_file": "GeoLite2-City.mmdb",
+        "properties": ["city_name", "continent_name", "country_iso_code", "country_name", "location", "region_iso_code", "region_name"]
+      }
+    },
+    {
+      "geoip": {
+        "field": "ban_ip",
+        "target_field": "ban_geoip",
+        "database_file": "GeoLite2-City.mmdb",
+        "properties": ["city_name", "continent_name", "country_iso_code", "country_name", "location", "region_iso_code", "region_name"]
+      }
+    },
+    {
+      "geoip": {
+        "field": "unban_ip",
+        "target_field": "unban_geoip",
+        "database_file": "GeoLite2-City.mmdb",
+        "properties": ["city_name", "continent_name", "country_iso_code", "country_name", "location", "region_iso_code", "region_name"]
+      }
+    }
+  ]
+}

@@ -13,14 +13,32 @@ services:
     depends_on:
       - db
     restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/wedding_app
+    networks:
+      - app_network
+
   db:
     image: postgres:17.6-alpine
-    ports:
-      - 5432:5432
+    # NO exponer puerto en desarrollo - solo acceso interno
+    # ports:
+    #   - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - .env
+    environment:
+      - POSTGRES_DB=wedding_app
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    networks:
+      - app_network
+    restart: unless-stopped
+
+networks:
+  app_network:
+    driver: bridge
 
 volumes:
   postgres_data:

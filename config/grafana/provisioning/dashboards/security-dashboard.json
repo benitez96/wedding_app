@@ -1,0 +1,83 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Wedding App - Security Dashboard",
+    "tags": ["security", "fail2ban", "caddy"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Requests by Status Code",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(caddy_http_requests_total[5m])) by (status_code)",
+            "legendFormat": "{{status_code}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "displayMode": "list"
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Failed Login Attempts",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(caddy_http_requests_total{status_code=~\"401|403\"}[5m]))",
+            "legendFormat": "Failed Auth"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "red", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Requests by Route Category",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(rate(caddy_http_requests_total[5m])) by (route_category)",
+            "legendFormat": "{{route_category}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Top IP Addresses",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, sum(rate(caddy_http_requests_total[5m])) by (remote_addr))",
+            "legendFormat": "{{remote_addr}}"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

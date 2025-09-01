@@ -14,9 +14,9 @@ export function getOptionalEnvVar(name: string, defaultValue?: string): string |
   return process.env[name] || defaultValue
 }
 
-// Variables críticas de seguridad
-export const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-for-development-only'
-export const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/wedding_app'
+// Variables críticas de seguridad - NO valores por defecto
+export const JWT_SECRET = getRequiredEnvVar('JWT_SECRET')
+export const DATABASE_URL = getRequiredEnvVar('DATABASE_URL')
 
 // Variables opcionales con valores por defecto seguros
 export const NODE_ENV = getOptionalEnvVar('NODE_ENV', 'development')
@@ -33,6 +33,7 @@ export const SECURITY_CONFIG = {
   // Cookies
   COOKIE_SECURE: NODE_ENV === 'production',
   COOKIE_SAME_SITE: 'lax' as const,
+  COOKIE_HTTP_ONLY: true,
   
   // Rate limiting
   RATE_LIMIT_WINDOWS: {
@@ -46,13 +47,24 @@ export const SECURITY_CONFIG = {
   INVITATION_SESSION_DURATION: 180 * 24 * 60 * 60 // 180 días
 }
 
-// Validar configuración crítica solo en producción
-if (NODE_ENV === 'production') {
+// Validación de configuración crítica
+function validateSecurityConfig() {
   if (JWT_SECRET.length < 32) {
     throw new Error('JWT_SECRET debe tener al menos 32 caracteres')
   }
   
-  if (JWT_SECRET === 'default-secret-for-development-only' || JWT_SECRET === 'secret-jwt') {
-    throw new Error('JWT_SECRET no puede ser el valor por defecto en producción')
+  if (JWT_SECRET === 'default-secret-for-development-only' || 
+      JWT_SECRET === 'secret-jwt' ||
+      JWT_SECRET === 'tu-super-secreto-jwt-de-al-menos-32-caracteres-aqui') {
+    throw new Error('JWT_SECRET no puede ser un valor de ejemplo')
+  }
+  
+  if (NODE_ENV === 'production') {
+    if (!DATABASE_URL.includes('ssl=true') && !DATABASE_URL.includes('sslmode=require')) {
+      console.warn('⚠️  ADVERTENCIA: DATABASE_URL no incluye SSL en producción')
+    }
   }
 }
+
+// Ejecutar validaciones
+validateSecurityConfig()
