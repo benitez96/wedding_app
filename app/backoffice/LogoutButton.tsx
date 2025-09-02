@@ -45,8 +45,9 @@ export default function LogoutButton() {
       onClick={handleLogout}
       isLoading={isLoading}
       isDisabled={isLoading}
+      className="min-w-0"
     >
-      Cerrar Sesión
+      <span className="hidden sm:inline">Cerrar Sesión</span>
     </Button>
   )
 }

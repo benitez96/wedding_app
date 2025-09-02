@@ -72,114 +72,197 @@ export default function InvitationsTable({ invitations, searchTerm }: Invitation
     onDeleteClose()
   }
 
-    return (
+  return (
     <>
-      <Card className="mb-6">
-        <CardBody className="p-0">
-          <Table 
-            aria-label="Tabla de invitaciones"
-            classNames={{
-              wrapper: "min-h-[400px]",
-              th: "text-default-500 border-b border-divider bg-default-50",
-              td: "border-b border-divider",
-              tr: "hover:bg-default-50 transition-colors",
-              tbody: "divide-y divide-divider"
-            }}
-            selectionMode="none"
-          >
-            <TableHeader>
-              <TableColumn className="text-left">INVITADO</TableColumn>
-              <TableColumn className="text-left">TELÉFONO</TableColumn>
-              <TableColumn className="text-center">ESTADO</TableColumn>
-              <TableColumn className="text-center">CONFIRMADOS</TableColumn>
-              <TableColumn className="text-center">MÁX. INVITADOS</TableColumn>
-              <TableColumn className="text-center">FECHA RESPUESTA</TableColumn>
-              <TableColumn className="text-center">ACCIONES</TableColumn>
-            </TableHeader>
-            <TableBody 
-              emptyContent={
-                <div className="text-center py-8">
-                  <p className="text-default-500">
-                    {searchTerm ? 'No se encontraron invitaciones que coincidan con la búsqueda' : 'No hay invitaciones registradas'}
-                  </p>
-                </div>
-              }
+      {/* Vista móvil compacta */}
+      <div className="block md:hidden">
+        <Card className="mb-6">
+          <CardBody className="p-0">
+            <Table 
+              aria-label="Tabla de invitaciones móvil"
+              classNames={{
+                wrapper: "min-h-[400px] max-h-[600px]",
+                th: "text-default-500 border-b border-divider bg-default-50",
+                td: "border-b border-divider",
+                tr: "hover:bg-default-50 transition-colors",
+                tbody: "divide-y divide-divider"
+              }}
+              selectionMode="none"
             >
-              {invitations.map((invitation) => (
-                <TableRow key={invitation.id} className="cursor-pointer" onClick={() => handleRowClick(invitation)}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium text-foreground">
-                        {invitation.guestName}
-                      </div>
-                      {invitation.guestNickname && (
-                        <div className="text-sm text-default-500">
-                          &ldquo;{invitation.guestNickname}&rdquo;
+              <TableHeader>
+                <TableColumn className="text-left">INVITADO</TableColumn>
+                <TableColumn className="text-center">ESTADO</TableColumn>
+                <TableColumn className="text-center">ACCIONES</TableColumn>
+              </TableHeader>
+              <TableBody 
+                emptyContent={
+                  <div className="text-center py-8">
+                    <p className="text-default-500">
+                      {searchTerm ? 'No se encontraron invitaciones que coincidan con la búsqueda' : 'No hay invitaciones registradas'}
+                    </p>
+                  </div>
+                }
+              >
+                {invitations.map((invitation) => (
+                  <TableRow key={invitation.id} className="cursor-pointer" onClick={() => handleRowClick(invitation)}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium text-foreground">
+                          {invitation.guestName}
                         </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-default-600">
-                      {invitation.guestPhone || '-'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-center">
-                      {getStatusChip(invitation)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-center">
-                      <span className="font-medium text-foreground">
-                        {invitation.guestCount || '-'}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-center">
-                      <span className="font-medium text-foreground">
-                        {invitation.maxGuests}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-center">
+                        {invitation.guestNickname && (
+                          <div className="text-sm text-default-500">
+                            &ldquo;{invitation.guestNickname}&rdquo;
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-center">
+                        {getStatusChip(invitation)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="light"
+                          color="primary"
+                          isIconOnly
+                          onPress={() => handleEditInvitation(invitation)}
+                          className="text-default-400 hover:text-primary"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="light"
+                          color="danger"
+                          isIconOnly
+                          onPress={() => handleDeleteInvitation(invitation)}
+                          className="text-default-400 hover:text-danger"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardBody>
+        </Card>
+      </div>
+
+      {/* Vista desktop */}
+      <div className="hidden md:block">
+        <Card className="mb-6">
+          <CardBody className="p-0">
+            <Table 
+              aria-label="Tabla de invitaciones"
+              classNames={{
+                wrapper: "min-h-[400px] max-h-[600px]",
+                th: "text-default-500 border-b border-divider bg-default-50",
+                td: "border-b border-divider",
+                tr: "hover:bg-default-50 transition-colors",
+                tbody: "divide-y divide-divider"
+              }}
+              selectionMode="none"
+            >
+              <TableHeader>
+                <TableColumn className="text-left">INVITADO</TableColumn>
+                <TableColumn className="text-left">TELÉFONO</TableColumn>
+                <TableColumn className="text-center">ESTADO</TableColumn>
+                <TableColumn className="text-center">CONFIRMADOS</TableColumn>
+                <TableColumn className="text-center">MÁX. INVITADOS</TableColumn>
+                <TableColumn className="text-center">FECHA RESPUESTA</TableColumn>
+                <TableColumn className="text-center">ACCIONES</TableColumn>
+              </TableHeader>
+              <TableBody 
+                emptyContent={
+                  <div className="text-center py-8">
+                    <p className="text-default-500">
+                      {searchTerm ? 'No se encontraron invitaciones que coincidan con la búsqueda' : 'No hay invitaciones registradas'}
+                    </p>
+                  </div>
+                }
+              >
+                {invitations.map((invitation) => (
+                  <TableRow key={invitation.id} className="cursor-pointer" onClick={() => handleRowClick(invitation)}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium text-foreground">
+                          {invitation.guestName}
+                        </div>
+                        {invitation.guestNickname && (
+                          <div className="text-sm text-default-500">
+                            &ldquo;{invitation.guestNickname}&rdquo;
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <span className="text-default-600">
-                        {formatDate(invitation.respondedAt)}
+                        {invitation.guestPhone || '-'}
                       </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-center gap-1">
-                      <Button
-                        size="sm"
-                        variant="light"
-                        color="primary"
-                        isIconOnly
-                        onPress={() => handleEditInvitation(invitation)}
-                        className="text-default-400 hover:text-primary"
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="light"
-                        color="danger"
-                        isIconOnly
-                        onPress={() => handleDeleteInvitation(invitation)}
-                        className="text-default-400 hover:text-danger"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardBody>
-      </Card>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-center">
+                        {getStatusChip(invitation)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-center">
+                        <span className="font-medium text-foreground">
+                          {invitation.guestCount || '-'}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-center">
+                        <span className="font-medium text-foreground">
+                          {invitation.maxGuests}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-center">
+                        <span className="text-default-600">
+                          {formatDate(invitation.respondedAt)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="light"
+                          color="primary"
+                          isIconOnly
+                          onPress={() => handleEditInvitation(invitation)}
+                          className="text-default-400 hover:text-primary"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="light"
+                          color="danger"
+                          isIconOnly
+                          onPress={() => handleDeleteInvitation(invitation)}
+                          className="text-default-400 hover:text-danger"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardBody>
+        </Card>
+      </div>
 
       {/* Modales */}
       <EditInvitationModal

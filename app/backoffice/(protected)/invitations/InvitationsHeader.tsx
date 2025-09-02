@@ -56,13 +56,23 @@ export default function InvitationsHeader() {
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Gestión de Invitaciones</h1>
+        <h1 className="md:text-2xl font-bold">Gestión de Invitaciones</h1>
         <Button
           color="primary"
+          className='hidden md:block'
           onPress={handleCreateInvitation}
-          startContent={<Plus size={18} />}
+          startContent={<Plus />}
         >
           Crear Invitación
+        </Button>
+        <Button
+          color="primary"
+          size="sm"
+          className='md:hidden'
+          isIconOnly
+          onPress={handleCreateInvitation}
+          startContent={<Plus />}
+        >
         </Button>
       </div>
 

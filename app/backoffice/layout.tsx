@@ -34,21 +34,23 @@ export default function BackofficeLayout({
       {/* Navbar */}
       <Navbar className="bg-white shadow-sm border-b">
         <NavbarBrand>
-          <div className="flex items-center gap-2">
-            <Heart className="text-red-500" size={24} />
-            <span className="font-bold text-xl">Wedding App</span>
-          </div>
+          <Link 
+              href="/backoffice/dashboard"  
+              className="flex items-center gap-2"
+          >
+            <Heart className="text-red-500 md:text-2xl text-xl" size={24} />
+            <span className="font-bold md:text-xl text-lg">Wedding App</span>
+          </Link>
         </NavbarBrand>
         <NavbarContent justify="end">
-          <div className="flex items-center gap-4">
-            <Link href="/backoffice/dashboard" className="text-sm text-gray-500">Panel de Administración</Link>
+          <div className="flex items-center gap-2 md:gap-4">
             <LogoutButton />
           </div>
         </NavbarContent>
       </Navbar>
 
       {/* Main Content */}
-      <main className="container mx-auto max-w-screen-xl px-4 py-6">
+      <main className="container mx-auto max-w-screen-xl px-2 md:px-4 py-4 md:py-6">
         {children}
       </main>
     </div>
