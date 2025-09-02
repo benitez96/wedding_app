@@ -279,6 +279,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                   <TableColumn>ESTADO</TableColumn>
                   <TableColumn>ACCESOS</TableColumn>
                   <TableColumn>DISPOSITIVO</TableColumn>
+                  <TableColumn>FINGERPRINT</TableColumn>
                   <TableColumn>PRIMER ACCESO</TableColumn>
                   <TableColumn>ÚLTIMO ACCESO</TableColumn>
                   <TableColumn>ACCIONES</TableColumn>
@@ -336,6 +337,19 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                         ) : (
                           <div className="text-xs text-default-400 italic">
                             No usado aún
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {token.deviceId ? (
+                          <div className="text-xs">
+                            <code className="bg-default-100 px-2 py-1 rounded font-mono">
+                              {token.deviceId}
+                            </code>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-default-400 italic">
+                            No generado
                           </div>
                         )}
                       </TableCell>

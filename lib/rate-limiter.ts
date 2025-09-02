@@ -111,7 +111,8 @@ export async function recordAttempt(ip: string, actionType: keyof typeof RATE_LI
       actionType,
       timestamp: {
         gte: windowStart
-      }
+      },
+      success: false
     }
   })
   
