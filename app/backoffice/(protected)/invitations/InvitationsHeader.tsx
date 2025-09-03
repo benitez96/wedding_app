@@ -59,7 +59,7 @@ export default function InvitationsHeader() {
         <h1 className="md:text-2xl font-bold">Gestión de Invitaciones</h1>
         <Button
           color="primary"
-          className='hidden md:block'
+          className='hidden md:flex'
           onPress={handleCreateInvitation}
           startContent={<Plus />}
         >
@@ -85,7 +85,7 @@ export default function InvitationsHeader() {
           startContent={<Search size={18} className="text-default-400" />}
           endContent={isPending && <Spinner size="sm" />}
           variant="bordered"
-          className="max-w-xs"
+          className="max-w-xs bg-white"
         />
       </div>
 
