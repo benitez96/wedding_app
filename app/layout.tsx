@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  robots: {
+    index: false,
+    follow: false,
+  }
 };
 
 export const viewport: Viewport = {
