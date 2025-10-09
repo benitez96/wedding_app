@@ -5,10 +5,19 @@ import { headers } from 'next/headers'
 import crypto from 'crypto'
 import { JWT_SECRET } from '@/lib/config'
 
-// Función para generar fingerprint del dispositivo
+// Función para generar fingerprint del dispositivo (versión mejorada)
 async function generateDeviceFingerprint(userAgent: string): Promise<string> {
   const hash = crypto.createHash('sha256')
-  hash.update(userAgent + JWT_SECRET)
+  
+  // Normalizar el user agent para ser menos sensible a actualizaciones menores
+  const normalizedUA = userAgent
+    .replace(/\d+\.\d+\.\d+\.\d+/g, 'VERSION') // Reemplazar versiones específicas
+    .replace(/Chrome\/[\d.]+/g, 'Chrome/VERSION') // Normalizar versión de Chrome
+    .replace(/Safari\/[\d.]+/g, 'Safari/VERSION') // Normalizar versión de Safari
+    .replace(/Firefox\/[\d.]+/g, 'Firefox/VERSION') // Normalizar versión de Firefox
+    .replace(/Edge\/[\d.]+/g, 'Edge/VERSION') // Normalizar versión de Edge
+  
+  hash.update(normalizedUA + JWT_SECRET)
   return hash.digest('hex').substring(0, 16) // Primeros 16 caracteres
 }
 

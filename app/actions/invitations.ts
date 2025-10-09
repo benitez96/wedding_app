@@ -12,10 +12,19 @@ import { invitationResponseSchema, tokenSchema, validateAndSanitize } from '@/ut
 import { validateCSRFToken } from '@/lib/csrf'
 import { getClientIP, recordAttempt } from '@/lib/rate-limiter'
 
-// Función para generar fingerprint del dispositivo
+// Función para generar fingerprint del dispositivo (versión mejorada)
 async function generateDeviceFingerprint(userAgent: string): Promise<string> {
   const hash = crypto.createHash('sha256')
-  hash.update(userAgent + JWT_SECRET)
+  
+  // Normalizar el user agent para ser menos sensible a actualizaciones menores
+  const normalizedUA = userAgent
+    .replace(/\d+\.\d+\.\d+\.\d+/g, 'VERSION') // Reemplazar versiones específicas
+    .replace(/Chrome\/[\d.]+/g, 'Chrome/VERSION') // Normalizar versión de Chrome
+    .replace(/Safari\/[\d.]+/g, 'Safari/VERSION') // Normalizar versión de Safari
+    .replace(/Firefox\/[\d.]+/g, 'Firefox/VERSION') // Normalizar versión de Firefox
+    .replace(/Edge\/[\d.]+/g, 'Edge/VERSION') // Normalizar versión de Edge
+  
+  hash.update(normalizedUA + JWT_SECRET)
   return hash.digest('hex').substring(0, 16) // Primeros 16 caracteres
 }
 
@@ -84,18 +93,33 @@ export async function processInvitationToken(token: string) {
         
         const currentDeviceFp = await generateDeviceFingerprint(userAgent)
         if (payload.deviceFp !== currentDeviceFp) {
+          // Log de seguridad para monitoreo, pero no invalidamos la sesión
           if (process.env.NODE_ENV === 'development') {
-            console.log('Device fingerprint mismatch, regenerating session')
-          }
-          cookieStore.delete('session')
-        } else {
-          if (payload.tokenId === token) {
-            return { success: true, action: 'redirect' }
+            console.log('Device fingerprint mismatch detected - browser may have updated')
+            console.log(`Expected: ${payload.deviceFp}, Got: ${currentDeviceFp}`)
           }
           
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Token diferente al de la sesión, validando nuevo token')
-          }
+          // En producción, registrar esto para análisis de seguridad sin afectar al usuario
+          console.warn(`Fingerprint mismatch for token ${payload.tokenId}: expected ${payload.deviceFp}, got ${currentDeviceFp}`)
+          
+          // Opcional: podrías registrar esto en una tabla de auditoría para análisis posterior
+          // await logSecurityEvent({
+          //   type: 'fingerprint-mismatch',
+          //   ip: await getClientIP(),
+          //   userAgent,
+          //   details: { tokenId: payload.tokenId, expectedFp: payload.deviceFp, currentFp: currentDeviceFp }
+          // })
+          
+          // Continuar con la validación normal en lugar de invalidar la sesión
+        }
+        
+        // Verificar si es el mismo token que ya está en la sesión
+        if (payload.tokenId === token) {
+          return { success: true, action: 'redirect' }
+        }
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Token diferente al de la sesión, validando nuevo token')
         }
       } catch (jwtError) {
         if (process.env.NODE_ENV === 'development') {

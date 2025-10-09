@@ -10,10 +10,19 @@ import { JWT_SECRET, SECURITY_CONFIG } from '@/lib/config'
 import { adminLoginSchema, validateAndSanitize } from '@/utils/validation'
 import { validateCSRFToken } from '@/lib/csrf'
 
-// Función para generar fingerprint del dispositivo
+// Función para generar fingerprint del dispositivo (versión mejorada)
 async function generateDeviceFingerprint(userAgent: string): Promise<string> {
   const encoder = new TextEncoder()
-  const data = encoder.encode(userAgent)
+  
+  // Normalizar el user agent para ser menos sensible a actualizaciones menores
+  const normalizedUA = userAgent
+    .replace(/\d+\.\d+\.\d+\.\d+/g, 'VERSION') // Reemplazar versiones específicas
+    .replace(/Chrome\/[\d.]+/g, 'Chrome/VERSION') // Normalizar versión de Chrome
+    .replace(/Safari\/[\d.]+/g, 'Safari/VERSION') // Normalizar versión de Safari
+    .replace(/Firefox\/[\d.]+/g, 'Firefox/VERSION') // Normalizar versión de Firefox
+    .replace(/Edge\/[\d.]+/g, 'Edge/VERSION') // Normalizar versión de Edge
+  
+  const data = encoder.encode(normalizedUA)
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
