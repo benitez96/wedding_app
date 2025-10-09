@@ -39,6 +39,13 @@ export const getInvitations = withAdminAuth(async (user: AdminUser, searchTerm?:
 
     const invitations = await prisma.invitation.findMany({
       where,
+      include: {
+        tokens: {
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      },
       orderBy: {
         createdAt: 'desc'
       }

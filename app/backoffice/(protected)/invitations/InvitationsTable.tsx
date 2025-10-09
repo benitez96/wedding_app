@@ -16,13 +16,13 @@ import {
   useDisclosure
 } from '@heroui/react'
 import { Edit, Trash2 } from 'lucide-react'
-import { Invitation } from './types'
+import { Invitation, InvitationWithTokens } from './types'
 import EditInvitationModal from '@/components/EditInvitationModal'
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal'
 import { formatDate } from '@/utils/date'
 
 interface InvitationsTableProps {
-  invitations: Invitation[]
+  invitations: InvitationWithTokens[]
   searchTerm: string
 }
 
@@ -34,26 +34,56 @@ export default function InvitationsTable({ invitations, searchTerm }: Invitation
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
 
-  const handleRowClick = (invitation: Invitation) => {
+  const handleRowClick = (invitation: InvitationWithTokens) => {
     router.push(`/backoffice/invitations/${invitation.id}`)
   }
 
-  const getStatusChip = (invitation: Invitation) => {
+  const getStatusChip = (invitation: InvitationWithTokens) => {
+    // Si no tiene tokens, está en estado "No enviado"
+    if (!invitation.tokens || invitation.tokens.length === 0) {
+      return <Chip color="default" variant="flat" size="sm" className="bg-gray-100 text-gray-600">No enviado</Chip>
+    }
+
+    // Verificar si tiene tokens activos
+    const activeTokens = invitation.tokens.filter(token => token.isActive)
+    
+    // Si no hay tokens activos, está en estado "No enviado"
+    if (activeTokens.length === 0) {
+      return <Chip color="default" variant="flat" size="sm" className="bg-gray-100 text-gray-600">No enviado</Chip>
+    }
+
+    // Verificar si algún token fue usado (firstAccessAt no es null)
+    const hasUsedToken = activeTokens.some(token => token.firstAccessAt !== null)
+    
+    // Si no tiene tokens usados, está "Enviado" pero no accedido
+    if (!hasUsedToken) {
+      return <Chip color="primary" variant="flat" size="sm" className="bg-blue-100 text-blue-700">Enviado</Chip>
+    }
+
+    // Si tiene token usado pero no ha respondido, está "Pendiente"
     if (!invitation.hasResponded) {
-      return <Chip color="warning" variant="flat" size="sm">Pendiente</Chip>
+      return <Chip color="warning" variant="flat" size="sm" className="bg-amber-100 text-amber-700">Pendiente</Chip>
     }
-    if (invitation.isAttending) {
-      return <Chip color="success" variant="flat" size="sm">Confirmado</Chip>
+
+    // Si ha respondido, verificar si confirmó o rechazó
+    if (invitation.isAttending === true) {
+      return <Chip color="success" variant="flat" size="sm" className="bg-green-100 text-green-700">Confirmado</Chip>
     }
-    return <Chip color="danger" variant="flat" size="sm">No asistirá</Chip>
+    
+    if (invitation.isAttending === false) {
+      return <Chip color="danger" variant="flat" size="sm" className="bg-red-100 text-red-700">Rechazado</Chip>
+    }
+
+    // Fallback (no debería llegar aquí normalmente)
+    return <Chip color="warning" variant="flat" size="sm" className="bg-amber-100 text-amber-700">Pendiente</Chip>
   }
 
-  const handleEditInvitation = (invitation: Invitation) => {
+  const handleEditInvitation = (invitation: InvitationWithTokens) => {
     setSelectedInvitation(invitation)
     onEditOpen()
   }
 
-  const handleDeleteInvitation = (invitation: Invitation) => {
+  const handleDeleteInvitation = (invitation: InvitationWithTokens) => {
     setInvitationToDelete({ id: invitation.id, guestName: invitation.guestName })
     onDeleteOpen()
   }
