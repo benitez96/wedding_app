@@ -65,7 +65,7 @@ export default async function Backoffice() {
         <p className="text-gray-600 mt-2">Resumen de invitaciones y respuestas</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total de Invitaciones */}
         <Card>
           <CardBody className="p-6">
@@ -97,16 +97,17 @@ export default async function Backoffice() {
           </CardBody>
         </Card>
 
-        {/* Asistirán */}
+        {/* Total de Invitados */}
         <Card>
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Asistirán</p>
-                <p className="text-2xl font-bold text-green-600">{stats.attendingInvitations}</p>
+                <p className="text-sm font-medium text-gray-600">Total Invitados</p>
+                <p className="text-2xl font-bold text-green-600">{stats.totalConfirmedGuests}</p>
+                <p className="text-sm text-gray-500">de {stats.totalMaxGuests} máx.</p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+                <UserCheck className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </CardBody>
@@ -122,22 +123,6 @@ export default async function Backoffice() {
               </div>
               <div className="p-3 bg-red-100 rounded-full">
                 <XCircle className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Total de Invitados */}
-        <Card>
-          <CardBody className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Invitados</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.totalConfirmedGuests}</p>
-                <p className="text-sm text-gray-500">de {stats.totalMaxGuests} máx.</p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-full">
-                <UserCheck className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </CardBody>
