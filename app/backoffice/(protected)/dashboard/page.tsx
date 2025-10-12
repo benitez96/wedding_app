@@ -1,5 +1,5 @@
 import { Card, CardBody, CardHeader } from '@heroui/card'
-import { Users, Mail, CheckCircle, XCircle } from 'lucide-react'
+import { Users, Mail, CheckCircle, XCircle, UserCheck } from 'lucide-react'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
 import ExportConfirmedGuestsButton from '@/components/ExportConfirmedGuestsButton'
@@ -14,12 +14,21 @@ async function getDashboardStats() {
       totalInvitations,
       respondedInvitations,
       attendingInvitations,
-      notAttendingInvitations
+      notAttendingInvitations,
+      totalMaxGuests,
+      totalConfirmedGuests
     ] = await Promise.all([
       prisma.invitation.count(),
       prisma.invitation.count({ where: { hasResponded: true } }),
       prisma.invitation.count({ where: { isAttending: true } }),
-      prisma.invitation.count({ where: { isAttending: false } })
+      prisma.invitation.count({ where: { isAttending: false } }),
+      prisma.invitation.aggregate({
+        _sum: { maxGuests: true }
+      }),
+      prisma.invitation.aggregate({
+        where: { isAttending: true },
+        _sum: { guestCount: true }
+      })
     ])
 
     return {
@@ -27,6 +36,8 @@ async function getDashboardStats() {
       respondedInvitations,
       attendingInvitations,
       notAttendingInvitations,
+      totalMaxGuests: totalMaxGuests._sum.maxGuests || 0,
+      totalConfirmedGuests: totalConfirmedGuests._sum.guestCount || 0,
       responseRate: totalInvitations > 0 ? Math.round((respondedInvitations / totalInvitations) * 100) : 0
     }
   } catch (error) {
@@ -37,6 +48,8 @@ async function getDashboardStats() {
       respondedInvitations: 0,
       attendingInvitations: 0,
       notAttendingInvitations: 0,
+      totalMaxGuests: 0,
+      totalConfirmedGuests: 0,
       responseRate: 0
     }
   }
@@ -52,7 +65,7 @@ export default async function Backoffice() {
         <p className="text-gray-600 mt-2">Resumen de invitaciones y respuestas</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {/* Total de Invitaciones */}
         <Card>
           <CardBody className="p-6">
@@ -109,6 +122,22 @@ export default async function Backoffice() {
               </div>
               <div className="p-3 bg-red-100 rounded-full">
                 <XCircle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Total de Invitados */}
+        <Card>
+          <CardBody className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Invitados</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.totalConfirmedGuests}</p>
+                <p className="text-sm text-gray-500">de {stats.totalMaxGuests} máx.</p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-full">
+                <UserCheck className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </CardBody>
