@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCurrentDateArgentina } from '@/utils/date';
 
 interface TimeLeft {
   days: number;
@@ -23,16 +22,17 @@ export default function Countdown({ targetDate }: CountdownProps) {
   });
 
   useEffect(() => {
-
     const calculateTimeLeft = () => {
-      const now = getCurrentDateArgentina();
+      // Como el contenedor Docker está configurado con timezone Argentina,
+      // new Date() ya devuelve la hora correcta de Argentina
+      const now = new Date();
       const difference = targetDate.getTime() - now.getTime();
       
       if (difference > 0) {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
           hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
+          minutes: Math.floor((difference / (1000 * 60)) % 60),
           seconds: Math.floor((difference / 1000) % 60)
         });
       } else {
@@ -44,7 +44,7 @@ export default function Countdown({ targetDate }: CountdownProps) {
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [targetDate]);
 
   const formatNumber = (num: number) => num.toString().padStart(2, '0');
 
