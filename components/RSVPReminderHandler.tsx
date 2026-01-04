@@ -63,6 +63,12 @@ export default function RSVPReminderHandler() {
         const yOffset = -20
         const y = rsvpSection.getBoundingClientRect().top + window.pageYOffset + yOffset
         window.scrollTo({ top: y, behavior: 'smooth' })
+        
+        // Disparar evento personalizado para abrir el modal de RSVP
+        // Usar un delay adicional para que el scroll termine primero
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('openRSVPModal'))
+        }, 500)
       }
     }, 300)
   }

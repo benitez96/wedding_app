@@ -14,6 +14,17 @@ export default function RSVPSection() {
 
   useEffect(() => {
     loadUserData();
+    
+    // Escuchar evento para abrir el modal desde el recordatorio
+    const handleOpenRSVPModal = () => {
+      setIsModalOpen(true);
+    };
+    
+    window.addEventListener('openRSVPModal', handleOpenRSVPModal);
+    
+    return () => {
+      window.removeEventListener('openRSVPModal', handleOpenRSVPModal);
+    };
   }, []);
 
   const loadUserData = async () => {
