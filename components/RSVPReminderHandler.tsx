@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getCurrentUserData } from '@/app/actions/protected-invitations'
-import { getWeddingDate } from '@/utils/date'
+import { getWeddingDate, getCurrentDateArgentina } from '@/utils/date'
 import RSVPReminderModal from './RSVPReminderModal'
 
 export default function RSVPReminderHandler() {
@@ -29,9 +29,9 @@ export default function RSVPReminderHandler() {
         return
       }
 
-      // Calcular días restantes
+      // Calcular días restantes usando zona horaria de Argentina
       const weddingDate = getWeddingDate()
-      const today = new Date()
+      const today = getCurrentDateArgentina()
       const diffTime = weddingDate.getTime() - today.getTime()
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 

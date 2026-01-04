@@ -6,6 +6,7 @@ import { Providers } from "./providers";
 
 import { siteConfig } from "@/config/site";
 import { fontSans, fontDecorative } from "@/config/fonts";
+import { ARGENTINA_TIMEZONE } from "@/config/timezone";
 
 export const metadata: Metadata = {
   title: {
@@ -34,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning lang="es">
+    <html suppressHydrationWarning lang="es" data-timezone={ARGENTINA_TIMEZONE}>
       <head />
       <body
         className={clsx(
@@ -42,6 +43,7 @@ export default function RootLayout({
           fontSans.variable,
           fontDecorative.variable,
         )}
+        data-timezone={ARGENTINA_TIMEZONE}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
             {children}

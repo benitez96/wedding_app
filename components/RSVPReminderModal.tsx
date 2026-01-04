@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
 import { Calendar, ArrowRight } from 'lucide-react'
-import { getWeddingDate } from '@/utils/date'
+import { getWeddingDate, getCurrentDateArgentina } from '@/utils/date'
 
 interface RSVPReminderModalProps {
   isOpen: boolean
@@ -22,7 +22,7 @@ export default function RSVPReminderModal({ isOpen, onClose, onGoToRSVP }: RSVPR
 
   const calculateDaysRemaining = () => {
     const weddingDate = getWeddingDate()
-    const today = new Date()
+    const today = getCurrentDateArgentina()
     const diffTime = weddingDate.getTime() - today.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     setDaysRemaining(diffDays)
