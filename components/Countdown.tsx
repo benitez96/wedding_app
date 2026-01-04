@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getCurrentDateArgentina } from '@/utils/date';
 
 interface TimeLeft {
   days: number;
@@ -24,7 +25,8 @@ export default function Countdown({ targetDate }: CountdownProps) {
   useEffect(() => {
 
     const calculateTimeLeft = () => {
-      const difference = targetDate.getTime() - new Date().getTime();
+      const now = getCurrentDateArgentina();
+      const difference = targetDate.getTime() - now.getTime();
       
       if (difference > 0) {
         setTimeLeft({
