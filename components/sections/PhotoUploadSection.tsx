@@ -1,5 +1,6 @@
 import { Camera } from "lucide-react";
 import { Button } from "@heroui/button";
+import { Link } from "@heroui/link";
 import { Section } from "@/components/section";
 import AnimatedSection from "@/components/AnimatedSection";
 import Image from "next/image";
@@ -16,6 +17,9 @@ export default function PhotoUploadSection() {
         </Section.Description>
         
         <Button
+          as={Link}
+          href={process.env.NEXT_PUBLIC_PHOTO_UPLOAD_URL || ''}
+          isExternal
           color="primary"
           startContent={<Camera className="w-4 h-4" />}
         >

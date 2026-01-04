@@ -76,7 +76,7 @@ export default function RSVPSection() {
   return (
     <>
       <AnimatedSection delay={0.9}>
-        <Section.Container>
+        <Section.Container id="rsvp-section">
           {renderRSVPContent()}
         </Section.Container>
       </AnimatedSection>

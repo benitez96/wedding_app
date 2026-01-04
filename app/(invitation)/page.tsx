@@ -14,11 +14,15 @@ import {
 import AnimatedDivider from "@/components/AnimatedDivider";
 import AuthGuard from "@/components/AuthGuard";
 import HeroMusicButton from "@/components/HeroMusicButton";
+import FloatingRSVPButton from "@/components/FloatingRSVPButton";
+import RSVPReminderHandler from "@/components/RSVPReminderHandler";
 
 export default function Home() {
   return (
     <AuthGuard>
       <HeroMusicButton />
+      <RSVPReminderHandler />
+      <FloatingRSVPButton />
       <HeroSection />
       <QuoteSection />
       <DateSection />

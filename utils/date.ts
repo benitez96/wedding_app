@@ -17,12 +17,15 @@ export function formatWeddingDate(dateString: string): string {
 import { ARGENTINA_TIMEZONE, ARGENTINA_LOCALE } from '@/config/timezone'
 
 export function getWeddingDate(): Date {
-  const weddingDate = process.env.NEXT_PUBLIC_WEDDING_DATE || '20260214';
+  const weddingDate = process.env.NEXT_PUBLIC_WEDDING_DATE || '20260214193000';
   const year = parseInt(weddingDate.substring(0, 4));
   const month = parseInt(weddingDate.substring(4, 6)) - 1; // 0-indexed
   const day = parseInt(weddingDate.substring(6, 8));
+  const hour = parseInt(weddingDate.substring(8, 10));
+  const minute = parseInt(weddingDate.substring(10, 12));
+  const second = parseInt(weddingDate.substring(12, 14));
   
-  return new Date(year, month, day);
+  return new Date(year, month, day, hour, minute, second);
 }
 
 // Función para formatear fechas de manera consistente entre servidor y cliente
@@ -58,7 +61,8 @@ export function formatDateTime(date: Date | null): string {
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    second: '2-digit'
   })
   
   return formatter.format(date)

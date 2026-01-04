@@ -13,7 +13,7 @@ export default function CeremonySection() {
           <Image src="/icons/anillos-boda-1.gif" alt="Ceremonia" width={100} height={100} />
         </Section.Icon>
         <Section.Title>CEREMONIA</Section.Title>
-        <Section.Description>19:00hs, en la Iglesia Nuestra Señora del Carmen</Section.Description>
+        <Section.Description>19:30hs, en la Iglesia Nuestra Señora del Carmen</Section.Description>
         <Button
           color="primary"
           startContent={<MapPin className="w-4 h-4" />}
