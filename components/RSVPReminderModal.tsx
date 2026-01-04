@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
 import { Calendar, ArrowRight } from 'lucide-react'
-import { getWeddingDate, getCurrentDateArgentina } from '@/utils/date'
+import { getWeddingDate } from '@/utils/date'
 
 interface RSVPReminderModalProps {
   isOpen: boolean
@@ -17,15 +17,20 @@ export default function RSVPReminderModal({ isOpen, onClose, onGoToRSVP }: RSVPR
   useEffect(() => {
     if (isOpen) {
       calculateDaysRemaining()
+      // Actualizar cada minuto para mantener el contador actualizado
+      const interval = setInterval(calculateDaysRemaining, 60000)
+      return () => clearInterval(interval)
     }
   }, [isOpen])
 
   const calculateDaysRemaining = () => {
+    // Como el contenedor Docker está configurado con timezone Argentina,
+    // new Date() ya devuelve la hora correcta de Argentina
     const weddingDate = getWeddingDate()
-    const today = getCurrentDateArgentina()
+    const today = new Date()
     const diffTime = weddingDate.getTime() - today.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    setDaysRemaining(diffDays)
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    setDaysRemaining(Math.max(0, diffDays))
   }
 
   const handleGoToRSVP = () => {

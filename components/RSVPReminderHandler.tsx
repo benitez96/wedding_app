@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getCurrentUserData } from '@/app/actions/protected-invitations'
-import { getWeddingDate, getCurrentDateArgentina } from '@/utils/date'
+import { getWeddingDate } from '@/utils/date'
 import RSVPReminderModal from './RSVPReminderModal'
 
 export default function RSVPReminderHandler() {
@@ -29,17 +29,19 @@ export default function RSVPReminderHandler() {
         return
       }
 
-      // Calcular días restantes usando zona horaria de Argentina
+      // Calcular días restantes
+      // Como el contenedor Docker está configurado con timezone Argentina,
+      // new Date() ya devuelve la hora correcta de Argentina
       const weddingDate = getWeddingDate()
-      const today = getCurrentDateArgentina()
+      const today = new Date()
       const diffTime = weddingDate.getTime() - today.getTime()
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
       // Obtener el número de días desde la variable de entorno (default: 40)
-      const remindBeforeDays = parseInt(process.env.NEXT_PUBLIC_REMIND_BEFORE || '40', 10)
+      const remindRestingDays = parseInt(process.env.NEXT_PUBLIC_REMIND_RESTING || '40', 10)
 
       // Mostrar modal si faltan menos de los días configurados
-      if (diffDays < remindBeforeDays && diffDays > 0) {
+      if (diffDays < remindRestingDays && diffDays > 0) {
         setShowModal(true)
       }
     } catch (error) {
