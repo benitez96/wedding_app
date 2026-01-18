@@ -1,64 +1,64 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button, Input } from '@heroui/react'
-import { Minus, Plus } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Button, Input } from "@heroui/react";
+import { Minus, Plus } from "lucide-react";
 
 interface GuestCountSelectorProps {
-  value: number
-  onChange: (value: number) => void
-  min?: number
-  max?: number
-  disabled?: boolean
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  disabled?: boolean;
 }
 
-export default function GuestCountSelector({ 
-  value, 
-  onChange, 
-  min = 1, 
-  max = 10, 
-  disabled = false 
+export default function GuestCountSelector({
+  value,
+  onChange,
+  min = 1,
+  max = 10,
+  disabled = false,
 }: GuestCountSelectorProps) {
-  const [inputValue, setInputValue] = useState(value.toString())
+  const [inputValue, setInputValue] = useState(value.toString());
 
   useEffect(() => {
-    setInputValue(value.toString())
-  }, [value])
+    setInputValue(value.toString());
+  }, [value]);
 
   const handleDecrease = () => {
     if (!disabled && value > min) {
-      const newValue = value - 1
-      onChange(newValue)
-      setInputValue(newValue.toString())
+      const newValue = value - 1;
+      onChange(newValue);
+      setInputValue(newValue.toString());
     }
-  }
+  };
 
   const handleIncrease = () => {
     if (!disabled && value < max) {
-      const newValue = value + 1
-      onChange(newValue)
-      setInputValue(newValue.toString())
+      const newValue = value + 1;
+      onChange(newValue);
+      setInputValue(newValue.toString());
     }
-  }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    setInputValue(newValue)
-    
-    const numValue = parseInt(newValue) || min
-    const clampedValue = Math.max(min, Math.min(max, numValue))
-    
+    const newValue = e.target.value;
+    setInputValue(newValue);
+
+    const numValue = parseInt(newValue) || min;
+    const clampedValue = Math.max(min, Math.min(max, numValue));
+
     if (clampedValue !== value) {
-      onChange(clampedValue)
+      onChange(clampedValue);
     }
-  }
+  };
 
   const handleInputBlur = () => {
-    const numValue = parseInt(inputValue) || min
-    const clampedValue = Math.max(min, Math.min(max, numValue))
-    onChange(clampedValue)
-    setInputValue(clampedValue.toString())
-  }
+    const numValue = parseInt(inputValue) || min;
+    const clampedValue = Math.max(min, Math.min(max, numValue));
+    onChange(clampedValue);
+    setInputValue(clampedValue.toString());
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -72,7 +72,7 @@ export default function GuestCountSelector({
       >
         <Minus className="w-4 h-4" />
       </Button>
-      
+
       <Input
         type="number"
         value={inputValue}
@@ -84,10 +84,10 @@ export default function GuestCountSelector({
         className="w-20 text-center"
         classNames={{
           input: "text-center text-lg font-semibold",
-          inputWrapper: "h-[40px]"
+          inputWrapper: "h-[40px]",
         }}
       />
-      
+
       <Button
         isIconOnly
         size="sm"
@@ -99,5 +99,5 @@ export default function GuestCountSelector({
         <Plus className="w-4 h-4" />
       </Button>
     </div>
-  )
+  );
 }

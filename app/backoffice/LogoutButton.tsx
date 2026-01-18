@@ -1,40 +1,37 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { logoutAdmin } from '@/app/actions/admin'
-import { Button } from '@heroui/react'
-import { LogOut } from 'lucide-react'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { logoutAdmin } from "@/app/actions/admin";
+import { Button } from "@heroui/react";
+import { LogOut } from "lucide-react";
 
 export default function LogoutButton() {
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogout = async () => {
-    setIsLoading(true)
-    
+    setIsLoading(true);
+
     try {
-      const result = await logoutAdmin()
-      
-      if (result.success) {
-        // Redirigir a la página de login
-        router.push('/backoffice/login')
-        router.refresh()
-      } else {
-        console.error('Error al cerrar sesión:', result.error)
-        // Aún así redirigir al login
-        router.push('/backoffice/login')
-        router.refresh()
+      const result = await logoutAdmin();
+
+      if (!result.success) {
+        console.error("Error al cerrar sesión:", result.error);
       }
+
+      // Redirigir a la página de login
+      router.replace("/backoffice/login");
+      router.refresh();
     } catch (error) {
-      console.error('Error al cerrar sesión:', error)
+      console.error("Error al cerrar sesión:", error);
       // Aún así redirigir al login
-      router.push('/backoffice/login')
-      router.refresh()
+      router.replace("/backoffice/login");
+      router.refresh();
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Button
@@ -49,5 +46,5 @@ export default function LogoutButton() {
     >
       <span className="hidden sm:inline">Cerrar Sesión</span>
     </Button>
-  )
+  );
 }

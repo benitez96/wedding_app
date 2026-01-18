@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import type { ReactNode } from "react";
 import { Metadata, Viewport } from "next";
 import clsx from "clsx";
 
@@ -20,20 +21,14 @@ export const metadata: Metadata = {
   robots: {
     index: false,
     follow: false,
-  }
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-  ],
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "white" }],
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html suppressHydrationWarning lang="es" data-timezone={ARGENTINA_TIMEZONE}>
       <head />
@@ -46,7 +41,7 @@ export default function RootLayout({
         data-timezone={ARGENTINA_TIMEZONE}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-            {children}
+          {children}
         </Providers>
       </body>
     </html>

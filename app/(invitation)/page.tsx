@@ -1,28 +1,22 @@
-import {
-  HeroSection,
-  QuoteSection,
-  DateSection,
-  CeremonySection,
-  CelebrationSection,
-  DressCodeSection,
-  GiftSection,
-  InstagramSection,
-  RSVPSection,
-  PhotoUploadSection,
-  AccommodationSection
-} from "@/components/sections";
 import AnimatedDivider from "@/components/AnimatedDivider";
 import AuthGuard from "@/components/AuthGuard";
-import HeroMusicButton from "@/components/HeroMusicButton";
-import FloatingRSVPButton from "@/components/FloatingRSVPButton";
-import RSVPReminderHandler from "@/components/RSVPReminderHandler";
+import AccommodationSection from "@/components/sections/AccommodationSection";
+import CelebrationSection from "@/components/sections/CelebrationSection";
+import CeremonySection from "@/components/sections/CeremonySection";
+import DateSection from "@/components/sections/DateSection";
+import DressCodeSection from "@/components/sections/DressCodeSection";
+import GiftSection from "@/components/sections/GiftSection";
+import HeroSection from "@/components/sections/HeroSection";
+import InstagramSection from "@/components/sections/InstagramSection";
+import PhotoUploadSection from "@/components/sections/PhotoUploadSection";
+import QuoteSection from "@/components/sections/QuoteSection";
+import RSVPSection from "@/components/sections/RSVPSection";
+import InvitationClientWidgets from "@/app/(invitation)/InvitationClientWidgets";
 
 export default function Home() {
   return (
     <AuthGuard>
-      <HeroMusicButton />
-      <RSVPReminderHandler />
-      <FloatingRSVPButton />
+      <InvitationClientWidgets />
       <HeroSection />
       <QuoteSection />
       <DateSection />

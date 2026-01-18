@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@heroui/button';
-import { Copy, Check } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@heroui/button";
+import { Copy, Check } from "lucide-react";
 
 interface BankInfoProps {
   alias: string;
@@ -11,21 +11,33 @@ interface BankInfoProps {
   accountHolder?: string;
 }
 
-export default function BankInfo({ 
-  alias, 
-  bankName = "Banco", 
+export default function BankInfo({
+  alias,
+  bankName = "Banco",
   accountType = "Cuenta Corriente",
-  accountHolder = "NOMBRE APELLIDO"
+  accountHolder = "NOMBRE APELLIDO",
 }: BankInfoProps) {
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(alias);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Error al copiar:', err);
+      console.error("Error al copiar:", err);
     }
   };
 
@@ -33,7 +45,7 @@ export default function BankInfo({
     <div className="bg-secondary/20 rounded-lg p-6 max-w-md w-full">
       <div className="text-center space-y-4">
         <h3 className="text-lg font-semibold">Datos Bancarios</h3>
-        
+
         <div className="space-y-2">
           <div className="text-sm text-muted-foreground">
             <span className="font-medium">Banco:</span> {bankName}
@@ -54,11 +66,17 @@ export default function BankInfo({
         <Button
           color="primary"
           variant="flat"
-          startContent={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          startContent={
+            copied ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )
+          }
           onClick={handleCopy}
           className="w-full"
         >
-          {copied ? '¡Copiado!' : 'Copiar ALIAS'}
+          {copied ? "¡Copiado!" : "Copiar ALIAS"}
         </Button>
       </div>
     </div>

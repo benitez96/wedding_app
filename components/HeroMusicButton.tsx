@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@heroui/button';
-import { Play, Pause } from 'lucide-react';
-import { useAudio } from '@/hooks/useAudio';
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@heroui/button";
+import { Play, Pause } from "lucide-react";
+import { useAudio } from "@/hooks/useAudio";
 
 interface HeroMusicButtonProps {
   className?: string;
   audioSrc?: string;
 }
 
-export default function HeroMusicButton({ 
-  className = '',
-  audioSrc = '/audio/background-music-2.mp3'
+export default function HeroMusicButton({
+  className = "",
+  audioSrc = "/audio/background-music-2.mp3",
 }: HeroMusicButtonProps) {
-  const { isPlaying, isLoaded, toggle } = useAudio({ 
-    src: audioSrc, 
-    loop: true, 
-    volume: 0.3 
+  const { isPlaying, isLoaded, toggle } = useAudio({
+    src: audioSrc,
+    loop: true,
+    volume: 0.3,
   });
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,25 +30,30 @@ export default function HeroMusicButton({
       const heroSectionHeight = 400;
 
       // Si se hace scroll hacia arriba o se está en la primera sección, mostrar el botón
-      if (currentScrollY < lastScrollY) {
+      if (
+        currentScrollY < lastScrollY.current ||
+        currentScrollY < heroSectionHeight
+      ) {
         setIsVisible(true);
       }
       // Si se hace scroll hacia abajo, ocultar el botón
-      else if (currentScrollY > lastScrollY && currentScrollY > scrollThreshold) {
+      else if (
+        currentScrollY > lastScrollY.current &&
+        currentScrollY > scrollThreshold
+      ) {
         setIsVisible(false);
       }
 
-      setLastScrollY(currentScrollY);
+      lastScrollY.current = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleToggle = () => {
     toggle();
-    setIsVisible(isPlaying);
-    
+    setIsVisible(!isPlaying);
   };
 
   return (
@@ -58,11 +63,11 @@ export default function HeroMusicButton({
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 400, 
+          transition={{
+            type: "spring",
+            stiffness: 400,
             damping: 25,
-            duration: 0.8 
+            duration: 0.8,
           }}
           className={`fixed top-6 right-6 z-50 ${className}`}
         >
@@ -78,7 +83,11 @@ export default function HeroMusicButton({
               size="sm"
               startContent={
                 <motion.div
-                  transition={{ duration: 2, repeat: isPlaying ? Infinity : 0, ease: "linear" }}
+                  transition={{
+                    duration: 2,
+                    repeat: isPlaying ? Infinity : 0,
+                    ease: "linear",
+                  }}
                 >
                   {!isLoaded ? (
                     <Play className="w-5 h-5 animate-pulse" />
@@ -99,15 +108,19 @@ export default function HeroMusicButton({
                 relative z-10
               "
             >
-              {!isLoaded ? 'Cargando...' : isPlaying ? 'Pausar' : 'Reproducir'}
+              {!isLoaded ? "Cargando..." : isPlaying ? "Pausar" : "Reproducir"}
             </Button>
-            
+
             {/* Efecto de ondas cuando está reproduciendo */}
             {isPlaying && (
               <motion.div
                 className="absolute inset-0 rounded-full border-2 border-accent-300/30 pointer-events-none"
                 animate={{ scale: [1, 1.2], opacity: [0.4, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                }}
                 style={{ zIndex: -1 }}
               />
             )}

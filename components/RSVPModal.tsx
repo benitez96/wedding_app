@@ -1,106 +1,133 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react'
-import { Users, Heart } from 'lucide-react'
-import { getCurrentUserData, updateInvitationResponse } from '@/app/actions/protected-invitations'
-import CustomRadioGroup from './sections/RSVPStatus/CustomRadioGroup'
-import GuestCountSelector from './GuestCountSelector'
-import { useCSRF } from '@/hooks/useCSRF'
-import SimpleConfetti from './SimpleConfetti'
+import { useState, useEffect, useRef } from "react";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+} from "@heroui/react";
+import { Users, Heart } from "lucide-react";
+import {
+  getCurrentUserData,
+  updateInvitationResponse,
+} from "@/app/actions/protected-invitations";
+import CustomRadioGroup from "./sections/RSVPStatus/CustomRadioGroup";
+import GuestCountSelector from "./GuestCountSelector";
+import { useCSRF } from "@/hooks/useCSRF";
+import SimpleConfetti from "./SimpleConfetti";
 
 interface RSVPModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [response, setResponse] = useState<'attending' | 'declining' | null>(null)
-  const [guestCount, setGuestCount] = useState<number>(1)
-  const [error, setError] = useState('')
-  const [showConfetti, setShowConfetti] = useState(false)
-  const { csrfData } = useCSRF()
+export default function RSVPModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: RSVPModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [response, setResponse] = useState<"attending" | "declining" | null>(
+    null,
+  );
+  const [guestCount, setGuestCount] = useState<number>(1);
+  const [error, setError] = useState("");
+  const [showConfetti, setShowConfetti] = useState(false);
+  const confettiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { csrfData } = useCSRF();
 
   useEffect(() => {
-    if (isOpen) {
-      loadUserData()
-    }
-  }, [isOpen])
+    if (!isOpen) return;
 
-  const loadUserData = async () => {
-    try {
-      const result = await getCurrentUserData()
-      if (result.success && result.user) {
-        setUser(result.user)
-        
-        // Si ya respondió, cargar su respuesta actual
-        if (result.user.hasResponded) {
-          setResponse(result.user.isAttending ? 'attending' : 'declining')
-          setGuestCount(result.user.guestCount || result.user.maxGuests)
+    const loadUserData = async () => {
+      try {
+        const result = await getCurrentUserData();
+        if (result.success && result.user) {
+          setUser(result.user);
+
+          // Si ya respondió, cargar su respuesta actual
+          if (result.user.hasResponded) {
+            setResponse(result.user.isAttending ? "attending" : "declining");
+            setGuestCount(result.user.guestCount || result.user.maxGuests);
+          } else {
+            setResponse(null);
+            setGuestCount(result.user.maxGuests);
+          }
         } else {
-          setResponse(null)
-          setGuestCount(result.user.maxGuests)
+          setError("No se pudo cargar la información de la invitación");
         }
-      } else {
-        setError('No se pudo cargar la información de la invitación')
+      } catch (error) {
+        setError("Error al cargar la información");
       }
-    } catch (error) {
-      setError('Error al cargar la información')
-    }
-  }
+    };
+
+    loadUserData();
+
+    return () => {
+      if (confettiTimeoutRef.current) {
+        clearTimeout(confettiTimeoutRef.current);
+      }
+    };
+  }, [isOpen]);
 
   const handleSubmit = async () => {
-    if (!response || !user) return
+    if (!response || !user) return;
 
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError("");
 
     try {
       const result = await updateInvitationResponse({
-        isAttending: response === 'attending',
-        guestCount: response === 'attending' ? guestCount : null,
-        csrfToken: csrfData?.token
-      })
+        isAttending: response === "attending",
+        guestCount: response === "attending" ? guestCount : null,
+        csrfToken: csrfData?.token,
+      });
 
       if (result.success) {
         // Mostrar confetis si está confirmando asistencia
-        if (response === 'attending') {
-          setShowConfetti(true)
+        if (response === "attending") {
+          setShowConfetti(true);
           // Ocultar confetis después de 4 segundos
-          setTimeout(() => {
-            setShowConfetti(false)
-          }, 4000)
+          if (confettiTimeoutRef.current) {
+            clearTimeout(confettiTimeoutRef.current);
+          }
+          confettiTimeoutRef.current = setTimeout(() => {
+            setShowConfetti(false);
+            confettiTimeoutRef.current = null;
+          }, 4000);
         }
-        
-        onSuccess()
-        onClose()
+
+        onSuccess();
+        onClose();
         // Resetear el formulario
-        setResponse(null)
-        setGuestCount(1)
+        setResponse(null);
+        setGuestCount(1);
       } else {
-        setError(result.error || 'Error al enviar la respuesta')
+        setError(result.error || "Error al enviar la respuesta");
       }
     } catch (error) {
-      setError('Error al procesar la respuesta')
+      setError("Error al procesar la respuesta");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
     if (!isLoading) {
-      onClose()
-      setError('')
+      onClose();
+      setError("");
     }
-  }
+  };
 
   const getModalTitle = () => {
-    if (!user) return 'Confirmar Asistencia'
-    return user.hasResponded ? 'Cambiar Respuesta' : 'Confirmar Asistencia'
-  }
+    if (!user) return "Confirmar Asistencia";
+    return user.hasResponded ? "Cambiar Respuesta" : "Confirmar Asistencia";
+  };
 
   return (
     <>
@@ -116,7 +143,7 @@ export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps
               {user?.guestNickname ? `${user.guestNickname}` : user?.guestName}
             </p>
           </ModalHeader>
-          
+
           <ModalBody className="space-y-6">
             {error && (
               <div className="bg-danger-50 border border-danger-200 rounded-lg p-3">
@@ -126,18 +153,22 @@ export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps
 
             <div className="space-y-6">
               <div>
-                <h4 className="font-semibold mb-4 text-center">¿Vas a asistir a nuestra boda?</h4>
+                <h4 className="font-semibold mb-4 text-center">
+                  ¿Vas a asistir a nuestra boda?
+                </h4>
                 <CustomRadioGroup
                   value={response}
                   onValueChange={setResponse}
                 />
               </div>
 
-              {response === 'attending' && user?.maxGuests > 1 && (
+              {response === "attending" && user?.maxGuests > 1 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-center gap-2">
                     <Users className="w-4 h-4 text-primary" />
-                    <span className="font-medium">¿Cuántas personas van a asistir?</span>
+                    <span className="font-medium">
+                      ¿Cuántas personas van a asistir?
+                    </span>
                   </div>
                   <div className="flex items-center justify-center gap-3">
                     <GuestCountSelector
@@ -169,11 +200,15 @@ export default function RSVPModal({ isOpen, onClose, onSuccess }: RSVPModalProps
               isLoading={isLoading}
               isDisabled={!response}
             >
-              {user?.hasResponded ? 'Actualizar Respuesta' : (response === 'attending' ? 'Confirmar Asistencia' : 'Enviar Respuesta')}
+              {user?.hasResponded
+                ? "Actualizar Respuesta"
+                : response === "attending"
+                  ? "Confirmar Asistencia"
+                  : "Enviar Respuesta"}
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
     </>
-  )
+  );
 }

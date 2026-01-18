@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { 
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
   ModalBody,
   Button,
   Card,
@@ -19,140 +19,208 @@ import {
   Chip,
   Divider,
   useDisclosure,
-  Tooltip
-} from '@heroui/react'
-import { X, ExternalLink, Calendar, Phone, Users, CheckCircle, XCircle, Clock, Copy, Check, Plus, Ban, Trash2, RotateCcw } from 'lucide-react'
+  Tooltip,
+} from "@heroui/react";
+import {
+  X,
+  ExternalLink,
+  Calendar,
+  Phone,
+  Users,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Copy,
+  Check,
+  Plus,
+  Ban,
+  Trash2,
+  RotateCcw,
+} from "lucide-react";
 
-import { InvitationWithTokens, InvitationToken } from '@/app/backoffice/(protected)/invitations/types'
-import { createInvitationToken, revokeInvitationToken, reactivateInvitationToken, deleteInvitationToken } from '@/app/actions/protected-admin-invitations'
-import { formatDateTime } from '@/utils/date'
+import {
+  InvitationWithTokens,
+  InvitationToken,
+} from "@/app/backoffice/(protected)/invitations/types";
+import {
+  createInvitationToken,
+  revokeInvitationToken,
+  reactivateInvitationToken,
+  deleteInvitationToken,
+} from "@/app/actions/protected-admin-invitations";
+import { formatDateTime } from "@/utils/date";
 
 interface InvitationDetailModalProps {
-  invitation: InvitationWithTokens
+  invitation: InvitationWithTokens;
 }
 
-export default function InvitationDetailModal({ invitation }: InvitationDetailModalProps) {
-  const [copiedToken, setCopiedToken] = useState<string | null>(null)
-  const [isCreatingToken, setIsCreatingToken] = useState(false)
-  const router = useRouter()
+export default function InvitationDetailModal({
+  invitation,
+}: InvitationDetailModalProps) {
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [isCreatingToken, setIsCreatingToken] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleClose = () => {
-    router.back()
-  }
+    router.back();
+  };
 
   const getDeviceInfo = (userAgent: string | null) => {
-    if (!userAgent || userAgent === 'Unknown') return 'Desconocido'
-    
+    if (!userAgent || userAgent === "Unknown") return "Desconocido";
+
     // Detectar navegador
-    if (userAgent.includes('Chrome')) return 'Chrome'
-    if (userAgent.includes('Firefox')) return 'Firefox'
-    if (userAgent.includes('Safari')) return 'Safari'
-    if (userAgent.includes('Edge')) return 'Edge'
-    
+    if (userAgent.includes("Chrome")) return "Chrome";
+    if (userAgent.includes("Firefox")) return "Firefox";
+    if (userAgent.includes("Safari")) return "Safari";
+    if (userAgent.includes("Edge")) return "Edge";
+
     // Detectar dispositivo móvil
-    if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone')) {
-      return 'Móvil'
+    if (
+      userAgent.includes("Mobile") ||
+      userAgent.includes("Android") ||
+      userAgent.includes("iPhone")
+    ) {
+      return "Móvil";
     }
-    
-    return 'Desktop'
-  }
+
+    return "Desktop";
+  };
 
   const getStatusChip = (invitation: InvitationWithTokens) => {
     if (!invitation.hasResponded) {
-      return <Chip color="warning" variant="flat" size="sm">Pendiente</Chip>
+      return (
+        <Chip color="warning" variant="flat" size="sm">
+          Pendiente
+        </Chip>
+      );
     }
     if (invitation.isAttending) {
-      return <Chip color="success" variant="flat" size="sm">Confirmado</Chip>
+      return (
+        <Chip color="success" variant="flat" size="sm">
+          Confirmado
+        </Chip>
+      );
     }
-    return <Chip color="danger" variant="flat" size="sm">No asistirá</Chip>
-  }
+    return (
+      <Chip color="danger" variant="flat" size="sm">
+        No asistirá
+      </Chip>
+    );
+  };
 
   const getTokenStatusChip = (token: InvitationToken) => {
     if (!token.isActive) {
-      return <Chip color="danger" variant="flat" size="sm">Revocado</Chip>
+      return (
+        <Chip color="danger" variant="flat" size="sm">
+          Revocado
+        </Chip>
+      );
     }
     if (token.isUsed) {
-      return <Chip color="success" variant="flat" size="sm">Usado</Chip>
+      return (
+        <Chip color="success" variant="flat" size="sm">
+          Usado
+        </Chip>
+      );
     }
-    return <Chip color="default" variant="flat" size="sm">Disponible</Chip>
-  }
+    return (
+      <Chip color="default" variant="flat" size="sm">
+        Disponible
+      </Chip>
+    );
+  };
+
+  const openInvitationLink = (tokenId: string) => {
+    const url = `${window.location.origin}/r/${tokenId}`;
+    window.open(url, "_blank");
+  };
 
   const copyToClipboard = async (tokenId: string) => {
     try {
-      const invitationUrl = `${window.location.origin}/r/${tokenId}`
-      await navigator.clipboard.writeText(invitationUrl)
-      setCopiedToken(tokenId)
-      setTimeout(() => setCopiedToken(null), 2000)
+      const invitationUrl = `${window.location.origin}/r/${tokenId}`;
+      await navigator.clipboard.writeText(invitationUrl);
+      setCopiedToken(tokenId);
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => {
+        setCopiedToken(null);
+        copyTimeoutRef.current = null;
+      }, 2000);
     } catch (error) {
-      console.error('Error al copiar al portapapeles:', error)
+      console.error("Error al copiar al portapapeles:", error);
     }
-  }
-
-  const openInvitationLink = (tokenId: string) => {
-    const url = `${window.location.origin}/r/${tokenId}`
-    window.open(url, '_blank')
-  }
+  };
 
   const handleCreateToken = async () => {
-    setIsCreatingToken(true)
+    setIsCreatingToken(true);
     try {
-      const result = await createInvitationToken(invitation.id)
+      const result = await createInvitationToken(invitation.id);
       if (result.success) {
         // Recargar la página para mostrar el nuevo token
-        router.refresh()
+        router.refresh();
       } else {
-        console.error('Error al crear token:', result.error)
+        console.error("Error al crear token:", result.error);
         // Aquí podrías mostrar un toast de error
       }
     } catch (error) {
-      console.error('Error al crear token:', error)
+      console.error("Error al crear token:", error);
     } finally {
-      setIsCreatingToken(false)
+      setIsCreatingToken(false);
     }
-  }
+  };
 
   const handleRevokeToken = async (tokenId: string) => {
     try {
-      const result = await revokeInvitationToken(tokenId)
+      const result = await revokeInvitationToken(tokenId);
       if (result.success) {
-        router.refresh()
+        router.refresh();
       } else {
-        console.error('Error al revocar token:', result.error)
+        console.error("Error al revocar token:", result.error);
       }
     } catch (error) {
-      console.error('Error al revocar token:', error)
+      console.error("Error al revocar token:", error);
     }
-  }
+  };
 
   const handleReactivateToken = async (tokenId: string) => {
     try {
-      const result = await reactivateInvitationToken(tokenId)
+      const result = await reactivateInvitationToken(tokenId);
       if (result.success) {
-        router.refresh()
+        router.refresh();
       } else {
-        console.error('Error al reactivar token:', result.error)
+        console.error("Error al reactivar token:", result.error);
       }
     } catch (error) {
-      console.error('Error al reactivar token:', error)
+      console.error("Error al reactivar token:", error);
     }
-  }
+  };
 
   const handleDeleteToken = async (tokenId: string) => {
     try {
-      const result = await deleteInvitationToken(tokenId)
+      const result = await deleteInvitationToken(tokenId);
       if (result.success) {
-        router.refresh()
+        router.refresh();
       } else {
-        console.error('Error al eliminar token:', result.error)
+        console.error("Error al eliminar token:", result.error);
       }
     } catch (error) {
-      console.error('Error al eliminar token:', error)
+      console.error("Error al eliminar token:", error);
     }
-  }
+  };
 
   return (
-    <Modal 
-      isOpen={true} 
+    <Modal
+      isOpen={true}
       onClose={handleClose}
       size="full"
       placement="center"
@@ -163,7 +231,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
         base: "border-1 border-default-200 bg-background",
         header: "border-b-1 border-default-200",
         body: "py-6",
-        footer: "border-t-1 border-default-200"
+        footer: "border-t-1 border-default-200",
       }}
     >
       <ModalContent>
@@ -172,16 +240,18 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
             <h2 className="text-xl font-bold">Detalles de la Invitación</h2>
           </div>
         </ModalHeader>
-        
+
         <ModalBody className="gap-6">
           {/* Información de la invitación */}
           <Card>
             <CardBody className="gap-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Información del Invitado</h3>
+                <h3 className="text-lg font-semibold">
+                  Información del Invitado
+                </h3>
                 {getStatusChip(invitation)}
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -189,14 +259,16 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                     <span className="font-medium">Nombre:</span>
                     <span>{invitation.guestName}</span>
                   </div>
-                  
+
                   {invitation.guestNickname && (
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Apodo:</span>
-                      <span className="italic">&ldquo;{invitation.guestNickname}&rdquo;</span>
+                      <span className="italic">
+                        &ldquo;{invitation.guestNickname}&rdquo;
+                      </span>
                     </div>
                   )}
-                  
+
                   {invitation.guestPhone && (
                     <div className="flex items-center gap-2">
                       <Phone size={16} className="text-default-500" />
@@ -205,14 +277,14 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                     </div>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Users size={16} className="text-default-500" />
                     <span className="font-medium">Máximo de invitados:</span>
                     <span>{invitation.maxGuests}</span>
                   </div>
-                  
+
                   {invitation.hasResponded && (
                     <>
                       <div className="flex items-center gap-2">
@@ -224,7 +296,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                         <span className="font-medium">Confirmados:</span>
                         <span>{invitation.guestCount || 0}</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Calendar size={16} className="text-default-500" />
                         <span className="font-medium">Respondió el:</span>
@@ -234,12 +306,12 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                   )}
                 </div>
               </div>
-              
+
               <Divider />
-              
+
               <div className="flex items-center gap-2 text-sm text-default-500">
                 <Clock size={14} />
-                                    <span>Creada el {formatDateTime(invitation.createdAt)}</span>
+                <span>Creada el {formatDateTime(invitation.createdAt)}</span>
               </div>
             </CardBody>
           </Card>
@@ -251,7 +323,8 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                 <h3 className="text-lg font-semibold">Tokens de Acceso</h3>
                 <div className="flex items-center gap-2">
                   <Chip color="primary" variant="flat" size="sm">
-                    {invitation.tokens.length} token{invitation.tokens.length !== 1 ? 's' : ''}
+                    {invitation.tokens.length} token
+                    {invitation.tokens.length !== 1 ? "s" : ""}
                   </Chip>
                   <Tooltip content="Crear nuevo token de acceso">
                     <Button
@@ -268,8 +341,8 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                   </Tooltip>
                 </div>
               </div>
-              
-              <Table 
+
+              <Table
                 aria-label="Tabla de tokens"
                 className="min-h-[200px]"
                 selectionMode="none"
@@ -309,21 +382,17 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Tooltip 
+                        <Tooltip
                           content={
-                            token.isUsed && token.deviceId 
+                            token.isUsed && token.deviceId
                               ? "Token vinculado a un dispositivo específico. No se puede usar desde otros dispositivos."
                               : undefined
                           }
                         >
-                          <div>
-                            {getTokenStatusChip(token)}
-                          </div>
+                          <div>{getTokenStatusChip(token)}</div>
                         </Tooltip>
                       </TableCell>
-                      <TableCell>
-                        {token.accessCount}
-                      </TableCell>
+                      <TableCell>{token.accessCount}</TableCell>
                       <TableCell>
                         {token.userAgent ? (
                           <div className="text-xs">
@@ -373,7 +442,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                               <ExternalLink size={14} />
                             </Button>
                           </Tooltip>
-                          
+
                           {token.isActive ? (
                             <Tooltip content="Revocar token">
                               <Button
@@ -399,7 +468,7 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
                               </Button>
                             </Tooltip>
                           )}
-                          
+
                           <Tooltip content="Eliminar token">
                             <Button
                               size="sm"
@@ -422,5 +491,5 @@ export default function InvitationDetailModal({ invitation }: InvitationDetailMo
         </ModalBody>
       </ModalContent>
     </Modal>
-  )
+  );
 }

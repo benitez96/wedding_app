@@ -1,52 +1,55 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { authenticateAdmin } from '@/app/actions/admin'
-import { Button, Input, Card, CardBody, CardHeader } from '@heroui/react'
-import { Eye, EyeOff, Lock, User } from 'lucide-react'
-import { useCSRF } from '@/hooks/useCSRF'
-
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authenticateAdmin } from "@/app/actions/admin";
+import { Button, Input, Card, CardBody, CardHeader } from "@heroui/react";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
+import { useCSRF } from "@/hooks/useCSRF";
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const { csrfData, addCSRFToFormData } = useCSRF()
-  const router = useRouter()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { csrfData, addCSRFToFormData } = useCSRF();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     // Obtener el valor del honeypot para enviarlo al servidor
-    const formData = new FormData(e.target as HTMLFormElement)
-    const honeypotValue = formData.get('masterkey') as string
+    const formData = new FormData(e.target as HTMLFormElement);
+    const honeypotValue = formData.get("masterkey") as string;
 
     // Agregar token CSRF al formulario
-    addCSRFToFormData(formData)
+    addCSRFToFormData(formData);
 
     try {
-      const result = await authenticateAdmin(username, password, honeypotValue, csrfData?.token)
-      
+      const result = await authenticateAdmin(
+        username,
+        password,
+        honeypotValue,
+        csrfData?.token,
+      );
+
       if (result.success) {
         // Redirigir al dashboard del backoffice
-        router.push('/backoffice')
-        router.refresh()
+        router.replace("/backoffice");
+        router.refresh();
       } else {
-              setError('Usuario o contraseña incorrectos')
+        setError("Usuario o contraseña incorrectos");
       }
     } catch (error) {
-      console.error('Error en login:', error)
-      setError('Usuario o contraseña incorrectos')
+      console.error("Error en login:", error);
+      setError("Usuario o contraseña incorrectos");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -62,7 +65,9 @@ export default function AdminLogin() {
 
         <Card className="shadow-lg">
           <CardHeader className="pb-0">
-            <h3 className="text-lg font-medium text-gray-900">Iniciar Sesión</h3>
+            <h3 className="text-lg font-medium text-gray-900">
+              Iniciar Sesión
+            </h3>
           </CardHeader>
           <CardBody>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -91,7 +96,7 @@ export default function AdminLogin() {
 
               <div>
                 <Input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   label="Contraseña"
                   placeholder="Ingresa tu contraseña"
                   value={password}
@@ -117,12 +122,11 @@ export default function AdminLogin() {
 
               {error && (
                 <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-                  {error === 'credenciales-invalidas' 
-                    ? 'Usuario o contraseña incorrectos'
-                    : error === 'error-autenticando'
-                    ? 'Error al autenticar. Intenta nuevamente.'
-                    : error
-                  }
+                  {error === "credenciales-invalidas"
+                    ? "Usuario o contraseña incorrectos"
+                    : error === "error-autenticando"
+                      ? "Error al autenticar. Intenta nuevamente."
+                      : error}
                 </div>
               )}
 
@@ -133,12 +137,12 @@ export default function AdminLogin() {
                 isLoading={isLoading}
                 isDisabled={!username || !password}
               >
-                {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
           </CardBody>
         </Card>
       </div>
     </div>
-  )
+  );
 }
