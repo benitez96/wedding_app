@@ -14,6 +14,9 @@ import RSVPSection from "@/components/sections/RSVPSection";
 import InvitationClientWidgets from "@/app/(invitation)/InvitationClientWidgets";
 import { getWeddingDate, getRemindRestingDays } from "@/lib/get-configurations";
 
+// Forzar renderizado dinámico (no estático)
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const weddingDate = await getWeddingDate();
   const remindRestingDays = await getRemindRestingDays();

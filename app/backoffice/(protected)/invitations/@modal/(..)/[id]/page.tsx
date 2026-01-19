@@ -1,20 +1,25 @@
-import { notFound } from 'next/navigation'
-import { getInvitationWithTokens } from '@/app/actions/protected-admin-invitations'
-import InvitationDetailModal from '@/components/InvitationDetailModal'
+import { notFound } from "next/navigation";
+import { getInvitationWithTokens } from "@/app/actions/protected-admin-invitations";
+import InvitationDetailModal from "@/components/InvitationDetailModal";
+
+// Forzar renderizado dinámico (no estático)
+export const dynamic = "force-dynamic";
 
 interface InterceptedInvitationDetailProps {
   params: Promise<{
-    id: string
-  }>
+    id: string;
+  }>;
 }
 
-export default async function InterceptedInvitationDetail({ params }: InterceptedInvitationDetailProps) {
-  const resolvedParams = await params
-  const result = await getInvitationWithTokens(resolvedParams.id)
-  
+export default async function InterceptedInvitationDetail({
+  params,
+}: InterceptedInvitationDetailProps) {
+  const resolvedParams = await params;
+  const result = await getInvitationWithTokens(resolvedParams.id);
+
   if (!result.success || !result.data) {
-    notFound()
+    notFound();
   }
 
-  return <InvitationDetailModal invitation={result.data} />
+  return <InvitationDetailModal invitation={result.data} />;
 }

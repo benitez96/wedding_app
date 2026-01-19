@@ -15,15 +15,15 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
+# Generar Prisma Client (necesario para migraciones y runtime)
+COPY prisma ./prisma
+RUN npx prisma generate
 
-# Stage for running commands and scripts (without Next.js build)
-FROM base AS commands
+
+FROM base AS codebase
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-# Copy only what's needed for Prisma and scripts
-COPY prisma ./prisma
-COPY scripts ./scripts
-COPY package.json pnpm-lock.yaml* ./
+COPY . .
 
 # Timezone
 RUN apk add --no-cache tzdata
@@ -33,13 +33,12 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=codebase /app ./
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Timezone
 RUN apk add --no-cache tzdata

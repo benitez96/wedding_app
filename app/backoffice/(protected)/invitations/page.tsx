@@ -1,33 +1,40 @@
-import { Suspense } from 'react'
-import { getInvitations } from '@/app/actions/protected-admin-invitations'
-import InvitationsTable from './InvitationsTable'
-import InvitationsHeader from './InvitationsHeader'
-import InvitationsSummary from './InvitationsSummary'
-import { Spinner } from '@heroui/react'
+import { Suspense } from "react";
+import { getInvitations } from "@/app/actions/protected-admin-invitations";
+import InvitationsTable from "./InvitationsTable";
+import InvitationsHeader from "./InvitationsHeader";
+import InvitationsSummary from "./InvitationsSummary";
+import { Spinner } from "@heroui/react";
+
+// Forzar renderizado dinámico (no estático)
+export const dynamic = "force-dynamic";
 
 interface InvitationsPageProps {
   searchParams: Promise<{
-    search?: string
-  }>
+    search?: string;
+  }>;
 }
 
-export default async function InvitationsPage({ searchParams }: InvitationsPageProps) {
-  const params = await searchParams
-  const searchTerm = params.search || ''
-  const result = await getInvitations(searchTerm)
-  
+export default async function InvitationsPage({
+  searchParams,
+}: InvitationsPageProps) {
+  const params = await searchParams;
+  const searchTerm = params.search || "";
+  const result = await getInvitations(searchTerm);
+
   if (!result.success) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-danger mb-2">Error al cargar invitaciones</h2>
+          <h2 className="text-xl font-semibold text-danger mb-2">
+            Error al cargar invitaciones
+          </h2>
           <p className="text-default-500">{result.error}</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const invitations = result.data || []
+  const invitations = result.data || [];
 
   return (
     <div>
@@ -36,15 +43,12 @@ export default async function InvitationsPage({ searchParams }: InvitationsPageP
       </Suspense>
 
       <Suspense fallback={<Spinner size="lg" />}>
-        <InvitationsTable 
-          invitations={invitations} 
-          searchTerm={searchTerm}
-        />
+        <InvitationsTable invitations={invitations} searchTerm={searchTerm} />
       </Suspense>
 
       <Suspense fallback={<Spinner size="lg" />}>
         <InvitationsSummary />
       </Suspense>
     </div>
-  )
+  );
 }

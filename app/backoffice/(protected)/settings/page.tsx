@@ -2,6 +2,9 @@ import { Card, CardBody, CardHeader } from "@heroui/card";
 import SettingsForm from "./SettingsForm";
 import { getConfigurations } from "@/app/actions/settings";
 
+// Forzar renderizado dinámico (no estático)
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   // Cargar configuraciones en el servidor
   const configurations = await getConfigurations();

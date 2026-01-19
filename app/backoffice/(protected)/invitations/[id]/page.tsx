@@ -1,10 +1,14 @@
+// Forzar renderizado dinámico (no estático)
+export const dynamic = "force-dynamic";
 
 interface InvitationDetailPageProps {
   params: Promise<{
-    id: string
-  }>
+    id: string;
+  }>;
 }
 
-export default async function InvitationDetailPage({ params }: InvitationDetailPageProps) {
-  return <></>
+export default async function InvitationDetailPage({
+  params,
+}: InvitationDetailPageProps) {
+  return <></>;
 }
