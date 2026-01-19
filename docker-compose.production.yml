@@ -114,7 +114,7 @@ services:
 networks:
   public_network:
     driver: bridge
-    internal: true # Solo Caddy puede salir a internet
+    internal: false # Solo Caddy puede salir a internet
   monitoring_network:
     driver: bridge
     internal: true # Red interna, sin acceso a internet
