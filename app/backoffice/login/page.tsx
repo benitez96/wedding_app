@@ -53,7 +53,6 @@ export default function AdminLogin() {
                 value={csrfData?.token || ""}
               />
 
-              <div>
                 <Input
                   type="text"
                   name="username"
@@ -62,8 +61,8 @@ export default function AdminLogin() {
                   startContent={<User className="w-4 h-4" />}
                   isRequired
                   isDisabled={isPending}
+                  fullWidth
                 />
-              </div>
 
               {/* Honeypot field - oculto para usuarios reales, visible para bots */}
               <div className="absolute left-[-9999px] opacity-0 pointer-events-none">
@@ -75,7 +74,6 @@ export default function AdminLogin() {
                 />
               </div>
 
-              <div>
                 <Input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -86,7 +84,14 @@ export default function AdminLogin() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onTouchStart={(e) => e.preventDefault()}
                       className="focus:outline-none"
+                      aria-label={
+                        showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
+                      }
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4 text-gray-400" />
@@ -97,8 +102,8 @@ export default function AdminLogin() {
                   }
                   isRequired
                   isDisabled={isPending}
+                  fullWidth
                 />
-              </div>
 
               {state?.error && (
                 <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">

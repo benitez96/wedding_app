@@ -1,4 +1,21 @@
 services:
+  # Migraciones automáticas al startup
+  migrations:
+    build:
+      context: .
+      target: builder
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/wedding_app
+      - TZ=America/Argentina/Buenos_Aires
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app_network
+    command: sh -c "pnpm exec prisma migrate deploy && echo 'Migrations completed'"
+    restart: "no" # Corre una vez y termina
+
   # App principal
   wedding-app:
     build: .
@@ -8,6 +25,8 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - TZ=America/Argentina/Buenos_Aires
     depends_on:
+      migrations:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
     volumes:
@@ -21,6 +40,25 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # Service auxiliar para comandos ad-hoc (no arranca automáticamente)
+  commands:
+    build:
+      context: .
+      target: builder # Usa el stage con todas las herramientas
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/wedding_app
+      - JWT_SECRET=${JWT_SECRET}
+      - TZ=America/Argentina/Buenos_Aires
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app_network
+    profiles:
+      - tools # Solo arranca cuando se especifica --profile tools
+    command: sleep infinity # Mantiene el container vivo para comandos interactivos
 
   # Base de datos
   db:
@@ -67,7 +105,8 @@ services:
     networks:
       - monitoring_network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -111,12 +150,12 @@ services:
       - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - /volumes/wedding-app/prometheus:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
@@ -175,18 +214,26 @@ services:
       - public_network
       - app_network
       - monitoring_network
-    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+    command:
+      [
+        "caddy",
+        "run",
+        "--config",
+        "/etc/caddy/Caddyfile",
+        "--adapter",
+        "caddyfile",
+      ]
 
 networks:
   public_network:
     driver: bridge
-    internal: true  # Solo Caddy puede salir a internet
+    internal: true # Solo Caddy puede salir a internet
   monitoring_network:
     driver: bridge
-    internal: true  # Red interna, sin acceso a internet
+    internal: true # Red interna, sin acceso a internet
   app_network:
     driver: bridge
-    internal: true  # Red interna para app y DB
+    internal: true # Red interna para app y DB
   # geoip_network:
   #   driver: bridge
   #   # Sin internal: true para permitir acceso a internet solo para GeoIP
