@@ -1,4 +1,4 @@
-import AnimatedDivider from "@/components/AnimatedDivider";
+import AnimatedDividerCSS from "@/components/AnimatedDividerCSS";
 import AuthGuard from "@/components/AuthGuard";
 import AccommodationSection from "@/components/sections/AccommodationSection";
 import CelebrationSection from "@/components/sections/CelebrationSection";
@@ -12,30 +12,37 @@ import PhotoUploadSection from "@/components/sections/PhotoUploadSection";
 import QuoteSection from "@/components/sections/QuoteSection";
 import RSVPSection from "@/components/sections/RSVPSection";
 import InvitationClientWidgets from "@/app/(invitation)/InvitationClientWidgets";
+import { getWeddingDate, getRemindRestingDays } from "@/lib/get-configurations";
 
-export default function Home() {
+export default async function Home() {
+  const weddingDate = await getWeddingDate();
+  const remindRestingDays = await getRemindRestingDays();
+
   return (
     <AuthGuard>
-      <InvitationClientWidgets />
+      <InvitationClientWidgets
+        weddingTimestamp={weddingDate.getTime()}
+        remindRestingDays={remindRestingDays}
+      />
       <HeroSection />
       <QuoteSection />
       <DateSection />
-      <AnimatedDivider variant="heart" delay={0.2} />
+      <AnimatedDividerCSS variant="heart" delay={0.2} />
       <CeremonySection />
       <CelebrationSection />
-      <AnimatedDivider variant="elegant" delay={0.1} />
+      <AnimatedDividerCSS variant="elegant" delay={0.1} />
       <DressCodeSection />
-      <AnimatedDivider variant="simple" delay={0.3} />
+      <AnimatedDividerCSS variant="simple" delay={0.3} />
       <GiftSection />
-      <AnimatedDivider variant="heart" delay={0.4} />
+      <AnimatedDividerCSS variant="heart" delay={0.4} />
       <InstagramSection />
-      <AnimatedDivider variant="simple" delay={0.1} />
+      <AnimatedDividerCSS variant="simple" delay={0.1} />
       <RSVPSection />
-      <AnimatedDivider variant="elegant" delay={0.5} />
+      <AnimatedDividerCSS variant="elegant" delay={0.5} />
       <PhotoUploadSection />
-      <AnimatedDivider variant="simple" delay={0.5} />
+      <AnimatedDividerCSS variant="simple" delay={0.5} />
       <AccommodationSection />
-      <AnimatedDivider variant="simple" delay={0.2} />
+      <AnimatedDividerCSS variant="simple" delay={0.2} />
     </AuthGuard>
   );
 }

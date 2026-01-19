@@ -2,23 +2,31 @@ import { Camera } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import { Section } from "@/components/section";
-import AnimatedSection from "@/components/AnimatedSection";
+import AnimatedSectionLazy from "@/components/AnimatedSectionLazy";
 import Image from "next/image";
+import { getPhotoUploadUrl } from "@/lib/get-configurations";
 
-export default function PhotoUploadSection() {
+export default async function PhotoUploadSection() {
+  const photoUploadUrl = await getPhotoUploadUrl();
+
   return (
-    <AnimatedSection delay={1.0}>
+    <AnimatedSectionLazy delay={1.0}>
       <Section.Container>
         <Section.Icon>
-          <Image src="/icons/fotos.gif" alt="Fotos y Videos" width={100} height={100} />
+          <Image
+            src="/icons/fotos.gif"
+            alt="Fotos y Videos"
+            width={100}
+            height={100}
+          />
         </Section.Icon>
         <Section.Description isDecorative>
           Queremos ver como la pasaste!
         </Section.Description>
-        
+
         <Button
           as={Link}
-          href={process.env.NEXT_PUBLIC_PHOTO_UPLOAD_URL || ''}
+          href={photoUploadUrl}
           isExternal
           color="primary"
           startContent={<Camera className="w-4 h-4" />}
@@ -29,6 +37,6 @@ export default function PhotoUploadSection() {
           Subi las fotos y videos desde tu mesa
         </Section.Description>
       </Section.Container>
-    </AnimatedSection>
+    </AnimatedSectionLazy>
   );
 }

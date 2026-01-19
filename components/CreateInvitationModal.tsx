@@ -1,76 +1,76 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { createInvitation } from '../app/actions/protected-admin-invitations'
-import { 
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
-  ModalBody, 
+import { useRef, useActionState } from "react";
+import { createInvitation } from "../app/actions/protected-admin-invitations";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   ModalFooter,
   Button,
   Input,
   NumberInput,
-  Form
-} from '@heroui/react'
-import { useCSRF } from '@/hooks/useCSRF'
+  Form,
+} from "@heroui/react";
+import { useCSRF } from "@/hooks/useCSRF";
 
 interface CreateInvitationModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function CreateInvitationModal({ isOpen, onClose, onSuccess }: CreateInvitationModalProps) {
-  const [error, setError] = useState('')
-  const { addCSRFToFormData } = useCSRF()
+export default function CreateInvitationModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: CreateInvitationModalProps) {
+  const { csrfData } = useCSRF();
+  const isProcessingRef = useRef(false);
 
+  // useActionState para manejar el estado del formulario
+  const [state, formAction, isPending] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      if (isProcessingRef.current) return prevState;
 
-  const handleAction = async (formData: FormData) => {
-    try {
-      // Agregar token CSRF al formulario
-      addCSRFToFormData(formData)
+      isProcessingRef.current = true;
+      try {
+        // Agregar CSRF al formData
+        formData.append("csrfToken", csrfData?.token || "");
+        const result = await createInvitation(formData);
 
-      const result = await createInvitation(formData)
-      
-      if (result.success) {
-        onSuccess()
-        onClose()
-      } else {
-        setError(result.error || 'Error al crear la invitación')
+        if (result.success) {
+          onSuccess();
+          onClose();
+        }
+
+        return result;
+      } finally {
+        isProcessingRef.current = false;
       }
-    } catch (error) {
-      setError('Error inesperado al crear la invitación')
-    }
-  }
+    },
+    null,
+  );
 
   const handleClose = () => {
-    setError('')
-    onClose()
-  }
+    if (!isPending) {
+      onClose();
+    }
+  };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={handleClose}
-      size="md"
-      placement="center"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} size="md" placement="center">
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
           <h2 className="text-xl font-bold">Crear Nueva Invitación</h2>
         </ModalHeader>
-        
-        <Form
-          action={handleAction}
-          className="flex flex-col gap-4"
-        >
-          <ModalBody
-            className="w-full"
-          >
-            {error && (
+
+        <Form action={formAction} className="flex flex-col gap-4">
+          <ModalBody className="w-full">
+            {state?.error && (
               <div className="p-3 bg-danger-50 border border-danger-200 text-danger-700 rounded-lg text-sm">
-                {error}
+                {state.error}
               </div>
             )}
 
@@ -82,6 +82,7 @@ export default function CreateInvitationModal({ isOpen, onClose, onSuccess }: Cr
                 variant="bordered"
                 isRequired
                 description="Nombre completo del invitado"
+                isDisabled={isPending}
               />
 
               <Input
@@ -89,6 +90,7 @@ export default function CreateInvitationModal({ isOpen, onClose, onSuccess }: Cr
                 name="guestNickname"
                 variant="bordered"
                 description="Apodo o nombre de pila (opcional)"
+                isDisabled={isPending}
               />
 
               <Input
@@ -97,6 +99,7 @@ export default function CreateInvitationModal({ isOpen, onClose, onSuccess }: Cr
                 variant="bordered"
                 type="tel"
                 description="Número de teléfono (opcional)"
+                isDisabled={isPending}
               />
 
               <NumberInput
@@ -108,30 +111,31 @@ export default function CreateInvitationModal({ isOpen, onClose, onSuccess }: Cr
                 variant="bordered"
                 isRequired
                 description="Número máximo de invitados permitidos"
+                isDisabled={isPending}
               />
-
             </div>
           </ModalBody>
-          
-          <ModalFooter
-            className="w-full"
-          >
-            <Button 
-              color="danger" 
-              variant="light" 
+
+          <ModalFooter className="w-full">
+            <Button
+              color="danger"
+              variant="light"
               onPress={handleClose}
+              isDisabled={isPending}
             >
               Cancelar
             </Button>
-            <Button 
-              color="primary" 
+            <Button
+              color="primary"
               type="submit"
+              isLoading={isPending}
+              isDisabled={isPending}
             >
-              Crear Invitación
+              {isPending ? "Creando..." : "Crear Invitación"}
             </Button>
           </ModalFooter>
         </Form>
       </ModalContent>
     </Modal>
-  )
+  );
 }

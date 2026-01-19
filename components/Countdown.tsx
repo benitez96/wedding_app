@@ -10,10 +10,10 @@ interface TimeLeft {
 }
 
 interface CountdownProps {
-  targetDate: Date;
+  targetTimestamp: number;
 }
 
-export default function Countdown({ targetDate }: CountdownProps) {
+export default function Countdown({ targetTimestamp }: CountdownProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
     hours: 0,
@@ -26,7 +26,7 @@ export default function Countdown({ targetDate }: CountdownProps) {
       // Como el contenedor Docker está configurado con timezone Argentina,
       // new Date() ya devuelve la hora correcta de Argentina
       const now = new Date();
-      const difference = targetDate.getTime() - now.getTime();
+      const difference = targetTimestamp - now.getTime();
 
       if (difference > 0) {
         setTimeLeft({
@@ -44,7 +44,7 @@ export default function Countdown({ targetDate }: CountdownProps) {
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [targetDate]);
+  }, [targetTimestamp]);
 
   const formatNumber = (num: number) => num.toString().padStart(2, "0");
 

@@ -96,3 +96,15 @@ model RateLimitBlock {
   
   @@map("rate_limit_blocks")
 }
+
+model Configuration {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  key         String   @unique
+  value       String
+  description String?
+
+  @@map("configurations")
+}

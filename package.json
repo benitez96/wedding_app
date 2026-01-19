@@ -28,6 +28,7 @@
     "@heroui/switch": "2.2.22",
     "@heroui/system": "2.4.20",
     "@heroui/theme": "2.4.20",
+    "@internationalized/date": "^3.10.1",
     "@prisma/client": "^6.19.2",
     "@prisma/extension-accelerate": "^2.0.2",
     "@react-aria/ssr": "3.9.10",

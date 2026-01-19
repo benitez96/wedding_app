@@ -1,55 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useActionState } from "react";
 import { useRouter } from "next/navigation";
-import { authenticateAdmin } from "@/app/actions/admin";
-import { Button, Input, Card, CardBody, CardHeader } from "@heroui/react";
+import { authenticateAdminAction } from "@/app/actions/admin";
+import { Button, Input, Card, CardBody, CardHeader, Form } from "@heroui/react";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { useCSRF } from "@/hooks/useCSRF";
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const { csrfData, addCSRFToFormData } = useCSRF();
+  const { csrfData } = useCSRF();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+  // useActionState para manejar el login
+  const [state, formAction, isPending] = useActionState(
+    authenticateAdminAction,
+    null,
+  );
 
-    // Obtener el valor del honeypot para enviarlo al servidor
-    const formData = new FormData(e.target as HTMLFormElement);
-    const honeypotValue = formData.get("masterkey") as string;
-
-    // Agregar token CSRF al formulario
-    addCSRFToFormData(formData);
-
-    try {
-      const result = await authenticateAdmin(
-        username,
-        password,
-        honeypotValue,
-        csrfData?.token,
-      );
-
-      if (result.success) {
-        // Redirigir al dashboard del backoffice
-        router.replace("/backoffice");
-        router.refresh();
-      } else {
-        setError("Usuario o contraseña incorrectos");
-      }
-    } catch (error) {
-      console.error("Error en login:", error);
-      setError("Usuario o contraseña incorrectos");
-    } finally {
-      setIsLoading(false);
+  // Redirigir cuando el login es exitoso
+  useEffect(() => {
+    if (state?.success) {
+      router.replace("/backoffice");
+      router.refresh();
     }
-  };
+  }, [state?.success, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -70,17 +45,23 @@ export default function AdminLogin() {
             </h3>
           </CardHeader>
           <CardBody>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <Form action={formAction} className="space-y-6">
+              {/* Campo hidden para CSRF */}
+              <input
+                type="hidden"
+                name="csrfToken"
+                value={csrfData?.token || ""}
+              />
+
               <div>
                 <Input
                   type="text"
+                  name="username"
                   label="Usuario"
                   placeholder="Ingresa tu usuario"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
                   startContent={<User className="w-4 h-4" />}
                   isRequired
-                  isDisabled={isLoading}
+                  isDisabled={isPending}
                 />
               </div>
 
@@ -97,10 +78,9 @@ export default function AdminLogin() {
               <div>
                 <Input
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   label="Contraseña"
                   placeholder="Ingresa tu contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   startContent={<Lock className="w-4 h-4" />}
                   endContent={
                     <button
@@ -116,17 +96,17 @@ export default function AdminLogin() {
                     </button>
                   }
                   isRequired
-                  isDisabled={isLoading}
+                  isDisabled={isPending}
                 />
               </div>
 
-              {error && (
+              {state?.error && (
                 <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-                  {error === "credenciales-invalidas"
+                  {state.error === "credenciales-invalidas"
                     ? "Usuario o contraseña incorrectos"
-                    : error === "error-autenticando"
+                    : state.error === "error-autenticando"
                       ? "Error al autenticar. Intenta nuevamente."
-                      : error}
+                      : "Usuario o contraseña incorrectos"}
                 </div>
               )}
 
@@ -134,12 +114,12 @@ export default function AdminLogin() {
                 type="submit"
                 color="primary"
                 className="w-full"
-                isLoading={isLoading}
-                isDisabled={!username || !password}
+                isLoading={isPending}
+                isDisabled={isPending}
               >
-                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+                {isPending ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
-            </form>
+            </Form>
           </CardBody>
         </Card>
       </div>

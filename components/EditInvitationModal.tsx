@@ -1,134 +1,123 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { updateInvitation } from '../app/actions/protected-admin-invitations'
-import { 
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
-  ModalBody, 
+import { useState, useEffect, useRef, useActionState } from "react";
+import { updateInvitation } from "../app/actions/protected-admin-invitations";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
   ModalFooter,
   Button,
   Input,
   NumberInput,
-  Form
-} from '@heroui/react'
-import InvitationStatusSelect from './InvitationStatusSelect'
-import { useCSRF } from '@/hooks/useCSRF'
-
-interface Invitation {
-  id: string
-  guestName: string
-  guestNickname: string | null
-  guestPhone: string | null
-  maxGuests: number
-  hasResponded: boolean
-  isAttending: boolean | null
-  guestCount: number | null
-  respondedAt: Date | null
-  createdAt: Date
-  updatedAt: Date
-}
+  Form,
+} from "@heroui/react";
+import InvitationStatusSelect from "./InvitationStatusSelect";
+import { useCSRF } from "@/hooks/useCSRF";
+import type { Invitation } from "@/types/invitation";
 
 interface EditInvitationModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
-  invitation: Invitation | null
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  invitation: Invitation | null;
 }
 
-export default function EditInvitationModal({ isOpen, onClose, onSuccess, invitation }: EditInvitationModalProps) {
-  const [error, setError] = useState('')
+export default function EditInvitationModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  invitation,
+}: EditInvitationModalProps) {
   const [formData, setFormData] = useState({
-    guestName: '',
-    guestNickname: '',
-    guestPhone: '',
-    maxGuests: 1
-  })
-  const [invitationStatus, setInvitationStatus] = useState('pending')
-  const [guestCount, setGuestCount] = useState(1)
-  const { addCSRFToFormData } = useCSRF()
+    guestName: "",
+    guestNickname: "",
+    guestPhone: "",
+    maxGuests: 1,
+  });
+  const [invitationStatus, setInvitationStatus] = useState("pending");
+  const [guestCount, setGuestCount] = useState(1);
+  const { csrfData } = useCSRF();
+
+  // Ref para evitar llamar onSuccess/onClose múltiples veces
+  const isProcessingRef = useRef(false);
+
+  // useActionState para manejar el estado del formulario
+  const [state, formAction, isPending] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      if (!invitation || isProcessingRef.current) return prevState;
+
+      isProcessingRef.current = true;
+      try {
+        // Agregar CSRF al formData
+        formData.append("csrfToken", csrfData?.token || "");
+        const result = await updateInvitation(invitation.id, formData);
+
+        if (result.success) {
+          onSuccess();
+          onClose();
+        }
+
+        return result;
+      } finally {
+        isProcessingRef.current = false;
+      }
+    },
+    null,
+  );
 
   // Actualizar el formulario cuando cambie la invitación
   useEffect(() => {
     if (invitation) {
       setFormData({
         guestName: invitation.guestName,
-        guestNickname: invitation.guestNickname || '',
-        guestPhone: invitation.guestPhone || '',
-        maxGuests: invitation.maxGuests
-      })
+        guestNickname: invitation.guestNickname || "",
+        guestPhone: invitation.guestPhone || "",
+        maxGuests: invitation.maxGuests,
+      });
 
       // Determinar el estado de la invitación
       if (!invitation.hasResponded) {
-        setInvitationStatus('pending')
-        setGuestCount(1)
+        setInvitationStatus("pending");
+        setGuestCount(1);
       } else if (invitation.isAttending) {
-        setInvitationStatus('attending')
-        setGuestCount(invitation.guestCount || 1)
+        setInvitationStatus("attending");
+        setGuestCount(invitation.guestCount || 1);
       } else {
-        setInvitationStatus('not_attending')
-        setGuestCount(1)
+        setInvitationStatus("not_attending");
+        setGuestCount(1);
       }
     }
-  }, [invitation])
-
-  const handleAction = async (formData: FormData) => {
-    if (!invitation) return
-
-    try {
-      // Agregar token CSRF al formulario
-      addCSRFToFormData(formData)
-
-      const result = await updateInvitation(invitation.id, formData)
-      
-      if (result.success) {
-        onSuccess()
-        onClose()
-      } else {
-        setError(result.error || 'Error al actualizar la invitación')
-      }
-    } catch (error) {
-      setError('Error inesperado al actualizar la invitación')
-    }
-  }
+  }, [invitation]);
 
   const handleClose = () => {
-    setError('')
-    setInvitationStatus('pending')
-    setGuestCount(1)
-    onClose()
-  }
+    if (!isPending) {
+      setInvitationStatus("pending");
+      setGuestCount(1);
+      onClose();
+    }
+  };
 
   const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={handleClose}
-      size="md"
-      placement="center"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} size="md" placement="center">
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
           <h2 className="text-xl font-bold">Editar Invitación</h2>
         </ModalHeader>
-        
-        <Form
-          action={handleAction}
-          className="flex flex-col gap-4"
-        >
-          <ModalBody
-            className="w-full"
-          >
-            {error && (
+
+        <Form action={formAction} className="flex flex-col gap-4">
+          <ModalBody className="w-full">
+            {state?.error && (
               <div className="p-3 bg-danger-50 border border-danger-200 text-danger-700 rounded-lg text-sm">
-                {error}
+                {state.error}
               </div>
             )}
 
@@ -141,7 +130,8 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
                 isRequired
                 description="Nombre completo del invitado"
                 value={formData.guestName}
-                onChange={(e) => handleInputChange('guestName', e.target.value)}
+                onChange={(e) => handleInputChange("guestName", e.target.value)}
+                isDisabled={isPending}
               />
 
               <Input
@@ -150,7 +140,10 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
                 variant="bordered"
                 description="Apodo o nombre de pila (opcional)"
                 value={formData.guestNickname}
-                onChange={(e) => handleInputChange('guestNickname', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("guestNickname", e.target.value)
+                }
+                isDisabled={isPending}
               />
 
               <Input
@@ -160,7 +153,10 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
                 type="tel"
                 description="Número de teléfono (opcional)"
                 value={formData.guestPhone}
-                onChange={(e) => handleInputChange('guestPhone', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("guestPhone", e.target.value)
+                }
+                isDisabled={isPending}
               />
 
               <NumberInput
@@ -172,7 +168,8 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
                 isRequired
                 description="Número máximo de invitados permitidos"
                 value={formData.maxGuests}
-                onValueChange={(value) => handleInputChange('maxGuests', value)}
+                onValueChange={(value) => handleInputChange("maxGuests", value)}
+                isDisabled={isPending}
               />
 
               <InvitationStatusSelect
@@ -184,31 +181,44 @@ export default function EditInvitationModal({ isOpen, onClose, onSuccess, invita
               />
 
               {/* Campos ocultos para enviar los valores */}
-              <input type="hidden" name="hasResponded" value={invitationStatus !== 'pending' ? 'true' : 'false'} />
-              <input type="hidden" name="isAttending" value={invitationStatus === 'attending' ? 'true' : 'false'} />
-              <input type="hidden" name="guestCount" value={invitationStatus === 'attending' ? guestCount : ''} />
+              <input
+                type="hidden"
+                name="hasResponded"
+                value={invitationStatus !== "pending" ? "true" : "false"}
+              />
+              <input
+                type="hidden"
+                name="isAttending"
+                value={invitationStatus === "attending" ? "true" : "false"}
+              />
+              <input
+                type="hidden"
+                name="guestCount"
+                value={invitationStatus === "attending" ? guestCount : ""}
+              />
             </div>
           </ModalBody>
-          
-          <ModalFooter
-            className="w-full"
-          >
-            <Button 
-              color="danger" 
-              variant="light" 
+
+          <ModalFooter className="w-full">
+            <Button
+              color="danger"
+              variant="light"
               onPress={handleClose}
+              isDisabled={isPending}
             >
               Cancelar
             </Button>
-            <Button 
-              color="primary" 
+            <Button
+              color="primary"
               type="submit"
+              isLoading={isPending}
+              isDisabled={isPending}
             >
-              Actualizar Invitación
+              {isPending ? "Actualizando..." : "Actualizar Invitación"}
             </Button>
           </ModalFooter>
         </Form>
       </ModalContent>
     </Modal>
-  )
+  );
 }

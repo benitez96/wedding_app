@@ -1,5 +1,5 @@
 import { Section } from "@/components/section";
-import AnimatedSection from "@/components/AnimatedSection";
+import AnimatedSectionLazy from "@/components/AnimatedSectionLazy";
 import Image from "next/image";
 import AccommodationList from "./AccommodationList";
 
@@ -38,7 +38,7 @@ const accommodations = [
 
 export default function AccommodationSection() {
   return (
-    <AnimatedSection delay={0.6}>
+    <AnimatedSectionLazy delay={0.6}>
       <Section.Container>
         <Section.Icon>
           <Image
@@ -56,6 +56,6 @@ export default function AccommodationSection() {
         </Section.Description>
         <AccommodationList accommodations={accommodations} />
       </Section.Container>
-    </AnimatedSection>
+    </AnimatedSectionLazy>
   );
 }

@@ -1,245 +1,290 @@
-'use server'
+"use server";
 
-import { cookies, headers } from 'next/headers'
-import * as jose from 'jose'
-import bcrypt from 'bcryptjs'
-import prisma from '@/lib/prisma'
-import { getClientIP, recordAttempt, blockIPForHoneypot } from '@/lib/rate-limiter'
-import { logSecurityEvent } from '@/lib/security-logger'
-import { JWT_SECRET, SECURITY_CONFIG } from '@/lib/config'
-import { adminLoginSchema, validateAndSanitize } from '@/utils/validation'
-import { validateCSRFToken } from '@/lib/csrf'
+import { cookies, headers } from "next/headers";
+import * as jose from "jose";
+import bcrypt from "bcryptjs";
+import prisma from "@/lib/prisma";
+import {
+  getClientIP,
+  recordAttempt,
+  blockIPForHoneypot,
+} from "@/lib/rate-limiter";
+import { logSecurityEvent } from "@/lib/security-logger";
+import { JWT_SECRET, SECURITY_CONFIG } from "@/lib/config";
+import { adminLoginSchema, validateAndSanitize } from "@/utils/validation";
+import { validateCSRFToken } from "@/lib/csrf";
 
 // Función para generar fingerprint del dispositivo (versión mejorada)
 async function generateDeviceFingerprint(userAgent: string): Promise<string> {
-  const encoder = new TextEncoder()
-  
+  const encoder = new TextEncoder();
+
   // Normalizar el user agent para ser menos sensible a actualizaciones menores
   const normalizedUA = userAgent
-    .replace(/\d+\.\d+\.\d+\.\d+/g, 'VERSION') // Reemplazar versiones específicas
-    .replace(/Chrome\/[\d.]+/g, 'Chrome/VERSION') // Normalizar versión de Chrome
-    .replace(/Safari\/[\d.]+/g, 'Safari/VERSION') // Normalizar versión de Safari
-    .replace(/Firefox\/[\d.]+/g, 'Firefox/VERSION') // Normalizar versión de Firefox
-    .replace(/Edge\/[\d.]+/g, 'Edge/VERSION') // Normalizar versión de Edge
-  
-  const data = encoder.encode(normalizedUA)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    .replace(/\d+\.\d+\.\d+\.\d+/g, "VERSION") // Reemplazar versiones específicas
+    .replace(/Chrome\/[\d.]+/g, "Chrome/VERSION") // Normalizar versión de Chrome
+    .replace(/Safari\/[\d.]+/g, "Safari/VERSION") // Normalizar versión de Safari
+    .replace(/Firefox\/[\d.]+/g, "Firefox/VERSION") // Normalizar versión de Firefox
+    .replace(/Edge\/[\d.]+/g, "Edge/VERSION"); // Normalizar versión de Edge
+
+  const data = encoder.encode(normalizedUA);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 // Función para autenticar admin
-export async function authenticateAdmin(username: string, password: string, honeypotValue?: string, csrfToken?: string, csrfHash?: string) {
+export async function authenticateAdmin(
+  username: string,
+  password: string,
+  honeypotValue?: string,
+  csrfToken?: string,
+  csrfHash?: string,
+) {
   try {
     // Validar CSRF token si se proporciona
     if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-      return { success: false, error: 'token-csrf-invalido' }
+      return { success: false, error: "token-csrf-invalido" };
     }
 
     // Validar y sanitizar entrada
     const validation = validateAndSanitize(adminLoginSchema, {
       username,
       password,
-      honeypotValue
-    })
-    
+      honeypotValue,
+    });
+
     if (!validation.success) {
-      return { success: false, error: 'datos-invalidos' }
+      return { success: false, error: "datos-invalidos" };
     }
-    
-    const { data } = validation as { success: true; data: { username: string; password: string; honeypotValue?: string } }
-    
+
+    const { data } = validation as {
+      success: true;
+      data: { username: string; password: string; honeypotValue?: string };
+    };
+
     // Verificar honeypot primero
     if (data.honeypotValue) {
       // Si el honeypot está lleno, es probablemente un bot
-      const clientIP = await getClientIP()
-      const headersList = await headers()
-      const userAgent = headersList.get('user-agent') || 'Unknown'
-      
+      const clientIP = await getClientIP();
+      const headersList = await headers();
+      const userAgent = headersList.get("user-agent") || "Unknown";
+
       // Bloquear la IP inmediatamente por 7 días
-      await blockIPForHoneypot(clientIP, 'admin-login', `Valor: ${data.honeypotValue}`)
-      
+      await blockIPForHoneypot(
+        clientIP,
+        "admin-login",
+        `Valor: ${data.honeypotValue}`,
+      );
+
       await logSecurityEvent({
-        type: 'honeypot-triggered',
+        type: "honeypot-triggered",
         ip: clientIP,
         userAgent,
-        details: { honeypotValue: data.honeypotValue, username: data.username }
-      })
-      
-      return { success: false, error: 'auth-error' }
+        details: { honeypotValue: data.honeypotValue, username: data.username },
+      });
+
+      return { success: false, error: "auth-error" };
     }
 
     // Verificar rate limiting antes de procesar
-    const clientIP = await getClientIP()
-    const rateLimitResult = await recordAttempt(clientIP, 'admin-login', false)
-    
+    const clientIP = await getClientIP();
+    const rateLimitResult = await recordAttempt(clientIP, "admin-login", false);
+
     if (!rateLimitResult.allowed) {
       await logSecurityEvent({
-        type: 'rate-limit-triggered',
+        type: "rate-limit-triggered",
         ip: clientIP,
-        userAgent: 'unknown',
-        details: { actionType: 'admin-login' }
-      })
-      
-      return { 
-        success: false, 
-        error: 'auth-error'
-      }
+        userAgent: "unknown",
+        details: { actionType: "admin-login" },
+      });
+
+      return {
+        success: false,
+        error: "auth-error",
+      };
     }
 
     // Obtener user agent para información del dispositivo
-    const headersList = await headers()
-    const userAgent = headersList.get('user-agent') || 'Unknown'
+    const headersList = await headers();
+    const userAgent = headersList.get("user-agent") || "Unknown";
 
     // Buscar el usuario admin en la base de datos
     const adminUser = await prisma.adminUser.findUnique({
-      where: { username: data.username }
-    })
+      where: { username: data.username },
+    });
 
     // Si el usuario no existe, retornar error genérico
     if (!adminUser) {
       // Registrar intento fallido
-      await recordAttempt(clientIP, 'admin-login', false)
+      await recordAttempt(clientIP, "admin-login", false);
       await logSecurityEvent({
-        type: 'login-failed',
+        type: "login-failed",
         ip: clientIP,
         userAgent,
-        details: { reason: 'user-not-found', username: data.username }
-      })
-      return { success: false, error: 'auth-error' }
+        details: { reason: "user-not-found", username: data.username },
+      });
+      return { success: false, error: "auth-error" };
     }
 
     // Verificar la contraseña
-    const isValidPassword = await bcrypt.compare(data.password, adminUser.password)
+    const isValidPassword = await bcrypt.compare(
+      data.password,
+      adminUser.password,
+    );
     if (!isValidPassword) {
       // Registrar intento fallido
-      await recordAttempt(clientIP, 'admin-login', false)
+      await recordAttempt(clientIP, "admin-login", false);
       await logSecurityEvent({
-        type: 'login-failed',
+        type: "login-failed",
         ip: clientIP,
         userAgent,
-        details: { reason: 'invalid-password', username: data.username }
-      })
-      return { success: false, error: 'auth-error' }
+        details: { reason: "invalid-password", username: data.username },
+      });
+      return { success: false, error: "auth-error" };
     }
 
     // Generar JWT con hardening de seguridad
-    const secret = new TextEncoder().encode(JWT_SECRET)
+    const secret = new TextEncoder().encode(JWT_SECRET);
     const sessionToken = await new jose.SignJWT({
       userId: adminUser.id,
       username: adminUser.username,
       // Agregar claims adicionales para mayor seguridad
-      iss: 'wedding-app', // Issuer
-      aud: 'wedding-admin', // Audience específico para admin
+      iss: "wedding-app", // Issuer
+      aud: "wedding-admin", // Audience específico para admin
       sub: adminUser.id, // Subject
       // Fingerprint del dispositivo para detectar cambios
       deviceFp: await generateDeviceFingerprint(userAgent),
       // Timestamp de creación para tracking
       createdAt: Date.now(),
       // Tipo de sesión para diferenciar de invitaciones
-      sessionType: 'admin'
+      sessionType: "admin",
     })
-      .setProtectedHeader({ 
+      .setProtectedHeader({
         alg: SECURITY_CONFIG.JWT_ALGORITHM,
-        typ: 'JWT',
-        kid: 'wedding-admin-v1' // Key ID para versioning
+        typ: "JWT",
+        kid: "wedding-admin-v1", // Key ID para versioning
       })
       .setIssuedAt()
       .setNotBefore(new Date()) // No válido antes de ahora
       .setExpirationTime(`${SECURITY_CONFIG.ADMIN_SESSION_DURATION}s`) // Sesión más corta para admin
       .setJti(crypto.randomUUID()) // JWT ID único
-      .sign(secret)
+      .sign(secret);
 
     // Setear la cookie
-    const cookieStore = await cookies()
-    cookieStore.set('admin-session', sessionToken, {
+    const cookieStore = await cookies();
+    cookieStore.set("admin-session", sessionToken, {
       httpOnly: true,
       secure: SECURITY_CONFIG.COOKIE_SECURE,
       sameSite: SECURITY_CONFIG.COOKIE_SAME_SITE,
-      maxAge: SECURITY_CONFIG.ADMIN_SESSION_DURATION
-    })
+      maxAge: SECURITY_CONFIG.ADMIN_SESSION_DURATION,
+    });
 
     // Registrar intento exitoso
-    await recordAttempt(clientIP, 'admin-login', true)
+    await recordAttempt(clientIP, "admin-login", true);
     await logSecurityEvent({
-      type: 'login-success',
+      type: "login-success",
       ip: clientIP,
       userAgent,
-      details: { username: adminUser.username }
-    })
-    
-    return { 
+      details: { username: adminUser.username },
+    });
+
+    return {
       success: true,
       user: {
         id: adminUser.id,
-        username: adminUser.username
-      }
-    }
+        username: adminUser.username,
+      },
+    };
   } catch (error) {
-    console.error('Error al autenticar admin:', error)
-    return { success: false, error: 'error-autenticando' }
+    console.error("Error al autenticar admin:", error);
+    return { success: false, error: "error-autenticando" };
   }
 }
 
 // Función para verificar sesión de admin
 export async function getCurrentAdmin() {
   try {
-    const cookieStore = await cookies()
-    const session = cookieStore.get('admin-session')
+    const cookieStore = await cookies();
+    const session = cookieStore.get("admin-session");
 
     if (!session) {
-      return { success: false, user: null }
+      return { success: false, user: null };
     }
 
-    const secret = new TextEncoder().encode(JWT_SECRET)
+    const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jose.jwtVerify(session.value, secret, {
       issuer: SECURITY_CONFIG.JWT_ISSUER,
       audience: SECURITY_CONFIG.JWT_ADMIN_AUDIENCE,
-      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM]
-    })
+      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
+    });
 
     // Verificar claims adicionales de seguridad
-    if (payload.iss !== SECURITY_CONFIG.JWT_ISSUER || payload.aud !== SECURITY_CONFIG.JWT_ADMIN_AUDIENCE) {
-      return { success: false, user: null }
+    if (
+      payload.iss !== SECURITY_CONFIG.JWT_ISSUER ||
+      payload.aud !== SECURITY_CONFIG.JWT_ADMIN_AUDIENCE
+    ) {
+      return { success: false, user: null };
     }
 
     // Verificar que sea una sesión de admin
-    if (payload.sessionType !== 'admin') {
-      return { success: false, user: null }
+    if (payload.sessionType !== "admin") {
+      return { success: false, user: null };
     }
 
     // Verificar que el usuario admin aún existe
     const adminUser = await prisma.adminUser.findUnique({
-      where: { id: payload.userId as string }
-    })
+      where: { id: payload.userId as string },
+    });
 
     if (!adminUser) {
-      return { success: false, user: null }
+      return { success: false, user: null };
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       user: {
         id: adminUser.id,
-        username: adminUser.username
-      }
-    }
+        username: adminUser.username,
+      },
+    };
   } catch (error) {
-    console.error('Error al obtener admin actual:', error)
-    return { success: false, user: null }
+    console.error("Error al obtener admin actual:", error);
+    return { success: false, user: null };
   }
+}
+
+// Wrapper para useActionState - autenticar admin
+export async function authenticateAdminAction(
+  prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+) {
+  const username = formData.get("username") as string;
+  const password = formData.get("password") as string;
+  const honeypotValue = formData.get("masterkey") as string;
+  const csrfToken = formData.get("_csrf") as string;
+  const csrfHash = formData.get("_csrf_hash") as string;
+
+  const result = await authenticateAdmin(
+    username,
+    password,
+    honeypotValue,
+    csrfToken,
+    csrfHash,
+  );
+
+  return result;
 }
 
 // Función para cerrar sesión de admin
 export async function logoutAdmin() {
   try {
-    const cookieStore = await cookies()
-    cookieStore.delete('admin-session')
-    
-    return { success: true }
+    const cookieStore = await cookies();
+    cookieStore.delete("admin-session");
+
+    return { success: true };
   } catch (error) {
-    console.error('Error al cerrar sesión:', error)
-    return { success: false, error: 'error-cerrando-sesion' }
+    console.error("Error al cerrar sesión:", error);
+    return { success: false, error: "error-cerrando-sesion" };
   }
 }
 
@@ -248,33 +293,33 @@ export async function createAdminUser(username: string, password: string) {
   try {
     // Verificar que el usuario no exista
     const existingUser = await prisma.adminUser.findUnique({
-      where: { username }
-    })
+      where: { username },
+    });
 
     if (existingUser) {
-      return { success: false, error: 'usuario-ya-existe' }
+      return { success: false, error: "usuario-ya-existe" };
     }
 
     // Hashear la contraseña
-    const hashedPassword = await bcrypt.hash(password, 12)
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Crear el usuario admin
     const adminUser = await prisma.adminUser.create({
       data: {
         username,
-        password: hashedPassword
-      }
-    })
+        password: hashedPassword,
+      },
+    });
 
-    return { 
+    return {
       success: true,
       user: {
         id: adminUser.id,
-        username: adminUser.username
-      }
-    }
+        username: adminUser.username,
+      },
+    };
   } catch (error) {
-    console.error('Error al crear usuario admin:', error)
-    return { success: false, error: 'error-creando-usuario' }
+    console.error("Error al crear usuario admin:", error);
+    return { success: false, error: "error-creando-usuario" };
   }
 }

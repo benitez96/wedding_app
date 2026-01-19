@@ -2,10 +2,17 @@
 
 import { useEffect, useState, useRef } from "react";
 import { getCurrentUserData } from "@/app/actions/protected-invitations";
-import { getWeddingDate } from "@/utils/date";
 import RSVPReminderModal from "./RSVPReminderModal";
 
-export default function RSVPReminderHandler() {
+interface RSVPReminderHandlerProps {
+  weddingTimestamp: number;
+  remindRestingDays: number;
+}
+
+export default function RSVPReminderHandler({
+  weddingTimestamp,
+  remindRestingDays,
+}: RSVPReminderHandlerProps) {
   const [showModal, setShowModal] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -31,16 +38,9 @@ export default function RSVPReminderHandler() {
         // Calcular días restantes
         // Como el contenedor Docker está configurado con timezone Argentina,
         // new Date() ya devuelve la hora correcta de Argentina
-        const weddingDate = getWeddingDate();
         const today = new Date();
-        const diffTime = weddingDate.getTime() - today.getTime();
+        const diffTime = weddingTimestamp - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        // Obtener el número de días desde la variable de entorno (default: 40)
-        const remindRestingDays = Number.parseInt(
-          process.env.NEXT_PUBLIC_REMIND_RESTING || "40",
-          10,
-        );
 
         // Mostrar modal si faltan menos de los días configurados
         if (diffDays < remindRestingDays && diffDays > 0 && isActive) {
@@ -66,7 +66,7 @@ export default function RSVPReminderHandler() {
         clearTimeout(modalTimeoutRef.current);
       }
     };
-  }, []);
+  }, [weddingTimestamp, remindRestingDays]);
 
   const handleGoToRSVP = () => {
     // Cerrar el modal primero y luego hacer scroll
@@ -108,6 +108,7 @@ export default function RSVPReminderHandler() {
       isOpen={showModal}
       onClose={() => setShowModal(false)}
       onGoToRSVP={handleGoToRSVP}
+      weddingTimestamp={weddingTimestamp}
     />
   );
 }

@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Section } from "@/components/section";
-import AnimatedSection from "@/components/AnimatedSection";
+import AnimatedSectionLazy from "@/components/AnimatedSectionLazy";
 import RSVPModal from "@/components/RSVPModal";
-import { PendingRSVP, ConfirmedRSVP, DeclinedRSVP } from "./RSVPStatus";
+import PendingRSVP from "./RSVPStatus/PendingRSVP";
+import ConfirmedRSVP from "./RSVPStatus/ConfirmedRSVP";
+import DeclinedRSVP from "./RSVPStatus/DeclinedRSVP";
 
 interface RSVPSectionClientProps {
   user: {
@@ -60,11 +62,11 @@ export default function RSVPSectionClient({ user }: RSVPSectionClientProps) {
 
   return (
     <>
-      <AnimatedSection delay={0.9}>
+      <AnimatedSectionLazy delay={0.9}>
         <Section.Container id="rsvp-section">
           {renderRSVPContent()}
         </Section.Container>
-      </AnimatedSection>
+      </AnimatedSectionLazy>
 
       <RSVPModal
         isOpen={isModalOpen}
