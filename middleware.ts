@@ -15,6 +15,8 @@ export async function middleware(request: NextRequest) {
     "/logo.png",
     "/r/", // Rutas de procesamiento de tokens
     "/", // Sitio principal (se verifica autenticación en el componente)
+    "/api/health", // Health check para monitoring
+    "/api/csrf-token", // CSRF token público
   ];
 
   // Verificar si es una ruta pública
