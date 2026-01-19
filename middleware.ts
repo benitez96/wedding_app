@@ -1,100 +1,113 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import * as jose from 'jose'
-import { JWT_SECRET, SECURITY_CONFIG } from '@/lib/config'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import * as jose from "jose";
+import { JWT_SECRET, SECURITY_CONFIG } from "@/lib/config";
+import { logError } from "@/lib/logger";
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname } = request.nextUrl;
 
   // Rutas que no necesitan autenticación
   const publicRoutes = [
-    '/backoffice/login',
-    '/error',
-    '/favicon.ico',
-    '/logo.png',
-    '/r/', // Rutas de procesamiento de tokens
-    '/', // Sitio principal (se verifica autenticación en el componente)
-  ]
+    "/backoffice/login",
+    "/error",
+    "/favicon.ico",
+    "/logo.png",
+    "/r/", // Rutas de procesamiento de tokens
+    "/", // Sitio principal (se verifica autenticación en el componente)
+  ];
 
   // Verificar si es una ruta pública
-  if (publicRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.next()
+  if (publicRoutes.some((route) => pathname.startsWith(route))) {
+    return NextResponse.next();
   }
 
   // Rutas del backoffice (necesitan autenticación de admin)
-  if (pathname.startsWith('/backoffice')) {
-    const adminSession = request.cookies.get('admin-session')
+  if (pathname.startsWith("/backoffice")) {
+    const adminSession = request.cookies.get("admin-session");
 
     if (!adminSession) {
       // No hay sesión de admin, redirigir a login
-      return NextResponse.redirect(new URL('/backoffice/login', request.url))
+      return NextResponse.redirect(new URL("/backoffice/login", request.url));
     }
 
     try {
       // Verificar el JWT de admin
-      const secret = new TextEncoder().encode(JWT_SECRET)
+      const secret = new TextEncoder().encode(JWT_SECRET);
       const { payload } = await jose.jwtVerify(adminSession.value, secret, {
         issuer: SECURITY_CONFIG.JWT_ISSUER,
         audience: SECURITY_CONFIG.JWT_ADMIN_AUDIENCE,
-        algorithms: [SECURITY_CONFIG.JWT_ALGORITHM]
-      })
+        algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
+      });
 
       // Verificar claims adicionales de seguridad
-      if (payload.iss !== SECURITY_CONFIG.JWT_ISSUER || payload.aud !== SECURITY_CONFIG.JWT_ADMIN_AUDIENCE) {
-        throw new Error('Invalid JWT claims')
+      if (
+        payload.iss !== SECURITY_CONFIG.JWT_ISSUER ||
+        payload.aud !== SECURITY_CONFIG.JWT_ADMIN_AUDIENCE
+      ) {
+        throw new Error("Invalid JWT claims");
       }
 
       // Verificar que sea una sesión de admin
-      if (payload.sessionType !== 'admin') {
-        throw new Error('Invalid session type')
+      if (payload.sessionType !== "admin") {
+        throw new Error("Invalid session type");
       }
 
       // Sesión válida, continuar
-      return NextResponse.next()
+      return NextResponse.next();
     } catch (error) {
-      console.error('Error verificando sesión de admin:', error)
+      logError("Error verificando sesión de admin", error);
       // Sesión inválida, redirigir a login
-      const response = NextResponse.redirect(new URL('/backoffice/login', request.url))
-      response.cookies.delete('admin-session')
-      return response
+      const response = NextResponse.redirect(
+        new URL("/backoffice/login", request.url),
+      );
+      response.cookies.delete("admin-session");
+      return response;
     }
   }
 
   // Rutas públicas (necesitan autenticación de invitación)
-  const invitationSession = request.cookies.get('session')
+  const invitationSession = request.cookies.get("session");
 
   if (!invitationSession) {
     // No hay sesión de invitación, redirigir a error
-    return NextResponse.redirect(new URL('/error?message=necesita-invitacion', request.url))
+    return NextResponse.redirect(
+      new URL("/error?message=necesita-invitacion", request.url),
+    );
   }
 
-      try {
-      // Verificar el JWT de invitación
-      const secret = new TextEncoder().encode(JWT_SECRET)
-      const { payload } = await jose.jwtVerify(invitationSession.value, secret, {
-        issuer: SECURITY_CONFIG.JWT_ISSUER,
-        audience: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
-        algorithms: [SECURITY_CONFIG.JWT_ALGORITHM]
-      })
+  try {
+    // Verificar el JWT de invitación
+    const secret = new TextEncoder().encode(JWT_SECRET);
+    const { payload } = await jose.jwtVerify(invitationSession.value, secret, {
+      issuer: SECURITY_CONFIG.JWT_ISSUER,
+      audience: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
+      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
+    });
 
-      // Verificar claims adicionales de seguridad
-      if (payload.iss !== SECURITY_CONFIG.JWT_ISSUER || payload.aud !== SECURITY_CONFIG.JWT_INVITATION_AUDIENCE) {
-        throw new Error('Invalid JWT claims')
-      }
+    // Verificar claims adicionales de seguridad
+    if (
+      payload.iss !== SECURITY_CONFIG.JWT_ISSUER ||
+      payload.aud !== SECURITY_CONFIG.JWT_INVITATION_AUDIENCE
+    ) {
+      throw new Error("Invalid JWT claims");
+    }
 
     // Verificar que sea una sesión de invitación (no admin)
-    if (payload.sessionType === 'admin') {
-      throw new Error('Invalid session type for public routes')
+    if (payload.sessionType === "admin") {
+      throw new Error("Invalid session type for public routes");
     }
 
     // Sesión válida, continuar
-    return NextResponse.next()
+    return NextResponse.next();
   } catch (error) {
-    console.error('Error verificando sesión de invitación:', error)
+    logError("Error verificando sesión de invitación", error);
     // Sesión inválida, redirigir a error
-    const response = NextResponse.redirect(new URL('/error?message=necesita-invitacion', request.url))
-    response.cookies.delete('session')
-    return response
+    const response = NextResponse.redirect(
+      new URL("/error?message=necesita-invitacion", request.url),
+    );
+    response.cookies.delete("session");
+    return response;
   }
 }
 
@@ -105,6 +118,6 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      */
-    '/((?!_next/static|_next/image).*)',
+    "/((?!_next/static|_next/image).*)",
   ],
-}
+};

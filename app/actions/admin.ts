@@ -13,6 +13,7 @@ import { logSecurityEvent } from "@/lib/security-logger";
 import { JWT_SECRET, SECURITY_CONFIG } from "@/lib/config";
 import { adminLoginSchema, validateAndSanitize } from "@/utils/validation";
 import { validateCSRFToken } from "@/lib/csrf";
+import { logError } from "@/lib/logger";
 
 // Función para generar fingerprint del dispositivo (versión mejorada)
 async function generateDeviceFingerprint(userAgent: string): Promise<string> {
@@ -196,7 +197,7 @@ export async function authenticateAdmin(
       },
     };
   } catch (error) {
-    console.error("Error al autenticar admin:", error);
+    logError("Error al autenticar admin", error);
     return { success: false, error: "error-autenticando" };
   }
 }
@@ -248,7 +249,7 @@ export async function getCurrentAdmin() {
       },
     };
   } catch (error) {
-    console.error("Error al obtener admin actual:", error);
+    logError("Error al obtener admin actual", error);
     return { success: false, user: null };
   }
 }
@@ -283,7 +284,7 @@ export async function logoutAdmin() {
 
     return { success: true };
   } catch (error) {
-    console.error("Error al cerrar sesión:", error);
+    logError("Error al cerrar sesión", error);
     return { success: false, error: "error-cerrando-sesion" };
   }
 }
@@ -319,7 +320,7 @@ export async function createAdminUser(username: string, password: string) {
       },
     };
   } catch (error) {
-    console.error("Error al crear usuario admin:", error);
+    logError("Error al crear usuario admin", error);
     return { success: false, error: "error-creando-usuario" };
   }
 }
