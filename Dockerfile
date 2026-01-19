@@ -16,6 +16,20 @@ RUN \
   fi
 
 
+# Stage for running commands and scripts (without Next.js build)
+FROM base AS commands
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+# Copy only what's needed for Prisma and scripts
+COPY prisma ./prisma
+COPY scripts ./scripts
+COPY package.json pnpm-lock.yaml* ./
+
+# Timezone
+RUN apk add --no-cache tzdata
+ENV TZ=America/Argentina/Buenos_Aires
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app

@@ -3,7 +3,7 @@ services:
   migrations:
     build:
       context: .
-      target: builder
+      target: deps # Solo necesita dependencias, no el build de Next.js
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/wedding_app
@@ -13,7 +13,7 @@ services:
         condition: service_healthy
     networks:
       - app_network
-    command: sh -c "pnpm exec prisma migrate deploy && echo 'Migrations completed'"
+    command: sh -c "npx prisma migrate deploy && echo 'Migrations completed'"
     restart: "no" # Corre una vez y termina
 
   # App principal
@@ -45,7 +45,7 @@ services:
   commands:
     build:
       context: .
-      target: builder # Usa el stage con todas las herramientas
+      target: commands # Stage optimizado: node_modules + scripts + prisma (sin build de Next.js)
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/wedding_app

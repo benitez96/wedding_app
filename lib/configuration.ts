@@ -9,6 +9,7 @@ import {
 const DEFAULT_CONFIGURATION_VALUES: ConfigurationValueMap = {
   [CONFIGURATION_KEYS.PHOTO_UPLOAD_URL]: null,
   [CONFIGURATION_KEYS.WEDDING_DATE]: "20260214193000",
+  [CONFIGURATION_KEYS.REMIND_RESTING_DAYS]: "7", // Días de descanso antes de recordar
 };
 
 const configurationCache = new Map<string, string | null>();
