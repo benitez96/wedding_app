@@ -43,6 +43,11 @@ export type RateLimitBlock = $Result.DefaultSelection<Prisma.$RateLimitBlockPayl
  * 
  */
 export type Configuration = $Result.DefaultSelection<Prisma.$ConfigurationPayload>
+/**
+ * Model SectionConfiguration
+ * 
+ */
+export type SectionConfiguration = $Result.DefaultSelection<Prisma.$SectionConfigurationPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -221,6 +226,16 @@ export class PrismaClient<
     * ```
     */
   get configuration(): Prisma.ConfigurationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.sectionConfiguration`: Exposes CRUD operations for the **SectionConfiguration** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SectionConfigurations
+    * const sectionConfigurations = await prisma.sectionConfiguration.findMany()
+    * ```
+    */
+  get sectionConfiguration(): Prisma.SectionConfigurationDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -667,7 +682,8 @@ export namespace Prisma {
     AdminUser: 'AdminUser',
     RateLimitAttempt: 'RateLimitAttempt',
     RateLimitBlock: 'RateLimitBlock',
-    Configuration: 'Configuration'
+    Configuration: 'Configuration',
+    SectionConfiguration: 'SectionConfiguration'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -686,7 +702,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "invitation" | "invitationToken" | "adminUser" | "rateLimitAttempt" | "rateLimitBlock" | "configuration"
+      modelProps: "invitation" | "invitationToken" | "adminUser" | "rateLimitAttempt" | "rateLimitBlock" | "configuration" | "sectionConfiguration"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1134,6 +1150,80 @@ export namespace Prisma {
           }
         }
       }
+      SectionConfiguration: {
+        payload: Prisma.$SectionConfigurationPayload<ExtArgs>
+        fields: Prisma.SectionConfigurationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SectionConfigurationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SectionConfigurationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>
+          }
+          findFirst: {
+            args: Prisma.SectionConfigurationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SectionConfigurationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>
+          }
+          findMany: {
+            args: Prisma.SectionConfigurationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>[]
+          }
+          create: {
+            args: Prisma.SectionConfigurationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>
+          }
+          createMany: {
+            args: Prisma.SectionConfigurationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SectionConfigurationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>[]
+          }
+          delete: {
+            args: Prisma.SectionConfigurationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>
+          }
+          update: {
+            args: Prisma.SectionConfigurationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>
+          }
+          deleteMany: {
+            args: Prisma.SectionConfigurationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SectionConfigurationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SectionConfigurationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>[]
+          }
+          upsert: {
+            args: Prisma.SectionConfigurationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SectionConfigurationPayload>
+          }
+          aggregate: {
+            args: Prisma.SectionConfigurationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSectionConfiguration>
+          }
+          groupBy: {
+            args: Prisma.SectionConfigurationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SectionConfigurationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SectionConfigurationCountArgs<ExtArgs>
+            result: $Utils.Optional<SectionConfigurationCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1236,6 +1326,7 @@ export namespace Prisma {
     rateLimitAttempt?: RateLimitAttemptOmit
     rateLimitBlock?: RateLimitBlockOmit
     configuration?: ConfigurationOmit
+    sectionConfiguration?: SectionConfigurationOmit
   }
 
   /* Types for Logging */
@@ -7696,6 +7787,1057 @@ export namespace Prisma {
 
 
   /**
+   * Model SectionConfiguration
+   */
+
+  export type AggregateSectionConfiguration = {
+    _count: SectionConfigurationCountAggregateOutputType | null
+    _avg: SectionConfigurationAvgAggregateOutputType | null
+    _sum: SectionConfigurationSumAggregateOutputType | null
+    _min: SectionConfigurationMinAggregateOutputType | null
+    _max: SectionConfigurationMaxAggregateOutputType | null
+  }
+
+  export type SectionConfigurationAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type SectionConfigurationSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type SectionConfigurationMinAggregateOutputType = {
+    id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    key: string | null
+    isEnabled: boolean | null
+    order: number | null
+  }
+
+  export type SectionConfigurationMaxAggregateOutputType = {
+    id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    key: string | null
+    isEnabled: boolean | null
+    order: number | null
+  }
+
+  export type SectionConfigurationCountAggregateOutputType = {
+    id: number
+    createdAt: number
+    updatedAt: number
+    key: number
+    isEnabled: number
+    order: number
+    settings: number
+    _all: number
+  }
+
+
+  export type SectionConfigurationAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type SectionConfigurationSumAggregateInputType = {
+    order?: true
+  }
+
+  export type SectionConfigurationMinAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    key?: true
+    isEnabled?: true
+    order?: true
+  }
+
+  export type SectionConfigurationMaxAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    key?: true
+    isEnabled?: true
+    order?: true
+  }
+
+  export type SectionConfigurationCountAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    key?: true
+    isEnabled?: true
+    order?: true
+    settings?: true
+    _all?: true
+  }
+
+  export type SectionConfigurationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SectionConfiguration to aggregate.
+     */
+    where?: SectionConfigurationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SectionConfigurations to fetch.
+     */
+    orderBy?: SectionConfigurationOrderByWithRelationInput | SectionConfigurationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SectionConfigurationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SectionConfigurations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SectionConfigurations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SectionConfigurations
+    **/
+    _count?: true | SectionConfigurationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SectionConfigurationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SectionConfigurationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SectionConfigurationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SectionConfigurationMaxAggregateInputType
+  }
+
+  export type GetSectionConfigurationAggregateType<T extends SectionConfigurationAggregateArgs> = {
+        [P in keyof T & keyof AggregateSectionConfiguration]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSectionConfiguration[P]>
+      : GetScalarType<T[P], AggregateSectionConfiguration[P]>
+  }
+
+
+
+
+  export type SectionConfigurationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SectionConfigurationWhereInput
+    orderBy?: SectionConfigurationOrderByWithAggregationInput | SectionConfigurationOrderByWithAggregationInput[]
+    by: SectionConfigurationScalarFieldEnum[] | SectionConfigurationScalarFieldEnum
+    having?: SectionConfigurationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SectionConfigurationCountAggregateInputType | true
+    _avg?: SectionConfigurationAvgAggregateInputType
+    _sum?: SectionConfigurationSumAggregateInputType
+    _min?: SectionConfigurationMinAggregateInputType
+    _max?: SectionConfigurationMaxAggregateInputType
+  }
+
+  export type SectionConfigurationGroupByOutputType = {
+    id: string
+    createdAt: Date
+    updatedAt: Date
+    key: string
+    isEnabled: boolean
+    order: number
+    settings: JsonValue | null
+    _count: SectionConfigurationCountAggregateOutputType | null
+    _avg: SectionConfigurationAvgAggregateOutputType | null
+    _sum: SectionConfigurationSumAggregateOutputType | null
+    _min: SectionConfigurationMinAggregateOutputType | null
+    _max: SectionConfigurationMaxAggregateOutputType | null
+  }
+
+  type GetSectionConfigurationGroupByPayload<T extends SectionConfigurationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SectionConfigurationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SectionConfigurationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SectionConfigurationGroupByOutputType[P]>
+            : GetScalarType<T[P], SectionConfigurationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SectionConfigurationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    key?: boolean
+    isEnabled?: boolean
+    order?: boolean
+    settings?: boolean
+  }, ExtArgs["result"]["sectionConfiguration"]>
+
+  export type SectionConfigurationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    key?: boolean
+    isEnabled?: boolean
+    order?: boolean
+    settings?: boolean
+  }, ExtArgs["result"]["sectionConfiguration"]>
+
+  export type SectionConfigurationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    key?: boolean
+    isEnabled?: boolean
+    order?: boolean
+    settings?: boolean
+  }, ExtArgs["result"]["sectionConfiguration"]>
+
+  export type SectionConfigurationSelectScalar = {
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    key?: boolean
+    isEnabled?: boolean
+    order?: boolean
+    settings?: boolean
+  }
+
+  export type SectionConfigurationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "key" | "isEnabled" | "order" | "settings", ExtArgs["result"]["sectionConfiguration"]>
+
+  export type $SectionConfigurationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SectionConfiguration"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      createdAt: Date
+      updatedAt: Date
+      key: string
+      isEnabled: boolean
+      order: number
+      settings: Prisma.JsonValue | null
+    }, ExtArgs["result"]["sectionConfiguration"]>
+    composites: {}
+  }
+
+  type SectionConfigurationGetPayload<S extends boolean | null | undefined | SectionConfigurationDefaultArgs> = $Result.GetResult<Prisma.$SectionConfigurationPayload, S>
+
+  type SectionConfigurationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SectionConfigurationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SectionConfigurationCountAggregateInputType | true
+    }
+
+  export interface SectionConfigurationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SectionConfiguration'], meta: { name: 'SectionConfiguration' } }
+    /**
+     * Find zero or one SectionConfiguration that matches the filter.
+     * @param {SectionConfigurationFindUniqueArgs} args - Arguments to find a SectionConfiguration
+     * @example
+     * // Get one SectionConfiguration
+     * const sectionConfiguration = await prisma.sectionConfiguration.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SectionConfigurationFindUniqueArgs>(args: SelectSubset<T, SectionConfigurationFindUniqueArgs<ExtArgs>>): Prisma__SectionConfigurationClient<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SectionConfiguration that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SectionConfigurationFindUniqueOrThrowArgs} args - Arguments to find a SectionConfiguration
+     * @example
+     * // Get one SectionConfiguration
+     * const sectionConfiguration = await prisma.sectionConfiguration.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SectionConfigurationFindUniqueOrThrowArgs>(args: SelectSubset<T, SectionConfigurationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SectionConfigurationClient<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SectionConfiguration that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SectionConfigurationFindFirstArgs} args - Arguments to find a SectionConfiguration
+     * @example
+     * // Get one SectionConfiguration
+     * const sectionConfiguration = await prisma.sectionConfiguration.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SectionConfigurationFindFirstArgs>(args?: SelectSubset<T, SectionConfigurationFindFirstArgs<ExtArgs>>): Prisma__SectionConfigurationClient<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SectionConfiguration that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SectionConfigurationFindFirstOrThrowArgs} args - Arguments to find a SectionConfiguration
+     * @example
+     * // Get one SectionConfiguration
+     * const sectionConfiguration = await prisma.sectionConfiguration.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SectionConfigurationFindFirstOrThrowArgs>(args?: SelectSubset<T, SectionConfigurationFindFirstOrThrowArgs<ExtArgs>>): Prisma__SectionConfigurationClient<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SectionConfigurations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SectionConfigurationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SectionConfigurations
+     * const sectionConfigurations = await prisma.sectionConfiguration.findMany()
+     * 
+     * // Get first 10 SectionConfigurations
+     * const sectionConfigurations = await prisma.sectionConfiguration.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const sectionConfigurationWithIdOnly = await prisma.sectionConfiguration.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SectionConfigurationFindManyArgs>(args?: SelectSubset<T, SectionConfigurationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SectionConfiguration.
+     * @param {SectionConfigurationCreateArgs} args - Arguments to create a SectionConfiguration.
+     * @example
+     * // Create one SectionConfiguration
+     * const SectionConfiguration = await prisma.sectionConfiguration.create({
+     *   data: {
+     *     // ... data to create a SectionConfiguration
+     *   }
+     * })
+     * 
+     */
+    create<T extends SectionConfigurationCreateArgs>(args: SelectSubset<T, SectionConfigurationCreateArgs<ExtArgs>>): Prisma__SectionConfigurationClient<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SectionConfigurations.
+     * @param {SectionConfigurationCreateManyArgs} args - Arguments to create many SectionConfigurations.
+     * @example
+     * // Create many SectionConfigurations
+     * const sectionConfiguration = await prisma.sectionConfiguration.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SectionConfigurationCreateManyArgs>(args?: SelectSubset<T, SectionConfigurationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SectionConfigurations and returns the data saved in the database.
+     * @param {SectionConfigurationCreateManyAndReturnArgs} args - Arguments to create many SectionConfigurations.
+     * @example
+     * // Create many SectionConfigurations
+     * const sectionConfiguration = await prisma.sectionConfiguration.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SectionConfigurations and only return the `id`
+     * const sectionConfigurationWithIdOnly = await prisma.sectionConfiguration.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SectionConfigurationCreateManyAndReturnArgs>(args?: SelectSubset<T, SectionConfigurationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a SectionConfiguration.
+     * @param {SectionConfigurationDeleteArgs} args - Arguments to delete one SectionConfiguration.
+     * @example
+     * // Delete one SectionConfiguration
+     * const SectionConfiguration = await prisma.sectionConfiguration.delete({
+     *   where: {
+     *     // ... filter to delete one SectionConfiguration
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SectionConfigurationDeleteArgs>(args: SelectSubset<T, SectionConfigurationDeleteArgs<ExtArgs>>): Prisma__SectionConfigurationClient<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SectionConfiguration.
+     * @param {SectionConfigurationUpdateArgs} args - Arguments to update one SectionConfiguration.
+     * @example
+     * // Update one SectionConfiguration
+     * const sectionConfiguration = await prisma.sectionConfiguration.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SectionConfigurationUpdateArgs>(args: SelectSubset<T, SectionConfigurationUpdateArgs<ExtArgs>>): Prisma__SectionConfigurationClient<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SectionConfigurations.
+     * @param {SectionConfigurationDeleteManyArgs} args - Arguments to filter SectionConfigurations to delete.
+     * @example
+     * // Delete a few SectionConfigurations
+     * const { count } = await prisma.sectionConfiguration.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SectionConfigurationDeleteManyArgs>(args?: SelectSubset<T, SectionConfigurationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SectionConfigurations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SectionConfigurationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SectionConfigurations
+     * const sectionConfiguration = await prisma.sectionConfiguration.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SectionConfigurationUpdateManyArgs>(args: SelectSubset<T, SectionConfigurationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SectionConfigurations and returns the data updated in the database.
+     * @param {SectionConfigurationUpdateManyAndReturnArgs} args - Arguments to update many SectionConfigurations.
+     * @example
+     * // Update many SectionConfigurations
+     * const sectionConfiguration = await prisma.sectionConfiguration.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more SectionConfigurations and only return the `id`
+     * const sectionConfigurationWithIdOnly = await prisma.sectionConfiguration.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SectionConfigurationUpdateManyAndReturnArgs>(args: SelectSubset<T, SectionConfigurationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one SectionConfiguration.
+     * @param {SectionConfigurationUpsertArgs} args - Arguments to update or create a SectionConfiguration.
+     * @example
+     * // Update or create a SectionConfiguration
+     * const sectionConfiguration = await prisma.sectionConfiguration.upsert({
+     *   create: {
+     *     // ... data to create a SectionConfiguration
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SectionConfiguration we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SectionConfigurationUpsertArgs>(args: SelectSubset<T, SectionConfigurationUpsertArgs<ExtArgs>>): Prisma__SectionConfigurationClient<$Result.GetResult<Prisma.$SectionConfigurationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SectionConfigurations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SectionConfigurationCountArgs} args - Arguments to filter SectionConfigurations to count.
+     * @example
+     * // Count the number of SectionConfigurations
+     * const count = await prisma.sectionConfiguration.count({
+     *   where: {
+     *     // ... the filter for the SectionConfigurations we want to count
+     *   }
+     * })
+    **/
+    count<T extends SectionConfigurationCountArgs>(
+      args?: Subset<T, SectionConfigurationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SectionConfigurationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SectionConfiguration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SectionConfigurationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SectionConfigurationAggregateArgs>(args: Subset<T, SectionConfigurationAggregateArgs>): Prisma.PrismaPromise<GetSectionConfigurationAggregateType<T>>
+
+    /**
+     * Group by SectionConfiguration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SectionConfigurationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SectionConfigurationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SectionConfigurationGroupByArgs['orderBy'] }
+        : { orderBy?: SectionConfigurationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SectionConfigurationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSectionConfigurationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SectionConfiguration model
+   */
+  readonly fields: SectionConfigurationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SectionConfiguration.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SectionConfigurationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SectionConfiguration model
+   */
+  interface SectionConfigurationFieldRefs {
+    readonly id: FieldRef<"SectionConfiguration", 'String'>
+    readonly createdAt: FieldRef<"SectionConfiguration", 'DateTime'>
+    readonly updatedAt: FieldRef<"SectionConfiguration", 'DateTime'>
+    readonly key: FieldRef<"SectionConfiguration", 'String'>
+    readonly isEnabled: FieldRef<"SectionConfiguration", 'Boolean'>
+    readonly order: FieldRef<"SectionConfiguration", 'Int'>
+    readonly settings: FieldRef<"SectionConfiguration", 'Json'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SectionConfiguration findUnique
+   */
+  export type SectionConfigurationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * Filter, which SectionConfiguration to fetch.
+     */
+    where: SectionConfigurationWhereUniqueInput
+  }
+
+  /**
+   * SectionConfiguration findUniqueOrThrow
+   */
+  export type SectionConfigurationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * Filter, which SectionConfiguration to fetch.
+     */
+    where: SectionConfigurationWhereUniqueInput
+  }
+
+  /**
+   * SectionConfiguration findFirst
+   */
+  export type SectionConfigurationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * Filter, which SectionConfiguration to fetch.
+     */
+    where?: SectionConfigurationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SectionConfigurations to fetch.
+     */
+    orderBy?: SectionConfigurationOrderByWithRelationInput | SectionConfigurationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SectionConfigurations.
+     */
+    cursor?: SectionConfigurationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SectionConfigurations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SectionConfigurations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SectionConfigurations.
+     */
+    distinct?: SectionConfigurationScalarFieldEnum | SectionConfigurationScalarFieldEnum[]
+  }
+
+  /**
+   * SectionConfiguration findFirstOrThrow
+   */
+  export type SectionConfigurationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * Filter, which SectionConfiguration to fetch.
+     */
+    where?: SectionConfigurationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SectionConfigurations to fetch.
+     */
+    orderBy?: SectionConfigurationOrderByWithRelationInput | SectionConfigurationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SectionConfigurations.
+     */
+    cursor?: SectionConfigurationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SectionConfigurations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SectionConfigurations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SectionConfigurations.
+     */
+    distinct?: SectionConfigurationScalarFieldEnum | SectionConfigurationScalarFieldEnum[]
+  }
+
+  /**
+   * SectionConfiguration findMany
+   */
+  export type SectionConfigurationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * Filter, which SectionConfigurations to fetch.
+     */
+    where?: SectionConfigurationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SectionConfigurations to fetch.
+     */
+    orderBy?: SectionConfigurationOrderByWithRelationInput | SectionConfigurationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SectionConfigurations.
+     */
+    cursor?: SectionConfigurationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SectionConfigurations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SectionConfigurations.
+     */
+    skip?: number
+    distinct?: SectionConfigurationScalarFieldEnum | SectionConfigurationScalarFieldEnum[]
+  }
+
+  /**
+   * SectionConfiguration create
+   */
+  export type SectionConfigurationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * The data needed to create a SectionConfiguration.
+     */
+    data: XOR<SectionConfigurationCreateInput, SectionConfigurationUncheckedCreateInput>
+  }
+
+  /**
+   * SectionConfiguration createMany
+   */
+  export type SectionConfigurationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SectionConfigurations.
+     */
+    data: SectionConfigurationCreateManyInput | SectionConfigurationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SectionConfiguration createManyAndReturn
+   */
+  export type SectionConfigurationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * The data used to create many SectionConfigurations.
+     */
+    data: SectionConfigurationCreateManyInput | SectionConfigurationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SectionConfiguration update
+   */
+  export type SectionConfigurationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * The data needed to update a SectionConfiguration.
+     */
+    data: XOR<SectionConfigurationUpdateInput, SectionConfigurationUncheckedUpdateInput>
+    /**
+     * Choose, which SectionConfiguration to update.
+     */
+    where: SectionConfigurationWhereUniqueInput
+  }
+
+  /**
+   * SectionConfiguration updateMany
+   */
+  export type SectionConfigurationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SectionConfigurations.
+     */
+    data: XOR<SectionConfigurationUpdateManyMutationInput, SectionConfigurationUncheckedUpdateManyInput>
+    /**
+     * Filter which SectionConfigurations to update
+     */
+    where?: SectionConfigurationWhereInput
+    /**
+     * Limit how many SectionConfigurations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SectionConfiguration updateManyAndReturn
+   */
+  export type SectionConfigurationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * The data used to update SectionConfigurations.
+     */
+    data: XOR<SectionConfigurationUpdateManyMutationInput, SectionConfigurationUncheckedUpdateManyInput>
+    /**
+     * Filter which SectionConfigurations to update
+     */
+    where?: SectionConfigurationWhereInput
+    /**
+     * Limit how many SectionConfigurations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SectionConfiguration upsert
+   */
+  export type SectionConfigurationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * The filter to search for the SectionConfiguration to update in case it exists.
+     */
+    where: SectionConfigurationWhereUniqueInput
+    /**
+     * In case the SectionConfiguration found by the `where` argument doesn't exist, create a new SectionConfiguration with this data.
+     */
+    create: XOR<SectionConfigurationCreateInput, SectionConfigurationUncheckedCreateInput>
+    /**
+     * In case the SectionConfiguration was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SectionConfigurationUpdateInput, SectionConfigurationUncheckedUpdateInput>
+  }
+
+  /**
+   * SectionConfiguration delete
+   */
+  export type SectionConfigurationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+    /**
+     * Filter which SectionConfiguration to delete.
+     */
+    where: SectionConfigurationWhereUniqueInput
+  }
+
+  /**
+   * SectionConfiguration deleteMany
+   */
+  export type SectionConfigurationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SectionConfigurations to delete
+     */
+    where?: SectionConfigurationWhereInput
+    /**
+     * Limit how many SectionConfigurations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SectionConfiguration without action
+   */
+  export type SectionConfigurationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SectionConfiguration
+     */
+    select?: SectionConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SectionConfiguration
+     */
+    omit?: SectionConfigurationOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -7788,12 +8930,33 @@ export namespace Prisma {
   export type ConfigurationScalarFieldEnum = (typeof ConfigurationScalarFieldEnum)[keyof typeof ConfigurationScalarFieldEnum]
 
 
+  export const SectionConfigurationScalarFieldEnum: {
+    id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    key: 'key',
+    isEnabled: 'isEnabled',
+    order: 'order',
+    settings: 'settings'
+  };
+
+  export type SectionConfigurationScalarFieldEnum = (typeof SectionConfigurationScalarFieldEnum)[keyof typeof SectionConfigurationScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -7810,6 +8973,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -7863,6 +9035,20 @@ export namespace Prisma {
    * Reference to a field of type 'Boolean'
    */
   export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -8268,6 +9454,70 @@ export namespace Prisma {
     key?: StringWithAggregatesFilter<"Configuration"> | string
     value?: StringWithAggregatesFilter<"Configuration"> | string
     description?: StringNullableWithAggregatesFilter<"Configuration"> | string | null
+  }
+
+  export type SectionConfigurationWhereInput = {
+    AND?: SectionConfigurationWhereInput | SectionConfigurationWhereInput[]
+    OR?: SectionConfigurationWhereInput[]
+    NOT?: SectionConfigurationWhereInput | SectionConfigurationWhereInput[]
+    id?: StringFilter<"SectionConfiguration"> | string
+    createdAt?: DateTimeFilter<"SectionConfiguration"> | Date | string
+    updatedAt?: DateTimeFilter<"SectionConfiguration"> | Date | string
+    key?: StringFilter<"SectionConfiguration"> | string
+    isEnabled?: BoolFilter<"SectionConfiguration"> | boolean
+    order?: IntFilter<"SectionConfiguration"> | number
+    settings?: JsonNullableFilter<"SectionConfiguration">
+  }
+
+  export type SectionConfigurationOrderByWithRelationInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    key?: SortOrder
+    isEnabled?: SortOrder
+    order?: SortOrder
+    settings?: SortOrderInput | SortOrder
+  }
+
+  export type SectionConfigurationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    key?: string
+    order?: number
+    AND?: SectionConfigurationWhereInput | SectionConfigurationWhereInput[]
+    OR?: SectionConfigurationWhereInput[]
+    NOT?: SectionConfigurationWhereInput | SectionConfigurationWhereInput[]
+    createdAt?: DateTimeFilter<"SectionConfiguration"> | Date | string
+    updatedAt?: DateTimeFilter<"SectionConfiguration"> | Date | string
+    isEnabled?: BoolFilter<"SectionConfiguration"> | boolean
+    settings?: JsonNullableFilter<"SectionConfiguration">
+  }, "id" | "key" | "order">
+
+  export type SectionConfigurationOrderByWithAggregationInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    key?: SortOrder
+    isEnabled?: SortOrder
+    order?: SortOrder
+    settings?: SortOrderInput | SortOrder
+    _count?: SectionConfigurationCountOrderByAggregateInput
+    _avg?: SectionConfigurationAvgOrderByAggregateInput
+    _max?: SectionConfigurationMaxOrderByAggregateInput
+    _min?: SectionConfigurationMinOrderByAggregateInput
+    _sum?: SectionConfigurationSumOrderByAggregateInput
+  }
+
+  export type SectionConfigurationScalarWhereWithAggregatesInput = {
+    AND?: SectionConfigurationScalarWhereWithAggregatesInput | SectionConfigurationScalarWhereWithAggregatesInput[]
+    OR?: SectionConfigurationScalarWhereWithAggregatesInput[]
+    NOT?: SectionConfigurationScalarWhereWithAggregatesInput | SectionConfigurationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SectionConfiguration"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"SectionConfiguration"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SectionConfiguration"> | Date | string
+    key?: StringWithAggregatesFilter<"SectionConfiguration"> | string
+    isEnabled?: BoolWithAggregatesFilter<"SectionConfiguration"> | boolean
+    order?: IntWithAggregatesFilter<"SectionConfiguration"> | number
+    settings?: JsonNullableWithAggregatesFilter<"SectionConfiguration">
   }
 
   export type InvitationCreateInput = {
@@ -8700,6 +9950,76 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type SectionConfigurationCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    key: string
+    isEnabled?: boolean
+    order: number
+    settings?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type SectionConfigurationUncheckedCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    key: string
+    isEnabled?: boolean
+    order: number
+    settings?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type SectionConfigurationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    key?: StringFieldUpdateOperationsInput | string
+    isEnabled?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    settings?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type SectionConfigurationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    key?: StringFieldUpdateOperationsInput | string
+    isEnabled?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    settings?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type SectionConfigurationCreateManyInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    key: string
+    isEnabled?: boolean
+    order: number
+    settings?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type SectionConfigurationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    key?: StringFieldUpdateOperationsInput | string
+    isEnabled?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    settings?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type SectionConfigurationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    key?: StringFieldUpdateOperationsInput | string
+    isEnabled?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    settings?: NullableJsonNullValueInput | InputJsonValue
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -9116,6 +10436,91 @@ export namespace Prisma {
     value?: SortOrder
     description?: SortOrder
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type SectionConfigurationCountOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    key?: SortOrder
+    isEnabled?: SortOrder
+    order?: SortOrder
+    settings?: SortOrder
+  }
+
+  export type SectionConfigurationAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type SectionConfigurationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    key?: SortOrder
+    isEnabled?: SortOrder
+    order?: SortOrder
+  }
+
+  export type SectionConfigurationMinOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    key?: SortOrder
+    isEnabled?: SortOrder
+    order?: SortOrder
+  }
+
+  export type SectionConfigurationSumOrderByAggregateInput = {
+    order?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
 
   export type InvitationTokenCreateNestedManyWithoutInvitationInput = {
     create?: XOR<InvitationTokenCreateWithoutInvitationInput, InvitationTokenUncheckedCreateWithoutInvitationInput> | InvitationTokenCreateWithoutInvitationInput[] | InvitationTokenUncheckedCreateWithoutInvitationInput[]
@@ -9425,6 +10830,29 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type InvitationTokenCreateWithoutInvitationInput = {

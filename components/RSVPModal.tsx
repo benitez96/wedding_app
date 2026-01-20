@@ -127,7 +127,7 @@ export default function RSVPModal({
 
   return (
     <>
-      {showConfetti && <SimpleConfetti />}
+      {showConfetti ? <SimpleConfetti /> : null}
       <Modal isOpen={isOpen} onClose={handleClose} size="lg">
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1 text-center">
@@ -142,11 +142,11 @@ export default function RSVPModal({
 
           <Form action={formAction} className="contents">
             <ModalBody className="space-y-6">
-              {state?.error && (
+              {state?.error ? (
                 <div className="bg-danger-50 border border-danger-200 rounded-lg p-3">
                   <p className="text-danger-600 text-sm">{state.error}</p>
                 </div>
-              )}
+              ) : null}
 
               <div className="space-y-6">
                 <div>
@@ -159,7 +159,7 @@ export default function RSVPModal({
                   />
                 </div>
 
-                {response === "attending" && user?.maxGuests > 1 && (
+                {response === "attending" && user?.maxGuests > 1 ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-center gap-2">
                       <Users className="w-4 h-4 text-primary" />
@@ -179,7 +179,7 @@ export default function RSVPModal({
                       </span>
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
             </ModalBody>
 

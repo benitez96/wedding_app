@@ -1,13 +1,30 @@
-import AdminAuthGuard from '@/components/AdminAuthGuard'
+import { redirect } from "next/navigation";
+import { getCurrentAdmin } from "@/app/actions/admin";
+import BackofficeNavbar from "../BackofficeNavbar";
 
 interface ProtectedLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
-export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
+export default async function ProtectedLayout({
+  children,
+}: ProtectedLayoutProps) {
+  // Verificar autenticación en el servidor (sin waterfall client-side)
+  const result = await getCurrentAdmin();
+
+  if (!result.success || !result.user) {
+    redirect("/backoffice/login");
+  }
+
   return (
-    <AdminAuthGuard>
-      {children}
-    </AdminAuthGuard>
-  )
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar con menú (solo para usuarios logueados) */}
+      <BackofficeNavbar showMenu={true} />
+
+      {/* Main Content */}
+      <main className="container mx-auto max-w-screen-xl px-2 md:px-4 py-4 md:py-6">
+        {children}
+      </main>
+    </div>
+  );
 }

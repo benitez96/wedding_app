@@ -53,19 +53,19 @@ export default function SettingsForm({
   return (
     <form action={formAction} className="space-y-6">
       {/* Mensaje de error */}
-      {state?.error && (
+      {state?.error ? (
         <div className="p-3 bg-danger-50 border border-danger-200 text-danger-700 rounded-lg">
           {state.error}
         </div>
-      )}
+      ) : null}
 
       {/* Mensaje de éxito */}
-      {state?.success && (
+      {state?.success ? (
         <div className="p-3 bg-success-50 border border-success-200 text-success-700 rounded-lg flex items-center gap-2">
           <CheckCircle size={16} />
           {state.message}
         </div>
-      )}
+      ) : null}
 
       <div className="grid gap-4">
         {/* PHOTO_UPLOAD_URL */}
@@ -133,7 +133,7 @@ export default function SettingsForm({
           color="primary"
           isLoading={isPending}
           isDisabled={isPending}
-          startContent={!isPending && <Save className="w-4 h-4" />}
+          startContent={isPending ? null : <Save className="w-4 h-4" />}
         >
           {isPending ? "Guardando..." : "Guardar Cambios"}
         </Button>

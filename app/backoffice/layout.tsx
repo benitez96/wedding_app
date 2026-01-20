@@ -2,10 +2,7 @@ import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 
 import { siteConfig } from "@/config/site";
-import { Navbar, NavbarBrand, NavbarContent } from "@heroui/react";
-import { Heart, Settings } from "lucide-react";
-import LogoutButton from "./LogoutButton";
-import Link from "next/link";
+import BackofficeNavbar from "./BackofficeNavbar";
 
 export const metadata: Metadata = {
   title: {
@@ -27,37 +24,5 @@ export default function BackofficeLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <Navbar className="bg-white shadow-sm border-b">
-        <NavbarBrand>
-          <Link
-            href="/backoffice/dashboard"
-            className="flex items-center gap-2"
-          >
-            <Heart className="text-red-500 md:text-2xl text-xl" size={24} />
-            <span className="font-bold md:text-xl text-lg">Wedding App</span>
-          </Link>
-        </NavbarBrand>
-        <NavbarContent justify="end">
-          <div className="flex items-center gap-2 md:gap-4">
-            <Link
-              href="/backoffice/settings"
-              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden md:inline">Configuraciones</span>
-            </Link>
-            <LogoutButton />
-          </div>
-        </NavbarContent>
-      </Navbar>
-
-      {/* Main Content */}
-      <main className="container mx-auto max-w-screen-xl px-2 md:px-4 py-4 md:py-6">
-        {children}
-      </main>
-    </div>
-  );
+  return children;
 }

@@ -67,7 +67,7 @@ export default function InvitationsHeader() {
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
           startContent={<Search size={18} className="text-default-400" />}
-          endContent={isPending && <Spinner size="sm" />}
+          endContent={isPending ? <Spinner size="sm" /> : null}
           variant="bordered"
           className="max-w-xs bg-white"
         />

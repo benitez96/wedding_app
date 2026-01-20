@@ -208,16 +208,27 @@ export async function getCurrentAdmin() {
     const cookieStore = await cookies();
     const session = cookieStore.get("admin-session");
 
-    if (!session) {
+    // Si no hay sesión o está vacía, retornar sin loggear
+    if (!session || !session.value) {
       return { success: false, user: null };
     }
 
     const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jose.jwtVerify(session.value, secret, {
-      issuer: SECURITY_CONFIG.JWT_ISSUER,
-      audience: SECURITY_CONFIG.JWT_ADMIN_AUDIENCE,
-      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
-    });
+
+    // Intentar verificar el JWT
+    let payload;
+    try {
+      const result = await jose.jwtVerify(session.value, secret, {
+        issuer: SECURITY_CONFIG.JWT_ISSUER,
+        audience: SECURITY_CONFIG.JWT_ADMIN_AUDIENCE,
+        algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
+      });
+      payload = result.payload;
+    } catch (jwtError) {
+      // JWT inválido, expirado o manipulado (comportamiento esperado después de logout)
+      // No loggear como error, solo retornar false
+      return { success: false, user: null };
+    }
 
     // Verificar claims adicionales de seguridad
     if (
@@ -249,7 +260,8 @@ export async function getCurrentAdmin() {
       },
     };
   } catch (error) {
-    logError("Error al obtener admin actual", error);
+    // Solo loggear errores inesperados (DB, network, etc.)
+    logError("Error inesperado al obtener admin actual", error);
     return { success: false, user: null };
   }
 }
@@ -280,7 +292,14 @@ export async function authenticateAdminAction(
 export async function logoutAdmin() {
   try {
     const cookieStore = await cookies();
-    cookieStore.delete("admin-session");
+
+    // Borrar la cookie con las mismas opciones que al crearla
+    cookieStore.set("admin-session", "", {
+      httpOnly: true,
+      secure: SECURITY_CONFIG.COOKIE_SECURE,
+      sameSite: SECURITY_CONFIG.COOKIE_SAME_SITE,
+      maxAge: 0, // Expira inmediatamente
+    });
 
     return { success: true };
   } catch (error) {

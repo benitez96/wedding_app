@@ -53,6 +53,11 @@ export default function InvitationsTable({
     router.push(`/backoffice/invitations/${invitation.id}`);
   };
 
+  // Prefetch on hover para mejor perceived performance (bundle-preload pattern)
+  const handleRowHover = (invitationId: string) => {
+    router.prefetch(`/backoffice/invitations/${invitationId}`);
+  };
+
   const getStatusChip = (invitation: InvitationWithTokens) => {
     // Si no tiene tokens, está en estado "No enviado"
     if (!invitation.tokens || invitation.tokens.length === 0) {
@@ -223,17 +228,18 @@ export default function InvitationsTable({
                     key={invitation.id}
                     className="cursor-pointer"
                     onClick={() => handleRowClick(invitation)}
+                    onMouseEnter={() => handleRowHover(invitation.id)}
                   >
                     <TableCell>
                       <div>
                         <div className="font-medium text-foreground">
                           {invitation.guestName}
                         </div>
-                        {invitation.guestNickname && (
+                        {invitation.guestNickname ? (
                           <div className="text-sm text-default-500">
                             &ldquo;{invitation.guestNickname}&rdquo;
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -323,17 +329,18 @@ export default function InvitationsTable({
                     key={invitation.id}
                     className="cursor-pointer"
                     onClick={() => handleRowClick(invitation)}
+                    onMouseEnter={() => handleRowHover(invitation.id)}
                   >
                     <TableCell>
                       <div>
                         <div className="font-medium text-foreground">
                           {invitation.guestName}
                         </div>
-                        {invitation.guestNickname && (
+                        {invitation.guestNickname ? (
                           <div className="text-sm text-default-500">
                             &ldquo;{invitation.guestNickname}&rdquo;
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell>

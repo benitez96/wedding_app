@@ -1,0 +1,26 @@
+import { Navbar, NavbarBrand, NavbarContent } from "@heroui/navbar";
+import { Heart } from "lucide-react";
+import Link from "next/link";
+import BackofficeMenu from "./BackofficeMenu";
+
+interface BackofficeNavbarProps {
+  showMenu?: boolean;
+}
+
+export default function BackofficeNavbar({
+  showMenu = false,
+}: BackofficeNavbarProps) {
+  return (
+    <Navbar className="bg-white shadow-sm border-b" maxWidth="2xl">
+      <NavbarBrand>
+        <Link href="/backoffice/dashboard" className="flex items-center gap-2">
+          <Heart className="text-red-500 md:text-2xl text-xl" size={24} />
+          <span className="font-bold md:text-xl text-lg">Wedding App</span>
+        </Link>
+      </NavbarBrand>
+      <NavbarContent justify="end">
+        {showMenu ? <BackofficeMenu /> : null}
+      </NavbarContent>
+    </Navbar>
+  );
+}

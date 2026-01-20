@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Section } from "@/components/section";
-import AnimatedSectionLazy from "@/components/AnimatedSectionLazy";
 import RSVPModal from "@/components/RSVPModal";
 import PendingRSVP from "./RSVPStatus/PendingRSVP";
 import ConfirmedRSVP from "./RSVPStatus/ConfirmedRSVP";
@@ -62,11 +61,11 @@ export default function RSVPSectionClient({ user }: RSVPSectionClientProps) {
 
   return (
     <>
-      <AnimatedSectionLazy delay={0.9}>
+      <div className="animate-fade-in-up" style={{ animationDelay: "900ms" }}>
         <Section.Container id="rsvp-section">
           {renderRSVPContent()}
         </Section.Container>
-      </AnimatedSectionLazy>
+      </div>
 
       <RSVPModal
         isOpen={isModalOpen}
