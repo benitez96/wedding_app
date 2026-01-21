@@ -21,6 +21,7 @@ import {
   Settings,
   X,
   LogOut,
+  Palette,
 } from "lucide-react";
 import clsx from "clsx";
 import { logoutAdmin } from "@/app/actions/admin";
@@ -46,6 +47,11 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Estructura",
     href: "/backoffice/estructura",
     icon: <Layout className="w-5 h-5" />,
+  },
+  {
+    label: "Theming",
+    href: "/backoffice/theming",
+    icon: <Palette className="w-5 h-5" />,
   },
   {
     label: "Configuraciones",

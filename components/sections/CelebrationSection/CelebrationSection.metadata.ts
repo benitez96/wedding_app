@@ -22,6 +22,7 @@ export const CelebrationSectionSettingsSchema = z.object({
     .default("https://maps.app.goo.gl/AjTWBW7Y25sENdw36"),
   iconUrl: z.string().default("/icons/copas-fiesta-1.gif"),
   showDirectionsButton: z.boolean().default(true),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type CelebrationSectionSettings = z.infer<

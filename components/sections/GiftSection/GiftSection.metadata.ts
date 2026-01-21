@@ -19,6 +19,7 @@ export const GiftSectionSettingsSchema = z.object({
   alias: z.string().default("DANI.SOL.HONEYMOON"),
   footerText: z.string().default("Ayudanos con nuestra luna de miel"),
   iconUrl: z.string().default("/icons/regalo-2.gif"),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type GiftSectionSettings = z.infer<typeof GiftSectionSettingsSchema>;

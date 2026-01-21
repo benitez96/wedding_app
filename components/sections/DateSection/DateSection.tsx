@@ -34,6 +34,8 @@ export default function DateSection({ settings }: DateSectionProps) {
     .toUpperCase();
   const yearNumber = targetDate.getFullYear().toString();
 
+  const hasAlternateBg = settings?.hasAlternateBg ?? false;
+
   // Pasar datos pre-procesados al client component
   return (
     <DateSectionClient
@@ -44,6 +46,7 @@ export default function DateSection({ settings }: DateSectionProps) {
       yearNumber={yearNumber}
       showCountdown={showCountdown}
       targetTimestamp={targetDate.getTime()}
+      hasAlternateBg={hasAlternateBg}
     />
   );
 }

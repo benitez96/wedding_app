@@ -23,6 +23,7 @@ export function CeremonySectionSettingsForm({
         initialSettings.mapsUrl || "https://maps.app.goo.gl/pwTwQ4vJzbBt1h1C9",
       iconUrl: initialSettings.iconUrl || "/icons/anillos-boda-1.gif",
       showDirectionsButton: initialSettings.showDirectionsButton ?? true,
+      hasAlternateBg: initialSettings.hasAlternateBg ?? false,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -115,6 +116,22 @@ export function CeremonySectionSettingsForm({
                   ...prev,
                   showDirectionsButton: val,
                 }))
+              }
+              color="success"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Background de Color</p>
+              <p className="text-xs text-gray-600">
+                Aplicar color de fondo a esta sección
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.hasAlternateBg}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
               }
               color="success"
             />

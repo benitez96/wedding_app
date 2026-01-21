@@ -19,6 +19,7 @@ export const AccommodationSectionSettingsSchema = z.object({
       "Sabemos que podés venir de lejos, así que te facilitamos algunos teléfonos de alojamientos cercanos",
     ),
   iconUrl: z.string().default("/icons/accommodation.gif"),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type AccommodationSectionSettings = z.infer<

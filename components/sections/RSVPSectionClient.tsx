@@ -15,9 +15,13 @@ interface RSVPSectionClientProps {
     guestCount?: number | null;
     maxGuests: number;
   };
+  hasAlternateBg?: boolean;
 }
 
-export default function RSVPSectionClient({ user }: RSVPSectionClientProps) {
+export default function RSVPSectionClient({
+  user,
+  hasAlternateBg = false,
+}: RSVPSectionClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
@@ -62,7 +66,7 @@ export default function RSVPSectionClient({ user }: RSVPSectionClientProps) {
   return (
     <>
       <div className="animate-fade-in-up" style={{ animationDelay: "900ms" }}>
-        <Section.Container id="rsvp-section">
+        <Section.Container id="rsvp-section" hasAlternateBg={hasAlternateBg}>
           {renderRSVPContent()}
         </Section.Container>
       </div>

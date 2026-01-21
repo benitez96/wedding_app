@@ -12,10 +12,11 @@ export default function DressCodeSection({ settings }: DressCodeSectionProps) {
   const subtitle = settings?.subtitle || "(No blanco)";
   const showColorSuggestions = settings?.showColorSuggestions ?? true;
   const iconUrl = settings?.iconUrl || "/icons/dress-code.gif";
+  const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
   return (
     <AnimatedSectionCSS delay={0.6}>
-      <Section.Container>
+      <Section.Container hasAlternateBg={hasAlternateBg}>
         <Section.Icon>
           <Image src={iconUrl} alt="Dress Code" width={100} height={100} />
         </Section.Icon>

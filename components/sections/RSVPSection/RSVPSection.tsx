@@ -10,6 +10,7 @@ interface RSVPSectionProps {
 
 export default function RSVPSection({ settings, user }: RSVPSectionProps) {
   const showForm = settings?.showForm ?? true;
+  const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
   if (!showForm) {
     return null;
@@ -18,7 +19,7 @@ export default function RSVPSection({ settings, user }: RSVPSectionProps) {
   // En preview mode (sin user), mostrar un placeholder
   if (!user) {
     return (
-      <Section.Container>
+      <Section.Container hasAlternateBg={hasAlternateBg}>
         <Section.Title>CONFIRMÁ TU ASISTENCIA</Section.Title>
         <Section.Description>
           El formulario de confirmación aparecerá aquí para los invitados
@@ -27,5 +28,5 @@ export default function RSVPSection({ settings, user }: RSVPSectionProps) {
     );
   }
 
-  return <RSVPSectionClient user={user} />;
+  return <RSVPSectionClient user={user} hasAlternateBg={hasAlternateBg} />;
 }

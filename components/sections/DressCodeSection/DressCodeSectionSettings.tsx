@@ -20,6 +20,7 @@ export function DressCodeSectionSettingsForm({
       subtitle: initialSettings.subtitle || "(No blanco)",
       showColorSuggestions: initialSettings.showColorSuggestions ?? true,
       iconUrl: initialSettings.iconUrl || "/icons/dress-code.gif",
+      hasAlternateBg: initialSettings.hasAlternateBg ?? false,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -111,6 +112,22 @@ export function DressCodeSectionSettingsForm({
                   ...prev,
                   showColorSuggestions: val,
                 }))
+              }
+              color="success"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Background de Color</p>
+              <p className="text-xs text-gray-600">
+                Aplicar color de fondo a esta sección
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.hasAlternateBg}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
               }
               color="success"
             />

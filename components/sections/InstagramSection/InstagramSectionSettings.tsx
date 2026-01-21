@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Button, Card, CardBody, Textarea } from "@heroui/react";
+import { Input, Button, Card, CardBody, Textarea, Switch } from "@heroui/react";
 import { useState } from "react";
 import { InstagramSectionSettings } from "./InstagramSection.metadata";
 import { Save } from "lucide-react";
@@ -25,6 +25,7 @@ export function InstagramSectionSettingsForm({
         initialSettings.description ||
         "Seguinos en nuestra cuenta de instagram y etiquetanos en tus fotos y videos!",
       iconUrl: initialSettings.iconUrl || "/icons/instagram.gif",
+      hasAlternateBg: initialSettings.hasAlternateBg ?? false,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -130,6 +131,22 @@ export function InstagramSectionSettingsForm({
               updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
             }
           />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Background de Color</p>
+              <p className="text-xs text-gray-600">
+                Aplicar color de fondo a esta sección
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.hasAlternateBg}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
+              }
+              color="success"
+            />
+          </div>
         </CardBody>
       </Card>
 

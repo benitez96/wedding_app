@@ -21,6 +21,7 @@ export const InstagramSectionSettingsSchema = z.object({
       "Seguinos en nuestra cuenta de instagram y etiquetanos en tus fotos y videos!",
     ),
   iconUrl: z.string().default("/icons/instagram.gif"),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type InstagramSectionSettings = z.infer<

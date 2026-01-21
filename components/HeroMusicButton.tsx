@@ -99,11 +99,11 @@ export default function HeroMusicButton({
                 </motion.div>
               }
               className="
-                bg-gradient-to-r from-primary-500 to-accent-500
-                text-white font-medium
+                bg-gradient-to-r from-primary to-accent
+                text-primary-foreground font-medium
                 shadow-lg hover:shadow-xl
                 backdrop-blur-sm
-                border border-primary-400/20
+                border border-primary/20
                 cursor-pointer
                 relative z-10
               "
@@ -114,7 +114,7 @@ export default function HeroMusicButton({
             {/* Efecto de ondas cuando está reproduciendo */}
             {isPlaying && (
               <motion.div
-                className="absolute inset-0 rounded-full border-2 border-accent-300/30 pointer-events-none"
+                className="absolute inset-0 rounded-full border-2 border-accent/30 pointer-events-none"
                 animate={{ scale: [1, 1.2], opacity: [0.4, 0] }}
                 transition={{
                   duration: 1.5,

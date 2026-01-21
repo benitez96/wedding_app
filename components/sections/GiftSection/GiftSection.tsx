@@ -17,10 +17,11 @@ export default function GiftSection({ settings }: GiftSectionProps) {
   const footerText =
     settings?.footerText || "Ayudanos con nuestra luna de miel";
   const iconUrl = settings?.iconUrl || "/icons/regalo-2.gif";
+  const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
   return (
     <AnimatedSectionCSS delay={0.7}>
-      <Section.Container>
+      <Section.Container hasAlternateBg={hasAlternateBg}>
         <Section.Icon>
           <Image src={iconUrl} alt="Gift" width={100} height={100} />
         </Section.Icon>

@@ -5,6 +5,7 @@ import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
 import Image from "next/image";
 import Link from "next/link";
 import { InstagramSectionSettings } from "./InstagramSection.metadata";
+import { getAlternateBgClasses } from "@/lib/section-styles";
 
 interface InstagramSectionProps {
   settings?: InstagramSectionSettings;
@@ -19,16 +20,21 @@ export default function InstagramSection({ settings }: InstagramSectionProps) {
     settings?.description ||
     "Seguinos en nuestra cuenta de instagram y etiquetanos en tus fotos y videos!";
   const iconUrl = settings?.iconUrl || "/icons/instagram.gif";
+  const hasAlternateBg = settings?.hasAlternateBg ?? false;
+
+  const styles = getAlternateBgClasses(hasAlternateBg);
 
   return (
     <AnimatedSectionCSS delay={0.8}>
-      <Section.Container>
+      <Section.Container hasAlternateBg={hasAlternateBg}>
         <Section.Icon>
           <Image src={iconUrl} alt="Instagram" width={100} height={100} />
         </Section.Icon>
         <Section.Description isDecorative>{quoteText}</Section.Description>
         <Button
-          color="primary"
+          color={styles.buttonColor}
+          variant={styles.buttonVariant}
+          className={styles.buttonClassName}
           startContent={<Instagram className="w-4 h-4" />}
           as={Link}
           href={instagramUrl}

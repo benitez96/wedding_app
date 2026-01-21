@@ -41,3 +41,10 @@ bun.lockb
 
 .claude
 .codex
+
+app/generated/
+
+# uploaded images
+/public/uploads/*
+!/public/uploads/.gitkeep
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Button, Card, CardBody, Textarea } from "@heroui/react";
+import { Input, Button, Card, CardBody, Textarea, Switch } from "@heroui/react";
 import { useState } from "react";
 import { GiftSectionSettings } from "./GiftSection.metadata";
 import { Save } from "lucide-react";
@@ -24,6 +24,7 @@ export function GiftSectionSettingsForm({
       footerText:
         initialSettings.footerText || "Ayudanos con nuestra luna de miel",
       iconUrl: initialSettings.iconUrl || "/icons/regalo-2.gif",
+      hasAlternateBg: initialSettings.hasAlternateBg ?? false,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -126,6 +127,22 @@ export function GiftSectionSettingsForm({
               updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
             }
           />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Background de Color</p>
+              <p className="text-xs text-gray-600">
+                Aplicar color de fondo a esta sección
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.hasAlternateBg}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
+              }
+              color="success"
+            />
+          </div>
         </CardBody>
       </Card>
 

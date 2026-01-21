@@ -70,7 +70,7 @@ export default function FloatingMusicButton({
           className={`
             fixed top-6 right-6 z-50
             w-14 h-14 rounded-full
-            bg-gradient-to-br from-primary-500 to-accent-500
+            bg-gradient-to-br from-primary to-accent
             shadow-lg hover:shadow-xl
             transition-all duration-300
             flex items-center justify-center
@@ -92,7 +92,7 @@ export default function FloatingMusicButton({
               repeat: isPlaying ? Infinity : 0,
               ease: "linear",
             }}
-            className="text-white text-xl relative"
+            className="text-primary-foreground text-xl relative"
           >
             {!isLoaded ? (
               <svg
@@ -129,7 +129,7 @@ export default function FloatingMusicButton({
           {isPlaying && (
             <>
               <motion.div
-                className="absolute inset-0 rounded-full border-2 border-accent-300/50"
+                className="absolute inset-0 rounded-full border-2 border-accent/50"
                 animate={{ scale: [1, 1.3], opacity: [0.6, 0] }}
                 transition={{
                   duration: 1.5,
@@ -138,7 +138,7 @@ export default function FloatingMusicButton({
                 }}
               />
               <motion.div
-                className="absolute inset-0 rounded-full border-2 border-primary-300/40"
+                className="absolute inset-0 rounded-full border-2 border-primary/40"
                 animate={{ scale: [1, 1.6], opacity: [0.4, 0] }}
                 transition={{
                   duration: 2,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Button, Card, CardBody } from "@heroui/react";
+import { Input, Button, Card, CardBody, Switch } from "@heroui/react";
 import { useState } from "react";
 import { PhotoUploadSectionSettings } from "./PhotoUploadSection.metadata";
 import { Save } from "lucide-react";
@@ -22,6 +22,7 @@ export function PhotoUploadSectionSettingsForm({
         initialSettings.description || "Subi las fotos y videos desde tu mesa",
       iconUrl: initialSettings.iconUrl || "/icons/fotos.gif",
       uploadUrl: initialSettings.uploadUrl || "",
+      hasAlternateBg: initialSettings.hasAlternateBg ?? false,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -124,6 +125,22 @@ export function PhotoUploadSectionSettingsForm({
               updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
             }
           />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Background de Color</p>
+              <p className="text-xs text-gray-600">
+                Aplicar color de fondo a esta sección
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.hasAlternateBg}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
+              }
+              color="success"
+            />
+          </div>
         </CardBody>
       </Card>
 

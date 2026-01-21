@@ -11,6 +11,7 @@ interface DateSectionClientProps {
   yearNumber: string;
   showCountdown: boolean;
   targetTimestamp: number;
+  hasAlternateBg?: boolean;
 }
 
 export default function DateSectionClient({
@@ -21,10 +22,11 @@ export default function DateSectionClient({
   yearNumber,
   showCountdown,
   targetTimestamp,
+  hasAlternateBg = false,
 }: DateSectionClientProps) {
   return (
     <div className="animate-fade-in-up" style={{ animationDelay: "300ms" }}>
-      <Section.Container>
+      <Section.Container hasAlternateBg={hasAlternateBg}>
         <Section.Title isDecorative className="text-3xl">
           {titleText}
         </Section.Title>

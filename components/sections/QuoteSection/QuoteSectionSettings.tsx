@@ -20,6 +20,7 @@ export function QuoteSectionSettingsForm({
         initialSettings.quoteText ||
         "El amor nos unió, y queremos compartir nuestra felicidad con vos.",
       showQuote: initialSettings.showQuote ?? true,
+      hasAlternateBg: initialSettings.hasAlternateBg ?? true,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -84,6 +85,23 @@ export function QuoteSectionSettingsForm({
               isSelected={settings.showQuote}
               onValueChange={(val) =>
                 updateSettings((prev) => ({ ...prev, showQuote: val }))
+              }
+              color="success"
+            />
+          </div>
+
+          {/* Switch para background alternativo */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Background de Color</p>
+              <p className="text-xs text-gray-600">
+                Aplicar color de fondo a esta sección
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.hasAlternateBg}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
               }
               color="success"
             />

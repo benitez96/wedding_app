@@ -16,6 +16,7 @@ export const DateSectionSettingsSchema = z.object({
   titleText: z.string().default("Te esperamos el día"),
   // Fecha y hora del evento en formato ISO (YYYY-MM-DDTHH:mm)
   weddingDateTime: z.string().datetime({ local: true }).optional(),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type DateSectionSettings = z.infer<typeof DateSectionSettingsSchema>;

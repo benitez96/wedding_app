@@ -49,10 +49,11 @@ export default function AccommodationSection({
     settings?.description ||
     "Sabemos que podés venir de lejos, así que te facilitamos algunos teléfonos de alojamientos cercanos";
   const iconUrl = settings?.iconUrl || "/icons/accommodation.gif";
+  const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
   return (
     <AnimatedSectionCSS delay={0.6}>
-      <Section.Container>
+      <Section.Container hasAlternateBg={hasAlternateBg}>
         <Section.Icon>
           <Image
             src={iconUrl}

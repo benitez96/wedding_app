@@ -1,14 +1,43 @@
 "use client";
 
-import { Input, Switch, Button, Card, CardBody } from "@heroui/react";
+import {
+  Input,
+  Switch,
+  Button,
+  Card,
+  CardBody,
+  RadioGroup,
+  Radio,
+} from "@heroui/react";
 import { useState } from "react";
-import { HeroSectionSettings } from "./HeroSection.metadata";
+import dynamic from "next/dynamic";
+import {
+  HeroSectionSettings,
+  TEXT_COLORS,
+  LAYOUT_MODES,
+} from "./HeroSection.metadata";
 import { Save } from "lucide-react";
 import {
   SectionSettingsFormProps,
   createSettingsUpdater,
   useInitialSettingsSync,
 } from "@/types/section-settings-form";
+
+// ✅ BUNDLE SIZE: Cargar ImageUpload solo cuando se necesite (lazy loading)
+const ImageUpload = dynamic(
+  () =>
+    import("@/components/ui/ImageUpload").then((mod) => ({
+      default: mod.ImageUpload,
+    })),
+  {
+    loading: () => (
+      <div className="space-y-2">
+        <div className="h-48 bg-gray-100 animate-pulse rounded-lg" />
+      </div>
+    ),
+    ssr: false,
+  },
+);
 
 export function HeroSectionSettingsForm({
   initialSettings,
@@ -20,6 +49,11 @@ export function HeroSectionSettingsForm({
       imageUrl: initialSettings.imageUrl || "/logo-2.jpeg",
       title: initialSettings.title || "NUESTRA BODA",
       showScrollIndicator: initialSettings.showScrollIndicator ?? true,
+      enableOverlay: initialSettings.enableOverlay ?? false,
+      enableFadeEffect: initialSettings.enableFadeEffect ?? false,
+      textColor: initialSettings.textColor || TEXT_COLORS.BLACK,
+      layoutMode: initialSettings.layoutMode || LAYOUT_MODES.OVERLAY,
+      mediaType: initialSettings.mediaType || "image",
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -65,10 +99,21 @@ export function HeroSectionSettingsForm({
 
       <Card>
         <CardBody className="space-y-4">
-          {/* URL de imagen */}
+          {/* Upload de imagen o video */}
+          <ImageUpload
+            currentImageUrl={settings.imageUrl}
+            currentMediaType={settings.mediaType}
+            onImageChange={(url, mediaType) =>
+              updateSettings((prev) => ({ ...prev, imageUrl: url, mediaType }))
+            }
+            label="Imagen o Video Principal"
+            description="Subir imagen (JPG, PNG, WebP) o video (MP4, WebM, MOV - Máx. 20MB)"
+          />
+
+          {/* URL de imagen (fallback manual) */}
           <Input
-            label="URL de la Imagen"
-            description="Ruta o URL de la imagen principal"
+            label="URL de la Imagen (opcional)"
+            description="O ingresá una URL externa directamente"
             placeholder="/logo-2.jpeg"
             value={settings.imageUrl || ""}
             onChange={(e) =>
@@ -87,6 +132,46 @@ export function HeroSectionSettingsForm({
             }
           />
 
+          {/* Selector de color de texto */}
+          <RadioGroup
+            label="Color del Texto"
+            description="Color del título y scroll indicator"
+            value={settings.textColor || TEXT_COLORS.BLACK}
+            onValueChange={(value) =>
+              updateSettings((prev) => ({
+                ...prev,
+                textColor: value as
+                  | typeof TEXT_COLORS.BLACK
+                  | typeof TEXT_COLORS.WHITE,
+              }))
+            }
+            orientation="horizontal"
+          >
+            <Radio value={TEXT_COLORS.BLACK}>Negro</Radio>
+            <Radio value={TEXT_COLORS.WHITE}>Blanco</Radio>
+          </RadioGroup>
+
+          {/* Switch para layout mode */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Texto Superpuesto</p>
+              <p className="text-xs text-gray-600">
+                Activado: texto sobre la imagen | Desactivado: texto debajo
+                (apilado)
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.layoutMode === LAYOUT_MODES.OVERLAY}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({
+                  ...prev,
+                  layoutMode: val ? LAYOUT_MODES.OVERLAY : LAYOUT_MODES.STACKED,
+                }))
+              }
+              color="success"
+            />
+          </div>
+
           {/* Switch para scroll indicator */}
           <div className="flex items-center justify-between">
             <div>
@@ -101,6 +186,46 @@ export function HeroSectionSettingsForm({
                 updateSettings((prev) => ({
                   ...prev,
                   showScrollIndicator: val,
+                }))
+              }
+              color="success"
+            />
+          </div>
+
+          {/* Switch para overlay */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Overlay Oscuro</p>
+              <p className="text-xs text-gray-600">
+                Capa oscura sobre la imagen para mejorar legibilidad del texto
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.enableOverlay}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({
+                  ...prev,
+                  enableOverlay: val,
+                }))
+              }
+              color="success"
+            />
+          </div>
+
+          {/* Switch para fade effect */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Degradado Transparente</p>
+              <p className="text-xs text-gray-600">
+                Difuminar el borde inferior de la imagen hacia transparente
+              </p>
+            </div>
+            <Switch
+              isSelected={settings.enableFadeEffect}
+              onValueChange={(val) =>
+                updateSettings((prev) => ({
+                  ...prev,
+                  enableFadeEffect: val,
                 }))
               }
               color="success"

@@ -132,3 +132,15 @@ model SectionConfiguration {
   @@index([order])
   @@map("section_configurations")
 }
+
+// Configuración de theme activo (singleton)
+model ThemeSettings {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Theme activo ('classic' | 'pastel-green')
+  activeTheme String   @default("classic")
+  
+  @@map("theme_settings")
+}

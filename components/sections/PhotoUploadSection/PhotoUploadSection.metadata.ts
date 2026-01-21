@@ -18,6 +18,7 @@ export const PhotoUploadSectionSettingsSchema = z.object({
   iconUrl: z.string().default("/icons/fotos.gif"),
   // URL donde los invitados suben fotos/videos
   uploadUrl: z.string().url().optional(),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type PhotoUploadSectionSettings = z.infer<

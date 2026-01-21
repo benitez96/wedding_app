@@ -8,6 +8,7 @@ import { Providers } from "./providers";
 import { siteConfig } from "@/config/site";
 import { fontSans, fontDecorative } from "@/config/fonts";
 import { ARGENTINA_TIMEZONE } from "@/config/timezone";
+import { getActiveTheme } from "@/app/actions/theme";
 
 export const metadata: Metadata = {
   title: {
@@ -28,7 +29,15 @@ export const viewport: Viewport = {
   themeColor: [{ media: "(prefers-color-scheme: light)", color: "white" }],
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  // Cargar theme activo desde la base de datos
+  const themeResult = await getActiveTheme();
+  const activeThemeId = themeResult.data || "classic";
+
   return (
     <html suppressHydrationWarning lang="es" data-timezone={ARGENTINA_TIMEZONE}>
       <head />
@@ -40,7 +49,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         )}
         data-timezone={ARGENTINA_TIMEZONE}
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+        <Providers
+          themeProps={{ attribute: "class", defaultTheme: "dark" }}
+          activeThemeId={activeThemeId}
+        >
           {children}
         </Providers>
       </body>

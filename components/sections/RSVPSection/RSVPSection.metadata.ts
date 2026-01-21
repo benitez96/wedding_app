@@ -13,6 +13,7 @@ export const RSVPSectionMetadata = {
 
 export const RSVPSectionSettingsSchema = z.object({
   showForm: z.boolean().default(true),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type RSVPSectionSettings = z.infer<typeof RSVPSectionSettingsSchema>;

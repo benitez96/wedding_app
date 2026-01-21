@@ -16,6 +16,7 @@ export const DressCodeSectionSettingsSchema = z.object({
   subtitle: z.string().default("(No blanco)"),
   showColorSuggestions: z.boolean().default(true),
   iconUrl: z.string().default("/icons/dress-code.gif"),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type DressCodeSectionSettings = z.infer<

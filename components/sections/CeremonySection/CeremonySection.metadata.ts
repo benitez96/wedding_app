@@ -20,6 +20,7 @@ export const CeremonySectionSettingsSchema = z.object({
     .default("https://maps.app.goo.gl/pwTwQ4vJzbBt1h1C9"),
   iconUrl: z.string().default("/icons/anillos-boda-1.gif"),
   showDirectionsButton: z.boolean().default(true),
+  hasAlternateBg: z.boolean().default(false),
 });
 
 export type CeremonySectionSettings = z.infer<
