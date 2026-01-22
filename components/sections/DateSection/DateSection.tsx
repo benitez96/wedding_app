@@ -1,5 +1,6 @@
 import DateSectionClient from "./DateSectionClient";
 import { DateSectionSettings } from "./DateSection.metadata";
+import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 
 interface DateSectionProps {
   settings?: DateSectionSettings;
@@ -36,6 +37,13 @@ export default function DateSection({ settings }: DateSectionProps) {
 
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
+  // Decoraciones
+  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
+  const decorationPattern = (settings?.decorationPattern ||
+    "none") as DecorationPattern;
+  const decorationOpacity = settings?.decorationOpacity ?? 10;
+  const decorationSize = settings?.decorationSize ?? 60;
+
   // Pasar datos pre-procesados al client component
   return (
     <DateSectionClient
@@ -47,6 +55,10 @@ export default function DateSection({ settings }: DateSectionProps) {
       showCountdown={showCountdown}
       targetTimestamp={targetDate.getTime()}
       hasAlternateBg={hasAlternateBg}
+      decorationSvg={decorationSvg}
+      decorationPattern={decorationPattern}
+      decorationOpacity={decorationOpacity}
+      decorationSize={decorationSize}
     />
   );
 }

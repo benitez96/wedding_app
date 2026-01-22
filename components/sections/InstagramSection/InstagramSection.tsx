@@ -6,6 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { InstagramSectionSettings } from "./InstagramSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
+import { DecorationLayer } from "@/components/ui/DecorationLayer";
+import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 
 interface InstagramSectionProps {
   settings?: InstagramSectionSettings;
@@ -22,29 +24,43 @@ export default function InstagramSection({ settings }: InstagramSectionProps) {
   const iconUrl = settings?.iconUrl || "/icons/instagram.gif";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
+  // Decoraciones
+  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
+  const decorationPattern = (settings?.decorationPattern ||
+    "none") as DecorationPattern;
+  const decorationOpacity = settings?.decorationOpacity ?? 10;
+  const decorationSize = settings?.decorationSize ?? 60;
+
   const styles = getAlternateBgClasses(hasAlternateBg);
 
   return (
     <AnimatedSectionCSS delay={0.8}>
-      <Section.Container hasAlternateBg={hasAlternateBg}>
-        <Section.Icon>
-          <Image src={iconUrl} alt="Instagram" width={100} height={100} />
-        </Section.Icon>
-        <Section.Description isDecorative>{quoteText}</Section.Description>
-        <Button
-          color={styles.buttonColor}
-          variant={styles.buttonVariant}
-          className={styles.buttonClassName}
-          startContent={<Instagram className="w-4 h-4" />}
-          as={Link}
-          href={instagramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {instagramHandle}
-        </Button>
-        <Section.Description>{description}</Section.Description>
-      </Section.Container>
+      <DecorationLayer
+        svg={decorationSvg}
+        pattern={decorationPattern}
+        opacity={decorationOpacity}
+        size={decorationSize}
+      >
+        <Section.Container hasAlternateBg={hasAlternateBg}>
+          <Section.Icon>
+            <Image src={iconUrl} alt="Instagram" width={100} height={100} />
+          </Section.Icon>
+          <Section.Description isDecorative>{quoteText}</Section.Description>
+          <Button
+            color={styles.buttonColor}
+            variant={styles.buttonVariant}
+            className={styles.buttonClassName}
+            startContent={<Instagram className="w-4 h-4" />}
+            as={Link}
+            href={instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {instagramHandle}
+          </Button>
+          <Section.Description>{description}</Section.Description>
+        </Section.Container>
+      </DecorationLayer>
     </AnimatedSectionCSS>
   );
 }

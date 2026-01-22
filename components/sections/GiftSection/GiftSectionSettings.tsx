@@ -1,6 +1,13 @@
 "use client";
 
-import { Input, Button, Card, CardBody, Textarea, Switch } from "@heroui/react";
+import {
+  Input,
+  Button,
+  Textarea,
+  Switch,
+  Accordion,
+  AccordionItem,
+} from "@heroui/react";
 import { useState } from "react";
 import { GiftSectionSettings } from "./GiftSection.metadata";
 import { Save } from "lucide-react";
@@ -8,6 +15,8 @@ import {
   SectionSettingsFormProps,
   createSettingsUpdater,
 } from "@/types/section-settings-form";
+import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
+import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 
 export function GiftSectionSettingsForm({
   initialSettings,
@@ -25,6 +34,11 @@ export function GiftSectionSettingsForm({
         initialSettings.footerText || "Ayudanos con nuestra luna de miel",
       iconUrl: initialSettings.iconUrl || "/icons/regalo-2.gif",
       hasAlternateBg: initialSettings.hasAlternateBg ?? false,
+      // Decoraciones
+      decorationSvg: initialSettings.decorationSvg || "none",
+      decorationPattern: initialSettings.decorationPattern || "none",
+      decorationOpacity: initialSettings.decorationOpacity ?? 10,
+      decorationSize: initialSettings.decorationSize ?? 60,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -64,87 +78,128 @@ export function GiftSectionSettingsForm({
         </div>
       )}
 
-      <Card>
-        <CardBody className="space-y-4">
-          {/* Title */}
-          <Input
-            label="Título"
-            description="Título de la sección"
-            placeholder="REGALOS"
-            value={settings.title || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({ ...prev, title: e.target.value }))
-            }
-          />
-
-          {/* Description */}
-          <Textarea
-            label="Descripción"
-            description="Mensaje introductorio"
-            placeholder="Tu compañía es el mejor regalo, pero si deseás ayudarnos…"
-            value={settings.description || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
-            minRows={2}
-          />
-
-          {/* Alias */}
-          <Input
-            label="Alias Bancario"
-            description="CBU o alias para transferencias"
-            placeholder="DANI.SOL.HONEYMOON"
-            value={settings.alias || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({ ...prev, alias: e.target.value }))
-            }
-          />
-
-          {/* Footer Text */}
-          <Input
-            label="Texto al Pie"
-            description="Texto final debajo del alias"
-            placeholder="Ayudanos con nuestra luna de miel"
-            value={settings.footerText || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({
-                ...prev,
-                footerText: e.target.value,
-              }))
-            }
-          />
-
-          {/* Icon URL */}
-          <Input
-            label="URL del Ícono"
-            description="Ruta o URL del ícono animado"
-            placeholder="/icons/regalo-2.gif"
-            value={settings.iconUrl || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
-            }
-          />
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Background de Color</p>
-              <p className="text-xs text-gray-600">
-                Aplicar color de fondo a esta sección
-              </p>
-            </div>
-            <Switch
-              isSelected={settings.hasAlternateBg}
-              onValueChange={(val) =>
-                updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
+      <Accordion variant="splitted" defaultExpandedKeys={["content"]}>
+        <AccordionItem
+          key="content"
+          aria-label="Contenido"
+          title="📝 Contenido de la Sección"
+        >
+          <div className="space-y-4 pb-4">
+            {/* Title */}
+            <Input
+              label="Título"
+              description="Título de la sección"
+              placeholder="REGALOS"
+              value={settings.title || ""}
+              onChange={(e) =>
+                updateSettings((prev) => ({ ...prev, title: e.target.value }))
               }
-              color="success"
+            />
+
+            {/* Description */}
+            <Textarea
+              label="Descripción"
+              description="Mensaje introductorio"
+              placeholder="Tu compañía es el mejor regalo, pero si deseás ayudarnos…"
+              value={settings.description || ""}
+              onChange={(e) =>
+                updateSettings((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              minRows={2}
+            />
+
+            {/* Alias */}
+            <Input
+              label="Alias Bancario"
+              description="CBU o alias para transferencias"
+              placeholder="DANI.SOL.HONEYMOON"
+              value={settings.alias || ""}
+              onChange={(e) =>
+                updateSettings((prev) => ({ ...prev, alias: e.target.value }))
+              }
+            />
+
+            {/* Footer Text */}
+            <Input
+              label="Texto al Pie"
+              description="Texto final debajo del alias"
+              placeholder="Ayudanos con nuestra luna de miel"
+              value={settings.footerText || ""}
+              onChange={(e) =>
+                updateSettings((prev) => ({
+                  ...prev,
+                  footerText: e.target.value,
+                }))
+              }
+            />
+
+            {/* Icon URL */}
+            <Input
+              label="URL del Ícono"
+              description="Ruta o URL del ícono animado"
+              placeholder="/icons/regalo-2.gif"
+              value={settings.iconUrl || ""}
+              onChange={(e) =>
+                updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
+              }
+            />
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Background de Color</p>
+                <p className="text-xs text-gray-600">
+                  Aplicar color de fondo a esta sección
+                </p>
+              </div>
+              <Switch
+                isSelected={settings.hasAlternateBg}
+                onValueChange={(val) =>
+                  updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
+                }
+                color="success"
+              />
+            </div>
+          </div>
+        </AccordionItem>
+
+        <AccordionItem
+          key="decorations"
+          aria-label="Decoraciones"
+          title="🌸 Decoraciones"
+        >
+          <div className="pb-4">
+            <DecorationSettingsCard
+              decorationSvg={settings.decorationSvg as DecorationSvg}
+              decorationPattern={
+                settings.decorationPattern as DecorationPattern
+              }
+              decorationOpacity={settings.decorationOpacity ?? 10}
+              decorationSize={settings.decorationSize ?? 60}
+              onDecorationSvgChange={(value) =>
+                updateSettings((prev) => ({ ...prev, decorationSvg: value }))
+              }
+              onDecorationPatternChange={(value) =>
+                updateSettings((prev) => ({
+                  ...prev,
+                  decorationPattern: value,
+                }))
+              }
+              onDecorationOpacityChange={(value) =>
+                updateSettings((prev) => ({
+                  ...prev,
+                  decorationOpacity: value,
+                }))
+              }
+              onDecorationSizeChange={(value) =>
+                updateSettings((prev) => ({ ...prev, decorationSize: value }))
+              }
             />
           </div>
-        </CardBody>
-      </Card>
+        </AccordionItem>
+      </Accordion>
 
       <div className="flex justify-end">
         <Button
@@ -154,7 +209,7 @@ export function GiftSectionSettingsForm({
           isLoading={isSaving}
           isDisabled={isSaving}
         >
-          {isSaving ? "Guardando..." : "Guardar Cambios"}
+          {isSaving ? "Guardando..." : "Guardar"}
         </Button>
       </div>
     </form>

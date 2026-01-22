@@ -3,6 +3,8 @@ import { Section } from "@/components/section";
 import { QuoteSectionSettings } from "./QuoteSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import clsx from "clsx";
+import { DecorationLayer } from "@/components/ui/DecorationLayer";
+import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 
 interface QuoteSectionProps {
   settings?: QuoteSectionSettings;
@@ -15,6 +17,13 @@ export default function QuoteSection({ settings }: QuoteSectionProps) {
   const showQuote = settings?.showQuote ?? true;
   const hasAlternateBg = settings?.hasAlternateBg ?? true;
 
+  // Decoraciones
+  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
+  const decorationPattern = (settings?.decorationPattern ||
+    "none") as DecorationPattern;
+  const decorationOpacity = settings?.decorationOpacity ?? 10;
+  const decorationSize = settings?.decorationSize ?? 60;
+
   const styles = getAlternateBgClasses(hasAlternateBg);
 
   if (!showQuote) {
@@ -23,14 +32,21 @@ export default function QuoteSection({ settings }: QuoteSectionProps) {
 
   return (
     <AnimatedSectionCSS delay={0.2}>
-      <section
-        className={clsx(
-          "flex flex-col items-center justify-center p-4",
-          styles.container,
-        )}
+      <DecorationLayer
+        svg={decorationSvg}
+        pattern={decorationPattern}
+        opacity={decorationOpacity}
+        size={decorationSize}
       >
-        <Section.Description isDecorative>{quoteText}</Section.Description>
-      </section>
+        <section
+          className={clsx(
+            "flex flex-col items-center justify-center p-4",
+            styles.container,
+          )}
+        >
+          <Section.Description isDecorative>{quoteText}</Section.Description>
+        </section>
+      </DecorationLayer>
     </AnimatedSectionCSS>
   );
 }

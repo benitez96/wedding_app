@@ -8,6 +8,8 @@ import {
   SectionSettingsFormProps,
   createSettingsUpdater,
 } from "@/types/section-settings-form";
+import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
+import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 
 export function CelebrationSectionSettingsForm({
   initialSettings,
@@ -24,6 +26,11 @@ export function CelebrationSectionSettingsForm({
       iconUrl: initialSettings.iconUrl || "/icons/copas-fiesta-1.gif",
       showDirectionsButton: initialSettings.showDirectionsButton ?? true,
       hasAlternateBg: initialSettings.hasAlternateBg ?? false,
+      // Decoraciones
+      decorationSvg: initialSettings.decorationSvg || "none",
+      decorationPattern: initialSettings.decorationPattern || "none",
+      decorationOpacity: initialSettings.decorationOpacity ?? 10,
+      decorationSize: initialSettings.decorationSize ?? 60,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -132,6 +139,26 @@ export function CelebrationSectionSettingsForm({
           </div>
         </CardBody>
       </Card>
+
+      {/* 🌸 Card de Decoraciones */}
+      <DecorationSettingsCard
+        decorationSvg={settings.decorationSvg as DecorationSvg}
+        decorationPattern={settings.decorationPattern as DecorationPattern}
+        decorationOpacity={settings.decorationOpacity ?? 10}
+        decorationSize={settings.decorationSize ?? 60}
+        onDecorationSvgChange={(value) =>
+          updateSettings((prev) => ({ ...prev, decorationSvg: value }))
+        }
+        onDecorationPatternChange={(value) =>
+          updateSettings((prev) => ({ ...prev, decorationPattern: value }))
+        }
+        onDecorationOpacityChange={(value) =>
+          updateSettings((prev) => ({ ...prev, decorationOpacity: value }))
+        }
+        onDecorationSizeChange={(value) =>
+          updateSettings((prev) => ({ ...prev, decorationSize: value }))
+        }
+      />
 
       <div className="flex justify-end">
         <Button

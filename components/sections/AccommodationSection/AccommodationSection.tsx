@@ -3,6 +3,8 @@ import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
 import Image from "next/image";
 import AccommodationList from "@/components/sections/AccommodationList";
 import { AccommodationSectionSettings } from "./AccommodationSection.metadata";
+import { DecorationLayer } from "@/components/ui/DecorationLayer";
+import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 
 const accommodations = [
   {
@@ -51,22 +53,36 @@ export default function AccommodationSection({
   const iconUrl = settings?.iconUrl || "/icons/accommodation.gif";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
+  // Decoraciones
+  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
+  const decorationPattern = (settings?.decorationPattern ||
+    "none") as DecorationPattern;
+  const decorationOpacity = settings?.decorationOpacity ?? 10;
+  const decorationSize = settings?.decorationSize ?? 60;
+
   return (
     <AnimatedSectionCSS delay={0.6}>
-      <Section.Container hasAlternateBg={hasAlternateBg}>
-        <Section.Icon>
-          <Image
-            src={iconUrl}
-            alt="Alojamiento"
-            width={100}
-            height={100}
-            className="filter-[contrast(0.8)_brightness(1.1)]"
-          />
-        </Section.Icon>
-        <Section.Title>{title}</Section.Title>
-        <Section.Description isDecorative>{description}</Section.Description>
-        <AccommodationList accommodations={accommodations} />
-      </Section.Container>
+      <DecorationLayer
+        svg={decorationSvg}
+        pattern={decorationPattern}
+        opacity={decorationOpacity}
+        size={decorationSize}
+      >
+        <Section.Container hasAlternateBg={hasAlternateBg}>
+          <Section.Icon>
+            <Image
+              src={iconUrl}
+              alt="Alojamiento"
+              width={100}
+              height={100}
+              className="filter-[contrast(0.8)_brightness(1.1)]"
+            />
+          </Section.Icon>
+          <Section.Title>{title}</Section.Title>
+          <Section.Description isDecorative>{description}</Section.Description>
+          <AccommodationList accommodations={accommodations} />
+        </Section.Container>
+      </DecorationLayer>
     </AnimatedSectionCSS>
   );
 }

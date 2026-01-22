@@ -6,6 +6,8 @@ import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
 import Image from "next/image";
 import { PhotoUploadSectionSettings } from "./PhotoUploadSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
+import { DecorationLayer } from "@/components/ui/DecorationLayer";
+import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 
 interface PhotoUploadSectionProps {
   settings?: PhotoUploadSectionSettings;
@@ -21,6 +23,13 @@ export default function PhotoUploadSection({
   const iconUrl = settings?.iconUrl || "/icons/fotos.gif";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
+  // Decoraciones
+  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
+  const decorationPattern = (settings?.decorationPattern ||
+    "none") as DecorationPattern;
+  const decorationOpacity = settings?.decorationOpacity ?? 10;
+  const decorationSize = settings?.decorationSize ?? 60;
+
   const styles = getAlternateBgClasses(hasAlternateBg);
 
   // URL de settings, o fallback a env variable
@@ -29,25 +38,37 @@ export default function PhotoUploadSection({
 
   return (
     <AnimatedSectionCSS delay={1.0}>
-      <Section.Container hasAlternateBg={hasAlternateBg}>
-        <Section.Icon>
-          <Image src={iconUrl} alt="Fotos y Videos" width={100} height={100} />
-        </Section.Icon>
-        <Section.Description isDecorative>{quoteText}</Section.Description>
+      <DecorationLayer
+        svg={decorationSvg}
+        pattern={decorationPattern}
+        opacity={decorationOpacity}
+        size={decorationSize}
+      >
+        <Section.Container hasAlternateBg={hasAlternateBg}>
+          <Section.Icon>
+            <Image
+              src={iconUrl}
+              alt="Fotos y Videos"
+              width={100}
+              height={100}
+            />
+          </Section.Icon>
+          <Section.Description isDecorative>{quoteText}</Section.Description>
 
-        <Button
-          as={Link}
-          href={uploadUrl}
-          isExternal
-          color={styles.buttonColor}
-          variant={styles.buttonVariant}
-          className={styles.buttonClassName}
-          startContent={<Camera className="w-4 h-4" />}
-        >
-          {buttonText}
-        </Button>
-        <Section.Description>{description}</Section.Description>
-      </Section.Container>
+          <Button
+            as={Link}
+            href={uploadUrl}
+            isExternal
+            color={styles.buttonColor}
+            variant={styles.buttonVariant}
+            className={styles.buttonClassName}
+            startContent={<Camera className="w-4 h-4" />}
+          >
+            {buttonText}
+          </Button>
+          <Section.Description>{description}</Section.Description>
+        </Section.Container>
+      </DecorationLayer>
     </AnimatedSectionCSS>
   );
 }

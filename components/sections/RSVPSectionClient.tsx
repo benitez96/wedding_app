@@ -7,6 +7,8 @@ import RSVPModal from "@/components/RSVPModal";
 import PendingRSVP from "./RSVPStatus/PendingRSVP";
 import ConfirmedRSVP from "./RSVPStatus/ConfirmedRSVP";
 import DeclinedRSVP from "./RSVPStatus/DeclinedRSVP";
+import { DecorationLayer } from "@/components/ui/DecorationLayer";
+import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 
 interface RSVPSectionClientProps {
   user: {
@@ -16,11 +18,19 @@ interface RSVPSectionClientProps {
     maxGuests: number;
   };
   hasAlternateBg?: boolean;
+  decorationSvg: DecorationSvg;
+  decorationPattern: DecorationPattern;
+  decorationOpacity: number;
+  decorationSize: number;
 }
 
 export default function RSVPSectionClient({
   user,
   hasAlternateBg = false,
+  decorationSvg,
+  decorationPattern,
+  decorationOpacity,
+  decorationSize,
 }: RSVPSectionClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
@@ -66,9 +76,16 @@ export default function RSVPSectionClient({
   return (
     <>
       <div className="animate-fade-in-up" style={{ animationDelay: "900ms" }}>
-        <Section.Container id="rsvp-section" hasAlternateBg={hasAlternateBg}>
-          {renderRSVPContent()}
-        </Section.Container>
+        <DecorationLayer
+          svg={decorationSvg}
+          pattern={decorationPattern}
+          opacity={decorationOpacity}
+          size={decorationSize}
+        >
+          <Section.Container id="rsvp-section" hasAlternateBg={hasAlternateBg}>
+            {renderRSVPContent()}
+          </Section.Container>
+        </DecorationLayer>
       </div>
 
       <RSVPModal

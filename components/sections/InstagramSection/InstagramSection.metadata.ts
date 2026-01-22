@@ -22,6 +22,30 @@ export const InstagramSectionSettingsSchema = z.object({
     ),
   iconUrl: z.string().default("/icons/instagram.gif"),
   hasAlternateBg: z.boolean().default(false),
+
+  // 🌸 Sistema de decoraciones
+  decorationSvg: z
+    .enum(["none", "flower", "leaf", "heart", "branch", "branch-2"])
+    .default("none"),
+  decorationPattern: z
+    .enum([
+      "none",
+      "corners",
+      "scattered-grid-alt",
+      "scattered-grid-progressive",
+      "scattered-grid-radial",
+      "border-top",
+      "border-bottom",
+      "border-both",
+      "border-left",
+      "border-right",
+      "border-sides",
+      "tiled",
+      "center",
+    ])
+    .default("none"),
+  decorationOpacity: z.number().min(0).max(100).default(10),
+  decorationSize: z.number().min(20).max(200).default(60),
 });
 
 export type InstagramSectionSettings = z.infer<
