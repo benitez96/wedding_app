@@ -10,6 +10,8 @@ import {
 } from "@/types/section-settings-form";
 import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { SectionIconSelector } from "@/components/ui/SectionIconSelector";
+import { SectionIcon } from "@/types/section-icon";
 
 export function CelebrationSectionSettingsForm({
   initialSettings,
@@ -23,7 +25,7 @@ export function CelebrationSectionSettingsForm({
         "Despues de la Ceremonia festejaremos en el Club Union",
       mapsUrl:
         initialSettings.mapsUrl || "https://maps.app.goo.gl/AjTWBW7Y25sENdw36",
-      iconUrl: initialSettings.iconUrl || "/icons/copas-fiesta-1.gif",
+      icon: initialSettings.icon || "celebration-1",
       showDirectionsButton: initialSettings.showDirectionsButton ?? true,
       hasAlternateBg: initialSettings.hasAlternateBg ?? false,
       // Decoraciones
@@ -92,13 +94,12 @@ export function CelebrationSectionSettingsForm({
             }
           />
 
-          <Input
-            label="URL del Ícono"
-            placeholder="/icons/copas-fiesta-1.gif"
-            value={settings.iconUrl || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
+          <SectionIconSelector
+            value={(settings.icon || "celebration-1") as SectionIcon}
+            onChange={(value) =>
+              updateSettings((prev) => ({ ...prev, icon: value }))
             }
+            label="Ícono de la Sección"
           />
 
           <div className="flex items-center justify-between">

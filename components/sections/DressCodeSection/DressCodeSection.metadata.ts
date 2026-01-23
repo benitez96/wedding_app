@@ -15,7 +15,30 @@ export const DressCodeSectionSettingsSchema = z.object({
   dressCode: z.string().default("Formal"),
   subtitle: z.string().default("(No blanco)"),
   showColorSuggestions: z.boolean().default(true),
-  iconUrl: z.string().default("/icons/dress-code.gif"),
+
+  icon: z
+    .enum([
+      "none",
+      "rings-1",
+      "rings-2",
+      "celebration-1",
+      "celebration-2",
+      "gift-1",
+      "gift-2",
+      "photos-1",
+      "photos-2",
+      "instagram",
+      "dress-code",
+      "accommodation",
+      "church",
+      "disco-ball",
+      "rsvp",
+      "calendar",
+      "music",
+    ])
+    .default("dress-code"),
+  iconUrl: z.string().optional(),
+
   hasAlternateBg: z.boolean().default(false),
 
   // 🌸 Sistema de decoraciones

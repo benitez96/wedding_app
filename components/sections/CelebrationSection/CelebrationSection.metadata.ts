@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SectionIcons } from "@/types/section-icon";
 
 export const CELEBRATION_SECTION_KEY = "celebration" as const;
 
@@ -20,7 +21,33 @@ export const CelebrationSectionSettingsSchema = z.object({
     .string()
     .url()
     .default("https://maps.app.goo.gl/AjTWBW7Y25sENdw36"),
-  iconUrl: z.string().default("/icons/copas-fiesta-1.gif"),
+
+  // Sistema nuevo de íconos
+  icon: z
+    .enum([
+      "none",
+      "rings-1",
+      "rings-2",
+      "celebration-1",
+      "celebration-2",
+      "gift-1",
+      "gift-2",
+      "photos-1",
+      "photos-2",
+      "instagram",
+      "dress-code",
+      "accommodation",
+      "church",
+      "disco-ball",
+      "rsvp",
+      "calendar",
+      "music",
+    ])
+    .default("celebration-1"),
+
+  // Deprecated
+  iconUrl: z.string().optional(),
+
   showDirectionsButton: z.boolean().default(true),
   hasAlternateBg: z.boolean().default(false),
 

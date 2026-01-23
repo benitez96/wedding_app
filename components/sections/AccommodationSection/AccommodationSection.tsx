@@ -1,10 +1,11 @@
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import Image from "next/image";
 import AccommodationList from "@/components/sections/AccommodationList";
 import { AccommodationSectionSettings } from "./AccommodationSection.metadata";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { useSectionIcon } from "@/hooks/useSectionIcon";
+import { SectionIcon } from "@/types/section-icon";
 
 const accommodations = [
   {
@@ -50,8 +51,15 @@ export default function AccommodationSection({
   const description =
     settings?.description ||
     "Sabemos que podés venir de lejos, así que te facilitamos algunos teléfonos de alojamientos cercanos";
-  const iconUrl = settings?.iconUrl || "/icons/accommodation.gif";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
+
+  // Ícono de sección
+  const sectionIcon = (settings?.icon || "accommodation") as SectionIcon;
+  const { IconComponent } = useSectionIcon({
+    icon: sectionIcon,
+    size: 100,
+    alt: "Alojamiento",
+  });
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -70,15 +78,7 @@ export default function AccommodationSection({
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          <Section.Icon>
-            <Image
-              src={iconUrl}
-              alt="Alojamiento"
-              width={100}
-              height={100}
-              className="filter-[contrast(0.8)_brightness(1.1)]"
-            />
-          </Section.Icon>
+          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
           <Section.Title>{title}</Section.Title>
           <Section.Description isDecorative>{description}</Section.Description>
           <AccommodationList accommodations={accommodations} />

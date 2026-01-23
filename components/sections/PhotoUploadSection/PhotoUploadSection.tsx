@@ -3,11 +3,12 @@ import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import Image from "next/image";
 import { PhotoUploadSectionSettings } from "./PhotoUploadSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { useSectionIcon } from "@/hooks/useSectionIcon";
+import { SectionIcon } from "@/types/section-icon";
 
 interface PhotoUploadSectionProps {
   settings?: PhotoUploadSectionSettings;
@@ -20,8 +21,15 @@ export default function PhotoUploadSection({
   const buttonText = settings?.buttonText || "SUBIR FOTOS Y VIDEOS";
   const description =
     settings?.description || "Subi las fotos y videos desde tu mesa";
-  const iconUrl = settings?.iconUrl || "/icons/fotos.gif";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
+
+  // Ícono de sección
+  const sectionIcon = (settings?.icon || "photos-1") as SectionIcon;
+  const { IconComponent } = useSectionIcon({
+    icon: sectionIcon,
+    size: 100,
+    alt: "Fotos y Videos",
+  });
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -47,14 +55,7 @@ export default function PhotoUploadSection({
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          <Section.Icon>
-            <Image
-              src={iconUrl}
-              alt="Fotos y Videos"
-              width={100}
-              height={100}
-            />
-          </Section.Icon>
+          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
           <Section.Description isDecorative>{quoteText}</Section.Description>
 
           <Button

@@ -1,9 +1,10 @@
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import Image from "next/image";
 import { DressCodeSectionSettings } from "./DressCodeSection.metadata";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { useSectionIcon } from "@/hooks/useSectionIcon";
+import { SectionIcon } from "@/types/section-icon";
 
 interface DressCodeSectionProps {
   settings?: DressCodeSectionSettings;
@@ -13,8 +14,14 @@ export default function DressCodeSection({ settings }: DressCodeSectionProps) {
   const dressCode = settings?.dressCode || "Formal";
   const subtitle = settings?.subtitle || "(No blanco)";
   const showColorSuggestions = settings?.showColorSuggestions ?? true;
-  const iconUrl = settings?.iconUrl || "/icons/dress-code.gif";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
+
+  const sectionIcon = (settings?.icon || "dress-code") as SectionIcon;
+  const { IconComponent } = useSectionIcon({
+    icon: sectionIcon,
+    size: 100,
+    alt: "Dress Code",
+  });
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -33,9 +40,7 @@ export default function DressCodeSection({ settings }: DressCodeSectionProps) {
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          <Section.Icon>
-            <Image src={iconUrl} alt="Dress Code" width={100} height={100} />
-          </Section.Icon>
+          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
           <Section.Title>DRESS CODE</Section.Title>
           <Section.Description isDecorative className="text-4xl font-semibold">
             {dressCode}

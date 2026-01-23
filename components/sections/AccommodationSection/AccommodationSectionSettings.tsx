@@ -10,6 +10,8 @@ import {
 } from "@/types/section-settings-form";
 import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { SectionIconSelector } from "@/components/ui/SectionIconSelector";
+import { SectionIcon } from "@/types/section-icon";
 
 export function AccommodationSectionSettingsForm({
   initialSettings,
@@ -23,7 +25,7 @@ export function AccommodationSectionSettingsForm({
     description:
       initialSettings.description ||
       "Sabemos que podés venir de lejos, así que te facilitamos algunos teléfonos de alojamientos cercanos",
-    iconUrl: initialSettings.iconUrl || "/icons/accommodation.gif",
+    icon: initialSettings.icon || "accommodation",
     hasAlternateBg: initialSettings.hasAlternateBg ?? false,
     // Decoraciones
     decorationSvg: initialSettings.decorationSvg || "none",
@@ -96,15 +98,13 @@ export function AccommodationSectionSettingsForm({
             minRows={2}
           />
 
-          {/* Icon URL */}
-          <Input
-            label="URL del Ícono"
-            description="Ruta o URL del ícono animado"
-            placeholder="/icons/accommodation.gif"
-            value={settings.iconUrl || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
+          {/* Selector de Ícono */}
+          <SectionIconSelector
+            value={(settings.icon || "accommodation") as SectionIcon}
+            onChange={(value) =>
+              updateSettings((prev) => ({ ...prev, icon: value }))
             }
+            label="Ícono de la Sección"
           />
 
           <div className="flex items-center justify-between">

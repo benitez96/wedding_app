@@ -10,6 +10,8 @@ import {
 } from "@/types/section-settings-form";
 import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { SectionIconSelector } from "@/components/ui/SectionIconSelector";
+import { SectionIcon } from "@/types/section-icon";
 
 export function PhotoUploadSectionSettingsForm({
   initialSettings,
@@ -22,7 +24,7 @@ export function PhotoUploadSectionSettingsForm({
       buttonText: initialSettings.buttonText || "SUBIR FOTOS Y VIDEOS",
       description:
         initialSettings.description || "Subi las fotos y videos desde tu mesa",
-      iconUrl: initialSettings.iconUrl || "/icons/fotos.gif",
+      icon: initialSettings.icon || "photos-1",
       uploadUrl: initialSettings.uploadUrl || "",
       hasAlternateBg: initialSettings.hasAlternateBg ?? false,
       // Decoraciones
@@ -122,15 +124,13 @@ export function PhotoUploadSectionSettingsForm({
             }
           />
 
-          {/* Icon URL */}
-          <Input
-            label="URL del Ícono"
-            description="Ruta o URL del ícono animado"
-            placeholder="/icons/fotos.gif"
-            value={settings.iconUrl || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
+          {/* Selector de Ícono */}
+          <SectionIconSelector
+            value={(settings.icon || "photos-1") as SectionIcon}
+            onChange={(value) =>
+              updateSettings((prev) => ({ ...prev, icon: value }))
             }
+            label="Ícono de la Sección"
           />
 
           <div className="flex items-center justify-between">

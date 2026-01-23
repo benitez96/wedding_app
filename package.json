@@ -12,7 +12,8 @@
     "internal:create-admin": "tsx scripts/create-admin.ts",
     "internal:cleanup-rate-limit": "tsx scripts/cleanup-rate-limit.ts",
     "internal:generate-secrets": "tsx scripts/generate-secrets.ts",
-    "internal:sync-sections": "tsx scripts/sync-sections.ts"
+    "internal:sync-sections": "tsx scripts/sync-sections.ts",
+    "internal:generate-icon-enum": "tsx scripts/generate-icon-enum.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

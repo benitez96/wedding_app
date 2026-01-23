@@ -2,12 +2,13 @@ import { Instagram } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import Image from "next/image";
 import Link from "next/link";
 import { InstagramSectionSettings } from "./InstagramSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { useSectionIcon } from "@/hooks/useSectionIcon";
+import { SectionIcon } from "@/types/section-icon";
 
 interface InstagramSectionProps {
   settings?: InstagramSectionSettings;
@@ -21,8 +22,15 @@ export default function InstagramSection({ settings }: InstagramSectionProps) {
   const description =
     settings?.description ||
     "Seguinos en nuestra cuenta de instagram y etiquetanos en tus fotos y videos!";
-  const iconUrl = settings?.iconUrl || "/icons/instagram.gif";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
+
+  // Ícono de sección
+  const sectionIcon = (settings?.icon || "instagram") as SectionIcon;
+  const { IconComponent } = useSectionIcon({
+    icon: sectionIcon,
+    size: 100,
+    alt: "Instagram",
+  });
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -43,9 +51,7 @@ export default function InstagramSection({ settings }: InstagramSectionProps) {
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          <Section.Icon>
-            <Image src={iconUrl} alt="Instagram" width={100} height={100} />
-          </Section.Icon>
+          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
           <Section.Description isDecorative>{quoteText}</Section.Description>
           <Button
             color={styles.buttonColor}

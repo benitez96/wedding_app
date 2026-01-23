@@ -17,6 +17,8 @@ import {
 } from "@/types/section-settings-form";
 import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { SectionIconSelector } from "@/components/ui/SectionIconSelector";
+import { SectionIcon } from "@/types/section-icon";
 
 export function GiftSectionSettingsForm({
   initialSettings,
@@ -32,7 +34,7 @@ export function GiftSectionSettingsForm({
       alias: initialSettings.alias || "DANI.SOL.HONEYMOON",
       footerText:
         initialSettings.footerText || "Ayudanos con nuestra luna de miel",
-      iconUrl: initialSettings.iconUrl || "/icons/regalo-2.gif",
+      icon: initialSettings.icon || "gift-2",
       hasAlternateBg: initialSettings.hasAlternateBg ?? false,
       // Decoraciones
       decorationSvg: initialSettings.decorationSvg || "none",
@@ -136,15 +138,13 @@ export function GiftSectionSettingsForm({
               }
             />
 
-            {/* Icon URL */}
-            <Input
-              label="URL del Ícono"
-              description="Ruta o URL del ícono animado"
-              placeholder="/icons/regalo-2.gif"
-              value={settings.iconUrl || ""}
-              onChange={(e) =>
-                updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
+            {/* Selector de Ícono */}
+            <SectionIconSelector
+              value={(settings.icon || "gift-2") as SectionIcon}
+              onChange={(value) =>
+                updateSettings((prev) => ({ ...prev, icon: value }))
               }
+              label="Ícono de la Sección"
             />
 
             <div className="flex items-center justify-between">

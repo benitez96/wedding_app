@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SectionIcons } from "@/types/section-icon";
 
 export const ACCOMMODATION_SECTION_KEY = "accommodation" as const;
 
@@ -18,7 +19,33 @@ export const AccommodationSectionSettingsSchema = z.object({
     .default(
       "Sabemos que podés venir de lejos, así que te facilitamos algunos teléfonos de alojamientos cercanos",
     ),
-  iconUrl: z.string().default("/icons/accommodation.gif"),
+
+  // Sistema nuevo de íconos
+  icon: z
+    .enum([
+      "none",
+      "rings-1",
+      "rings-2",
+      "celebration-1",
+      "celebration-2",
+      "gift-1",
+      "gift-2",
+      "photos-1",
+      "photos-2",
+      "instagram",
+      "dress-code",
+      "accommodation",
+      "church",
+      "disco-ball",
+      "rsvp",
+      "calendar",
+      "music",
+    ])
+    .default("accommodation"),
+
+  // Deprecated: mantener por compatibilidad hacia atrás
+  iconUrl: z.string().optional(),
+
   hasAlternateBg: z.boolean().default(false),
 
   // 🌸 Sistema de decoraciones

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SectionIcons } from "@/types/section-icon";
 
 export const PHOTO_UPLOAD_SECTION_KEY = "photo_upload" as const;
 
@@ -15,7 +16,33 @@ export const PhotoUploadSectionSettingsSchema = z.object({
   quoteText: z.string().default("Queremos ver como la pasaste!"),
   buttonText: z.string().default("SUBIR FOTOS Y VIDEOS"),
   description: z.string().default("Subi las fotos y videos desde tu mesa"),
-  iconUrl: z.string().default("/icons/fotos.gif"),
+
+  // Sistema nuevo de íconos
+  icon: z
+    .enum([
+      "none",
+      "rings-1",
+      "rings-2",
+      "celebration-1",
+      "celebration-2",
+      "gift-1",
+      "gift-2",
+      "photos-1",
+      "photos-2",
+      "instagram",
+      "dress-code",
+      "accommodation",
+      "church",
+      "disco-ball",
+      "rsvp",
+      "calendar",
+      "music",
+    ])
+    .default("photos-1"),
+
+  // Deprecated: mantener por compatibilidad hacia atrás
+  iconUrl: z.string().optional(),
+
   // URL donde los invitados suben fotos/videos
   uploadUrl: z.string().url().optional(),
   hasAlternateBg: z.boolean().default(false),

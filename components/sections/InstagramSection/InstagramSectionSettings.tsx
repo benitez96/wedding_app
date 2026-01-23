@@ -10,6 +10,8 @@ import {
 } from "@/types/section-settings-form";
 import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { SectionIconSelector } from "@/components/ui/SectionIconSelector";
+import { SectionIcon } from "@/types/section-icon";
 
 export function InstagramSectionSettingsForm({
   initialSettings,
@@ -26,7 +28,7 @@ export function InstagramSectionSettingsForm({
       description:
         initialSettings.description ||
         "Seguinos en nuestra cuenta de instagram y etiquetanos en tus fotos y videos!",
-      iconUrl: initialSettings.iconUrl || "/icons/instagram.gif",
+      icon: initialSettings.icon || "instagram",
       hasAlternateBg: initialSettings.hasAlternateBg ?? false,
       // Decoraciones
       decorationSvg: initialSettings.decorationSvg || "none",
@@ -128,15 +130,13 @@ export function InstagramSectionSettingsForm({
             minRows={2}
           />
 
-          {/* Icon URL */}
-          <Input
-            label="URL del Ícono"
-            description="Ruta o URL del ícono animado"
-            placeholder="/icons/instagram.gif"
-            value={settings.iconUrl || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({ ...prev, iconUrl: e.target.value }))
+          {/* Selector de Ícono */}
+          <SectionIconSelector
+            value={(settings.icon || "instagram") as SectionIcon}
+            onChange={(value) =>
+              updateSettings((prev) => ({ ...prev, icon: value }))
             }
+            label="Ícono de la Sección"
           />
 
           <div className="flex items-center justify-between">

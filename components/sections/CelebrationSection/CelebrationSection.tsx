@@ -2,12 +2,13 @@ import { MapPin } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import Image from "next/image";
 import Link from "next/link";
 import { CelebrationSectionSettings } from "./CelebrationSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { useSectionIcon } from "@/hooks/useSectionIcon";
+import { SectionIcon } from "@/types/section-icon";
 
 interface CelebrationSectionProps {
   settings?: CelebrationSectionSettings;
@@ -21,9 +22,16 @@ export default function CelebrationSection({
     "Despues de la Ceremonia festejaremos en el Club Union";
   const mapsUrl =
     settings?.mapsUrl || "https://maps.app.goo.gl/AjTWBW7Y25sENdw36";
-  const iconUrl = settings?.iconUrl || "/icons/copas-fiesta-1.gif";
   const showDirectionsButton = settings?.showDirectionsButton ?? true;
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
+
+  // Ícono de sección
+  const sectionIcon = (settings?.icon || "celebration-1") as SectionIcon;
+  const { IconComponent } = useSectionIcon({
+    icon: sectionIcon,
+    size: 100,
+    alt: "Celebración",
+  });
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -44,9 +52,7 @@ export default function CelebrationSection({
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          <Section.Icon>
-            <Image src={iconUrl} alt="Celebración" width={100} height={100} />
-          </Section.Icon>
+          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
           <Section.Title>CELEBRACIÓN</Section.Title>
           <Section.Description>{description}</Section.Description>
           {showDirectionsButton && (

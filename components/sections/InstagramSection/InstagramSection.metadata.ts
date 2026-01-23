@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SectionIcons } from "@/types/section-icon";
 
 export const INSTAGRAM_SECTION_KEY = "instagram" as const;
 
@@ -20,7 +21,33 @@ export const InstagramSectionSettingsSchema = z.object({
     .default(
       "Seguinos en nuestra cuenta de instagram y etiquetanos en tus fotos y videos!",
     ),
-  iconUrl: z.string().default("/icons/instagram.gif"),
+
+  // Sistema nuevo de íconos
+  icon: z
+    .enum([
+      "none",
+      "rings-1",
+      "rings-2",
+      "celebration-1",
+      "celebration-2",
+      "gift-1",
+      "gift-2",
+      "photos-1",
+      "photos-2",
+      "instagram",
+      "dress-code",
+      "accommodation",
+      "church",
+      "disco-ball",
+      "rsvp",
+      "calendar",
+      "music",
+    ])
+    .default("instagram"),
+
+  // Deprecated: mantener por compatibilidad hacia atrás
+  iconUrl: z.string().optional(),
+
   hasAlternateBg: z.boolean().default(false),
 
   // 🌸 Sistema de decoraciones

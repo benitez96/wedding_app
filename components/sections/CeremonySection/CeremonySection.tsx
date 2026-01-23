@@ -2,12 +2,13 @@ import { MapPin } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import Image from "next/image";
 import Link from "next/link";
 import { CeremonySectionSettings } from "./CeremonySection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { useSectionIcon } from "@/hooks/useSectionIcon";
+import { SectionIcon } from "@/types/section-icon";
 
 interface CeremonySectionProps {
   settings?: CeremonySectionSettings;
@@ -18,9 +19,16 @@ export default function CeremonySection({ settings }: CeremonySectionProps) {
   const venueName = settings?.venueName || "Iglesia Nuestra Señora del Carmen";
   const mapsUrl =
     settings?.mapsUrl || "https://maps.app.goo.gl/pwTwQ4vJzbBt1h1C9";
-  const iconUrl = settings?.iconUrl || "/icons/anillos-boda-1.gif";
   const showDirectionsButton = settings?.showDirectionsButton ?? true;
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
+
+  // Ícono de sección
+  const sectionIcon = (settings?.icon || "rings-1") as SectionIcon;
+  const { IconComponent } = useSectionIcon({
+    icon: sectionIcon,
+    size: 100,
+    alt: "Ceremonia",
+  });
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -41,9 +49,7 @@ export default function CeremonySection({ settings }: CeremonySectionProps) {
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          <Section.Icon>
-            <Image src={iconUrl} alt="Ceremonia" width={100} height={100} />
-          </Section.Icon>
+          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
           <Section.Title>CEREMONIA</Section.Title>
           <Section.Description>
             {time}, en {venueName}
