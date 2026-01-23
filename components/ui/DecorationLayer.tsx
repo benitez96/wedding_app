@@ -15,6 +15,7 @@ export function DecorationLayer({
   pattern = "none",
   opacity = 10,
   size = 60,
+  hasAlternateBg = false,
   children,
 }: DecorationLayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,41 +50,48 @@ export function DecorationLayer({
     return () => resizeObserver.disconnect();
   }, [isMounted]);
 
-  // Si no hay decoración, solo renderiza children
-  if (svg === "none" || pattern === "none") {
-    return <>{children}</>;
-  }
-
   const svgPath = `/tramas/svgs/${svg}.svg`;
   const opacityDecimal = opacity / 100;
 
+  // Color dinámico: si hasAlternateBg, usamos bg (neutral), sino secondary (brand)
+  const decorationColor = hasAlternateBg
+    ? "var(--color-background)"
+    : "var(--color-secondary)";
+
+  // Si no hay decoración, solo renderiza children sin decoraciones
+  const hasDecoration = svg !== "none" && pattern !== "none";
+
   // Patrón especial: TILED usa background-image CSS
-  if (pattern === DecorationPatterns.TILED) {
+  if (hasDecoration && pattern === DecorationPatterns.TILED) {
     return (
       <div ref={containerRef} className="relative" suppressHydrationWarning>
         {/* Background tiled pattern (solo después de montar) */}
+        {/* Contenido */}
+        <div className="relative">{children}</div>
+        {/* Background tiled pattern (solo después de montar) - z-[5] para estar entre bg y contenido */}
         {isMounted && (
           <div
-            className="absolute inset-0 pointer-events-none text-accent"
+            className="absolute inset-0 pointer-events-none z-[5]"
             style={{
-              backgroundImage: `url(${svgPath})`,
-              backgroundRepeat: "repeat",
-              backgroundSize: `${size}px ${size}px`,
+              backgroundColor: decorationColor,
+              maskImage: `url(${svgPath})`,
+              WebkitMaskImage: `url(${svgPath})`,
+              maskSize: `${size}px ${size}px`,
+              WebkitMaskSize: `${size}px ${size}px`,
+              maskRepeat: "repeat",
+              WebkitMaskRepeat: "repeat",
               opacity: opacityDecimal,
-              color: "var(--color-accent)",
             }}
           />
         )}
-        {/* Contenido */}
-        <div className="relative z-10">{children}</div>
       </div>
     );
   }
 
   // Resto de patrones: posicionamiento absoluto múltiple con cálculo dinámico
-  // Solo calcular posiciones si está montado y tenemos dimensiones
+  // Solo calcular posiciones si está montado y tenemos dimensiones Y hay decoración activa
   const positions =
-    isMounted && dimensions.width > 0 && dimensions.height > 0
+    hasDecoration && isMounted && dimensions.width > 0 && dimensions.height > 0
       ? getPatternPositions(pattern, {
           containerHeight: dimensions.height,
           containerWidth: dimensions.width,
@@ -93,8 +101,12 @@ export function DecorationLayer({
 
   return (
     <div ref={containerRef} className="relative" suppressHydrationWarning>
-      {/* Elementos decorativos posicionados (solo después de montar) */}
-      {isMounted &&
+      {/* Contenido */}
+      <div className="relative">{children}</div>
+
+      {/* Elementos decorativos posicionados (solo después de montar y si hay decoración) - z-[5] para estar entre bg y contenido */}
+      {hasDecoration &&
+        isMounted &&
         positions.map((pos, index) => {
           const transforms = [];
 
@@ -129,7 +141,7 @@ export function DecorationLayer({
           return (
             <div
               key={index}
-              className="absolute pointer-events-none text-accent"
+              className="absolute pointer-events-none z-[5]"
               style={{
                 top: pos.top,
                 bottom: pos.bottom,
@@ -139,23 +151,19 @@ export function DecorationLayer({
                 height: size,
                 opacity: opacityDecimal,
                 transform,
-                color: "var(--color-accent)",
+                backgroundColor: decorationColor,
+                maskImage: `url(${svgPath})`,
+                WebkitMaskImage: `url(${svgPath})`,
+                maskSize: "contain",
+                WebkitMaskSize: "contain",
+                maskRepeat: "no-repeat",
+                WebkitMaskRepeat: "no-repeat",
+                maskPosition: "center",
+                WebkitMaskPosition: "center",
               }}
-            >
-              <Image
-                src={svgPath}
-                alt=""
-                width={size}
-                height={size}
-                className="w-full h-full"
-                style={{ color: "inherit" }}
-              />
-            </div>
+            />
           );
         })}
-
-      {/* Contenido */}
-      <div className="relative z-10">{children}</div>
     </div>
   );
 }

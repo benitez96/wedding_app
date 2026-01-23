@@ -37,14 +37,22 @@ export default function QuoteSection({ settings }: QuoteSectionProps) {
         pattern={decorationPattern}
         opacity={decorationOpacity}
         size={decorationSize}
+        hasAlternateBg={hasAlternateBg}
       >
         <section
           className={clsx(
-            "flex flex-col items-center justify-center p-4",
-            styles.container,
+            "relative flex flex-col items-center justify-center p-4",
+            styles.text,
           )}
         >
-          <Section.Description isDecorative>{quoteText}</Section.Description>
+          {/* Background layer (-z-10) */}
+          {hasAlternateBg && (
+            <div className={clsx("absolute inset-0 -z-10", styles.container)} />
+          )}
+          {/* Content layer (z-10) */}
+          <div className="relative z-10 flex flex-col items-center justify-center w-full">
+            <Section.Description isDecorative>{quoteText}</Section.Description>
+          </div>
         </section>
       </DecorationLayer>
     </AnimatedSectionCSS>

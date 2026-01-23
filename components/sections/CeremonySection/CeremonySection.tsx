@@ -38,6 +38,7 @@ export default function CeremonySection({ settings }: CeremonySectionProps) {
         pattern={decorationPattern}
         opacity={decorationOpacity}
         size={decorationSize}
+        hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
           <Section.Icon>

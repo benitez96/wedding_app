@@ -29,10 +29,12 @@ export default function RSVPSection({ settings, user }: RSVPSectionProps) {
   if (!user) {
     return (
       <DecorationLayer
+        key={`rsvp-decoration-${hasAlternateBg}`}
         svg={decorationSvg}
         pattern={decorationPattern}
         opacity={decorationOpacity}
         size={decorationSize}
+        hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
           <Section.Title>CONFIRMÁ TU ASISTENCIA</Section.Title>

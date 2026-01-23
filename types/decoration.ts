@@ -41,6 +41,7 @@ export interface DecorationLayerProps {
   pattern?: DecorationPattern;
   opacity?: number; // 0-100
   size?: number; // px
+  hasAlternateBg?: boolean; // Determina el color de las decoraciones
   children: React.ReactNode;
 }
 
@@ -60,4 +61,5 @@ export interface DecorationPreviewProps {
   pattern: DecorationPattern;
   opacity: number;
   size: number;
+  hasAlternateBg?: boolean;
 }

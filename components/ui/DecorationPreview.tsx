@@ -13,6 +13,7 @@ export function DecorationPreview({
   pattern,
   opacity,
   size,
+  hasAlternateBg = false,
 }: DecorationPreviewProps) {
   if (svg === "none" || pattern === "none") {
     return (
@@ -34,9 +35,24 @@ export function DecorationPreview({
             pattern={pattern}
             opacity={opacity}
             size={Math.max(20, size * 0.4)} // Escalar el tamaño para el preview
+            hasAlternateBg={hasAlternateBg}
           >
-            <div className="h-40 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-              <p className="text-sm text-gray-600 font-medium">
+            <div
+              className={`h-40 flex items-center justify-center relative ${
+                hasAlternateBg
+                  ? "text-secondary-foreground"
+                  : "bg-gradient-to-br from-gray-50 to-gray-100"
+              }`}
+            >
+              {/* Background layer si hasAlternateBg */}
+              {hasAlternateBg && (
+                <div className="absolute inset-0 -z-10 bg-secondary" />
+              )}
+              <p
+                className={`text-sm font-medium relative z-10 ${
+                  hasAlternateBg ? "text-secondary-foreground" : "text-gray-600"
+                }`}
+              >
                 Contenido de ejemplo
               </p>
             </div>

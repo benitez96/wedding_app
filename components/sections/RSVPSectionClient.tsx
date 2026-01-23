@@ -77,10 +77,12 @@ export default function RSVPSectionClient({
     <>
       <div className="animate-fade-in-up" style={{ animationDelay: "900ms" }}>
         <DecorationLayer
+          key={`rsvp-client-decoration-${hasAlternateBg}`}
           svg={decorationSvg}
           pattern={decorationPattern}
           opacity={decorationOpacity}
           size={decorationSize}
+          hasAlternateBg={hasAlternateBg}
         >
           <Section.Container id="rsvp-section" hasAlternateBg={hasAlternateBg}>
             {renderRSVPContent()}

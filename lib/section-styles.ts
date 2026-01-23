@@ -27,12 +27,12 @@ export function getAlternateBgClasses(
 ): AlternateBgStyles {
   if (hasAlternateBg) {
     return {
-      container: "bg-primary text-primary-foreground",
-      text: "text-primary-foreground",
+      container: "bg-secondary text-secondary-foreground",
+      text: "text-secondary-foreground",
       buttonColor: "primary",
       buttonVariant: "bordered",
       buttonClassName:
-        "border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary", // Borde y texto en primaryForeground (blanco)
+        "border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary",
     };
   }
 

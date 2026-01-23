@@ -67,6 +67,7 @@ export default function AccommodationSection({
         pattern={decorationPattern}
         opacity={decorationOpacity}
         size={decorationSize}
+        hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
           <Section.Icon>

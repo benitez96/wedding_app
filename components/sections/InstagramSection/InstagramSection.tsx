@@ -40,6 +40,7 @@ export default function InstagramSection({ settings }: InstagramSectionProps) {
         pattern={decorationPattern}
         opacity={decorationOpacity}
         size={decorationSize}
+        hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
           <Section.Icon>

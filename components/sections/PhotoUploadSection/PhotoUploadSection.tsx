@@ -39,10 +39,12 @@ export default function PhotoUploadSection({
   return (
     <AnimatedSectionCSS delay={1.0}>
       <DecorationLayer
+        key={`photoupload-decoration-${hasAlternateBg}`}
         svg={decorationSvg}
         pattern={decorationPattern}
         opacity={decorationOpacity}
         size={decorationSize}
+        hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
           <Section.Icon>

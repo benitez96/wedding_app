@@ -37,10 +37,12 @@ export default function DateSectionClient({
   return (
     <div className="animate-fade-in-up" style={{ animationDelay: "300ms" }}>
       <DecorationLayer
+        key={`date-decoration-${hasAlternateBg}`}
         svg={decorationSvg}
         pattern={decorationPattern}
         opacity={decorationOpacity}
         size={decorationSize}
+        hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
           <Section.Title isDecorative className="text-3xl">
