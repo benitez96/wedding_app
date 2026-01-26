@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/spinner";
 import { SectionEditorLayout } from "./SectionEditorLayout";
 import type { SectionKey } from "@/components/sections/metadata";
 

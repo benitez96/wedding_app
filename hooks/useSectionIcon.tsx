@@ -5,7 +5,7 @@ import {
   getSectionIconConfig,
   SectionIconTypes,
 } from "@/types/section-icon";
-import { cn } from "@heroui/react";
+import { cn } from "@heroui/theme";
 
 interface UseSectionIconOptions {
   icon: SectionIcon;

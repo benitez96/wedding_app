@@ -144,3 +144,22 @@ model ThemeSettings {
   
   @@map("theme_settings")
 }
+
+// Logs de seguridad para auditoría
+model SecurityLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  
+  // Tipo de evento
+  type        String   // 'login-attempt', 'login-success', 'login-failed', 'rate-limit-triggered', 'honeypot-triggered'
+  
+  // Información del cliente
+  ip          String
+  userAgent   String
+  
+  // Detalles adicionales (JSON)
+  details     Json?
+  
+  @@index([ip, type, createdAt])
+  @@map("security_logs")
+}

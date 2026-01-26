@@ -1,10 +1,14 @@
+import { cache } from "react";
 import prisma from "@/lib/prisma";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import type { ConfigurationKey } from "@/types/configuration";
 
 // Cache en memoria con TTL de 5 minutos
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
-const cache = new Map<string, { value: string | null; timestamp: number }>();
+const memoryCache = new Map<
+  string,
+  { value: string | null; timestamp: number }
+>();
 
 /**
  * Obtiene una configuración específica desde la BBDD
@@ -14,7 +18,7 @@ export async function getConfigurationValue(
   key: ConfigurationKey,
 ): Promise<string | null> {
   // Revisar cache
-  const cached = cache.get(key);
+  const cached = memoryCache.get(key);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.value;
   }
@@ -28,7 +32,7 @@ export async function getConfigurationValue(
     const value = config?.value || null;
 
     // Guardar en cache
-    cache.set(key, { value, timestamp: Date.now() });
+    memoryCache.set(key, { value, timestamp: Date.now() });
 
     return value;
   } catch (error) {
@@ -55,7 +59,10 @@ export async function getConfigurations(
       result[key] = config?.value || null;
 
       // Actualizar cache
-      cache.set(key, { value: config?.value || null, timestamp: Date.now() });
+      memoryCache.set(key, {
+        value: config?.value || null,
+        timestamp: Date.now(),
+      });
     }
 
     return result as Record<ConfigurationKey, string | null>;
@@ -73,8 +80,9 @@ export async function getConfigurations(
 
 /**
  * Obtiene la fecha de la boda desde BBDD o fallback a variable de entorno
+ * Wrapeada con React.cache() para deduplicación durante el mismo render
  */
-export async function getWeddingDate(): Promise<Date> {
+export const getWeddingDate = cache(async (): Promise<Date> => {
   const dateString = await getConfigurationValue(
     CONFIGURATION_KEYS.WEDDING_DATE,
   );
@@ -92,21 +100,23 @@ export async function getWeddingDate(): Promise<Date> {
   const day = parseInt(envDate.substring(6, 8));
 
   return new Date(year, month - 1, day, 19, 0, 0);
-}
+});
 
 /**
  * Obtiene la URL de subida de fotos desde BBDD o fallback a variable de entorno
+ * Wrapeada con React.cache() para deduplicación durante el mismo render
  */
-export async function getPhotoUploadUrl(): Promise<string> {
+export const getPhotoUploadUrl = cache(async (): Promise<string> => {
   const url = await getConfigurationValue(CONFIGURATION_KEYS.PHOTO_UPLOAD_URL);
 
   return url || process.env.NEXT_PUBLIC_PHOTO_UPLOAD_URL || "";
-}
+});
 
 /**
  * Obtiene los días de recordatorio RSVP desde BBDD o fallback a variable de entorno
+ * Wrapeada con React.cache() para deduplicación durante el mismo render
  */
-export async function getRemindRestingDays(): Promise<number> {
+export const getRemindRestingDays = cache(async (): Promise<number> => {
   const days = await getConfigurationValue(
     CONFIGURATION_KEYS.REMIND_RESTING_DAYS,
   );
@@ -121,11 +131,11 @@ export async function getRemindRestingDays(): Promise<number> {
   // Fallback a variable de entorno
   const envDays = process.env.NEXT_PUBLIC_REMIND_RESTING || "40";
   return Number.parseInt(envDays, 10);
-}
+});
 
 /**
  * Limpia el cache de configuraciones (útil después de actualizaciones)
  */
 export function clearConfigurationCache(): void {
-  cache.clear();
+  memoryCache.clear();
 }

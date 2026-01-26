@@ -21,6 +21,11 @@ export const LAYOUT_MODES = {
   STACKED: "stacked",
 } as const;
 
+export const OBJECT_FIT_MODES = {
+  COVER: "cover",
+  CONTAIN: "contain",
+} as const;
+
 export const HeroSectionSettingsSchema = z.object({
   imageUrl: z.string().optional(),
   title: z.string().optional(),
@@ -34,6 +39,9 @@ export const HeroSectionSettingsSchema = z.object({
     .enum([LAYOUT_MODES.OVERLAY, LAYOUT_MODES.STACKED])
     .default(LAYOUT_MODES.OVERLAY),
   mediaType: z.enum(["image", "video"]).default("image"),
+  objectFit: z
+    .enum([OBJECT_FIT_MODES.COVER, OBJECT_FIT_MODES.CONTAIN])
+    .default(OBJECT_FIT_MODES.COVER),
 });
 
 export type HeroSectionSettings = z.infer<typeof HeroSectionSettingsSchema>;

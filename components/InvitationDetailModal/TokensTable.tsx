@@ -2,19 +2,18 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Card, CardBody } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { Chip } from "@heroui/chip";
+import { Tooltip } from "@heroui/tooltip";
 import {
-  Card,
-  CardBody,
-  Button,
-  Chip,
-  Tooltip,
   Table,
   TableHeader,
   TableColumn,
   TableBody,
   TableRow,
   TableCell,
-} from "@heroui/react";
+} from "@heroui/table";
 import { Plus, Copy, Check } from "lucide-react";
 import type { InvitationToken } from "@/types/invitation";
 import {

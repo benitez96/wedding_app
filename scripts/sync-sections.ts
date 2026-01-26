@@ -3,7 +3,6 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import { PrismaClient } from "../app/generated/prisma/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,8 +12,6 @@ const OUTPUT_FILE_COMPONENTS = path.resolve(SECTIONS_DIR, "index.ts");
 const OUTPUT_FILE_METADATA = path.resolve(SECTIONS_DIR, "metadata.ts");
 const OUTPUT_FILE_FORMS = path.resolve(SECTIONS_DIR, "forms.ts");
 const OUTPUT_FILE_SCHEMAS = path.resolve(SECTIONS_DIR, "schemas.ts");
-
-const prisma = new PrismaClient();
 
 interface SectionInfo {
   folderName: string;
@@ -235,89 +232,11 @@ export function getSectionSettingsSchema(key: string): z.ZodSchema {
 `;
 }
 
-async function syncDatabase(sections: SectionInfo[]) {
-  console.log("💾 Syncing with database...\n");
-
-  // 1. Obtener todas las secciones actuales en BD
-  const existingSections = await prisma.sectionConfiguration.findMany();
-  const existingKeys = new Set(existingSections.map((s) => s.key));
-  const discoveredKeys = new Set(sections.map((s) => s.key));
-
-  // 2. Identificar secciones que ya no existen en el código
-  const sectionsToDelete = existingSections.filter(
-    (s) => !discoveredKeys.has(s.key),
-  );
-
-  // 3. Eliminar secciones obsoletas
-  if (sectionsToDelete.length > 0) {
-    console.log("🗑️  Removing deleted sections:\n");
-    for (const section of sectionsToDelete) {
-      try {
-        await prisma.sectionConfiguration.delete({
-          where: { key: section.key },
-        });
-        console.log(`  ✗ Deleted: ${section.key}`);
-      } catch (error) {
-        console.error(`  ✗ Error deleting ${section.key}:`, error);
-      }
-    }
-    console.log("");
-  }
-
-  // 4. Ordenar por defaultOrder
-  const sortedSections = [...sections].sort(
-    (a, b) => a.defaultOrder - b.defaultOrder,
-  );
-
-  // 5. Upsert secciones nuevas con orden temporal negativo
-  console.log("📝 Upserting sections (temp order):\n");
-  for (let i = 0; i < sortedSections.length; i++) {
-    const section = sortedSections[i];
-
-    try {
-      await prisma.sectionConfiguration.upsert({
-        where: { key: section.key },
-        update: {
-          // Si ya existe, solo actualizar con orden temporal negativo
-          order: -2000 - i,
-        },
-        create: {
-          key: section.key,
-          isEnabled: section.defaultEnabled,
-          order: -2000 - i, // Orden temporal negativo para evitar conflictos
-          settings: {}, // Settings vacíos por defecto
-        },
-      });
-      const action = existingKeys.has(section.key) ? "✓" : "✓ Created";
-      console.log(`  ${action}: ${section.key}`);
-    } catch (error) {
-      console.error(`  ✗ Error syncing ${section.key}:`, error);
-    }
-  }
-
-  // 6. Ahora actualizar todos los order a los valores finales
-  console.log("\n📝 Updating final order:\n");
-  for (let i = 0; i < sortedSections.length; i++) {
-    const section = sortedSections[i];
-
-    try {
-      await prisma.sectionConfiguration.update({
-        where: { key: section.key },
-        data: {
-          order: i,
-        },
-      });
-      console.log(`  ✓: ${section.key} (order: ${i})`);
-    } catch (error) {
-      console.error(`  ✗ Error updating order for ${section.key}:`, error);
-    }
-  }
-
-  console.log("\n✅ Database sync completed!");
-}
+// NOTE: Database sync removed - sections are now managed via /backoffice/estructura UI
+// This script only generates the TypeScript registries
 
 async function main() {
-  console.log("🚀 Syncing sections...\n");
+  console.log("🚀 Syncing sections registries (NOT touching database)...\n");
 
   try {
     // 1. Descubrir todas las secciones
@@ -347,20 +266,16 @@ async function main() {
     console.log(`   - ${OUTPUT_FILE_FORMS}`);
     console.log(`   - ${OUTPUT_FILE_SCHEMAS}\n`);
 
-    // 4. Sincronizar con la BD
-    await syncDatabase(sections);
-
-    // 5. Resumen
-    console.log("\n✅ Sync completed successfully!");
-    console.log(`\nRegistered sections:`);
+    // 4. Resumen
+    console.log("✅ Sync completed successfully!");
+    console.log("\nAvailable sections (use backoffice UI to add/remove):");
     sections.forEach((s) => {
       console.log(`  - ${s.key} (${s.folderName})`);
     });
+    console.log("\n💡 Tip: Go to /backoffice/estructura to manage sections\n");
   } catch (error) {
     console.error("❌ Error syncing sections:", error);
     process.exit(1);
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

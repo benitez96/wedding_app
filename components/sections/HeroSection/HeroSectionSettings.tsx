@@ -1,20 +1,17 @@
 "use client";
 
-import {
-  Input,
-  Switch,
-  Button,
-  Card,
-  CardBody,
-  RadioGroup,
-  Radio,
-} from "@heroui/react";
+import { Input } from "@heroui/input";
+import { Switch } from "@heroui/switch";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { RadioGroup, Radio } from "@heroui/radio";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import {
   HeroSectionSettings,
   TEXT_COLORS,
   LAYOUT_MODES,
+  OBJECT_FIT_MODES,
 } from "./HeroSection.metadata";
 import { Save } from "lucide-react";
 import {
@@ -54,6 +51,7 @@ export function HeroSectionSettingsForm({
       textColor: initialSettings.textColor || TEXT_COLORS.BLACK,
       layoutMode: initialSettings.layoutMode || LAYOUT_MODES.OVERLAY,
       mediaType: initialSettings.mediaType || "image",
+      objectFit: initialSettings.objectFit || OBJECT_FIT_MODES.COVER,
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
@@ -149,6 +147,25 @@ export function HeroSectionSettingsForm({
           >
             <Radio value={TEXT_COLORS.BLACK}>Negro</Radio>
             <Radio value={TEXT_COLORS.WHITE}>Blanco</Radio>
+          </RadioGroup>
+
+          {/* Selector de object-fit */}
+          <RadioGroup
+            label="Ajuste de Imagen/Video"
+            description="Cover: rellena todo el espacio (puede recortar) | Contain: muestra completo (puede dejar espacios)"
+            value={settings.objectFit || OBJECT_FIT_MODES.COVER}
+            onValueChange={(value) =>
+              updateSettings((prev) => ({
+                ...prev,
+                objectFit: value as
+                  | typeof OBJECT_FIT_MODES.COVER
+                  | typeof OBJECT_FIT_MODES.CONTAIN,
+              }))
+            }
+            orientation="horizontal"
+          >
+            <Radio value={OBJECT_FIT_MODES.COVER}>Cover (Rellenar)</Radio>
+            <Radio value={OBJECT_FIT_MODES.CONTAIN}>Contain (Ajustar)</Radio>
           </RadioGroup>
 
           {/* Switch para layout mode */}

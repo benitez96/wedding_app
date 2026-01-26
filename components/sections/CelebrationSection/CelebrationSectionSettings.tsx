@@ -1,6 +1,9 @@
 "use client";
 
-import { Input, Switch, Button, Card, CardBody, Textarea } from "@heroui/react";
+import { Input, Textarea } from "@heroui/input";
+import { Switch } from "@heroui/switch";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
 import { useState } from "react";
 import { CelebrationSectionSettings } from "./CelebrationSection.metadata";
 import { Save } from "lucide-react";

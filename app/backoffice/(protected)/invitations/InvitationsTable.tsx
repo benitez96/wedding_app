@@ -9,12 +9,11 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Chip,
-  Button,
-  Card,
-  CardBody,
-  useDisclosure,
-} from "@heroui/react";
+} from "@heroui/table";
+import { Chip } from "@heroui/chip";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { useDisclosure } from "@heroui/use-disclosure";
 import { Edit, Trash2 } from "lucide-react";
 import { Invitation, InvitationWithTokens } from "./types";
 import EditInvitationModal from "@/components/EditInvitationModal";

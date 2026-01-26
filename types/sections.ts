@@ -7,11 +7,12 @@
 
 // Re-export SectionKey desde el metadata auto-generado
 export type { SectionKey } from "@/components/sections/metadata";
+import type { SectionKey } from "@/components/sections/metadata";
 
 // Configuración de una sección (lo que se guarda en BD)
 export interface SectionConfiguration {
   id: string;
-  key: string; // Usamos string genérico aquí para evitar import circular
+  key: SectionKey; // ✅ Tipo estricto desde metadata
   isEnabled: boolean;
   order: number;
   settings?: Record<string, unknown>; // Configuraciones específicas de cada sección

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Select, SelectItem, NumberInput } from "@heroui/react";
+import { Select, SelectItem } from "@heroui/select";
+import { Input as NumberInput } from "@heroui/input";
 
 interface InvitationStatusSelectProps {
   status: string;
@@ -79,15 +80,18 @@ export default function InvitationStatusSelect({
 
       {localStatus === "attending" && (
         <NumberInput
+          type="number"
           label="Número de Asistentes"
-          value={localGuestCount}
-          onValueChange={handleGuestCountChange}
+          value={localGuestCount.toString()}
+          onChange={(e) =>
+            handleGuestCountChange(parseInt(e.target.value) || 1)
+          }
           min={1}
           max={maxGuests}
           variant="bordered"
           isRequired
           description={`Máximo ${maxGuests} invitados permitidos`}
-          disabled={disabled}
+          isDisabled={disabled}
         />
       )}
     </div>

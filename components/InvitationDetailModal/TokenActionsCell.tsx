@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Tooltip } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Tooltip } from "@heroui/tooltip";
 import { ExternalLink, Ban, RotateCcw, Trash2 } from "lucide-react";
 import type { InvitationToken } from "@/types/invitation";
 

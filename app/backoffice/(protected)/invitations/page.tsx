@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import InvitationsTableLoader from "./InvitationsTableLoader";
 import InvitationsHeader from "./InvitationsHeader";
 import InvitationsSummary from "./InvitationsSummary";
-import { Card, CardBody, Skeleton, Spinner } from "@heroui/react";
+import { Card, CardBody } from "@heroui/card";
+import { Skeleton } from "@heroui/skeleton";
+import { Spinner } from "@heroui/spinner";
 
 // Forzar renderizado dinámico (no estático)
 export const dynamic = "force-dynamic";

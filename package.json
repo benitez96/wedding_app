@@ -11,6 +11,7 @@
     "lint:strict": "eslint --fix --max-warnings 0",
     "internal:create-admin": "tsx scripts/create-admin.ts",
     "internal:cleanup-rate-limit": "tsx scripts/cleanup-rate-limit.ts",
+    "internal:cleanup-security-logs": "tsx scripts/cleanup-security-logs.ts",
     "internal:generate-secrets": "tsx scripts/generate-secrets.ts",
     "internal:sync-sections": "tsx scripts/sync-sections.ts",
     "internal:generate-icon-enum": "tsx scripts/generate-icon-enum.ts"

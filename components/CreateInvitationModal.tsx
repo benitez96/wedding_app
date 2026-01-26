@@ -8,11 +8,12 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
-  Input,
-  NumberInput,
-  Form,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
+
+const NumberInput = Input; // NumberInput is just an Input alias
+import { Form } from "@heroui/form";
 import { useCSRF } from "@/hooks/useCSRF";
 
 interface CreateInvitationModalProps {

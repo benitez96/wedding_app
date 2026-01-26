@@ -1,11 +1,12 @@
-'use client'
+"use client";
 
-import { RadioGroup, Radio, useRadio, VisuallyHidden } from "@heroui/react";
+import { RadioGroup, Radio, useRadio } from "@heroui/radio";
+import { VisuallyHidden } from "@react-aria/visually-hidden";
 import { Heart, HeartOff } from "lucide-react";
 
 interface CustomRadioGroupProps {
-  value: 'attending' | 'declining' | null;
-  onValueChange: (value: 'attending' | 'declining') => void;
+  value: "attending" | "declining" | null;
+  onValueChange: (value: "attending" | "declining") => void;
 }
 
 // Componente personalizado para el radio con ícono de corazón
@@ -17,10 +18,10 @@ function HeartRadio(props: any) {
       <VisuallyHidden>
         <input {...getInputProps()} />
       </VisuallyHidden>
-      <Heart 
+      <Heart
         className={`w-12 h-12 transition-all duration-200 ${
           isSelected ? "fill-current text-success-600" : "text-default-400"
-        }`} 
+        }`}
       />
       <div className="text-center">
         <div className="font-semibold text-lg">¡Sí, acepto!</div>
@@ -39,10 +40,10 @@ function BrokenHeartRadio(props: any) {
       <VisuallyHidden>
         <input {...getInputProps()} />
       </VisuallyHidden>
-      <HeartOff 
+      <HeartOff
         className={`w-12 h-12 transition-all duration-200 ${
           isSelected ? "fill-current text-danger-600" : "text-default-400"
-        }`} 
+        }`}
       />
       <div className="text-center">
         <div className="font-semibold text-lg">No puedo ir :(</div>
@@ -52,10 +53,13 @@ function BrokenHeartRadio(props: any) {
   );
 }
 
-export default function CustomRadioGroup({ value, onValueChange }: CustomRadioGroupProps) {
+export default function CustomRadioGroup({
+  value,
+  onValueChange,
+}: CustomRadioGroupProps) {
   const handleValueChange = (newValue: string) => {
-    if (newValue === 'attending' || newValue === 'declining') {
-      onValueChange(newValue as 'attending' | 'declining');
+    if (newValue === "attending" || newValue === "declining") {
+      onValueChange(newValue as "attending" | "declining");
     }
   };
 
@@ -65,7 +69,7 @@ export default function CustomRadioGroup({ value, onValueChange }: CustomRadioGr
       onValueChange={handleValueChange}
       orientation="horizontal"
       classNames={{
-        wrapper: "flex gap-12 justify-center"
+        wrapper: "flex gap-12 justify-center",
       }}
     >
       <Radio
@@ -74,19 +78,19 @@ export default function CustomRadioGroup({ value, onValueChange }: CustomRadioGr
           base: "flex flex-col items-center gap-3",
           wrapper: "hidden",
           label: "text-center",
-          control: "hidden"
+          control: "hidden",
         }}
       >
         <HeartRadio value="attending" />
       </Radio>
-      
+
       <Radio
         value="declining"
         classNames={{
           base: "flex flex-col items-center gap-3",
           wrapper: "hidden",
           label: "text-center",
-          control: "hidden"
+          control: "hidden",
         }}
       >
         <BrokenHeartRadio value="declining" />

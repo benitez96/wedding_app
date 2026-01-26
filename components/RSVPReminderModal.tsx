@@ -7,8 +7,8 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
 import { Calendar } from "lucide-react";
 
 interface RSVPReminderModalProps {

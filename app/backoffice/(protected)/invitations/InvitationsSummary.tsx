@@ -1,28 +1,30 @@
-import { Card, CardBody } from '@heroui/react'
-import { getInvitationsStats } from '@/app/actions/protected-admin-invitations'
-import { InvitationsStats } from './types'
+import { Card, CardBody } from "@heroui/card";
+import { getInvitationsStats } from "@/app/actions/protected-admin-invitations";
+import { InvitationsStats } from "./types";
 
 interface InvitationsSummaryProps {
   // No necesita props, siempre muestra estadísticas globales
 }
 
 export default async function InvitationsSummary() {
-  const result = await getInvitationsStats()
-  
+  const result = await getInvitationsStats();
+
   if (!result.success) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardBody className="text-center">
             <div className="text-2xl font-bold text-danger">Error</div>
-            <div className="text-sm text-default-500">No se pudieron cargar las estadísticas</div>
+            <div className="text-sm text-default-500">
+              No se pudieron cargar las estadísticas
+            </div>
           </CardBody>
         </Card>
       </div>
-    )
+    );
   }
 
-  const stats: InvitationsStats = result.data!
+  const stats: InvitationsStats = result.data!;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -40,16 +42,20 @@ export default async function InvitationsSummary() {
       </Card>
       <Card>
         <CardBody className="text-center">
-          <div className="text-2xl font-bold text-success">{stats.confirmed}</div>
+          <div className="text-2xl font-bold text-success">
+            {stats.confirmed}
+          </div>
           <div className="text-sm text-default-500">Invitados Confirmados</div>
         </CardBody>
       </Card>
       <Card>
         <CardBody className="text-center">
           <div className="text-2xl font-bold text-danger">{stats.declined}</div>
-          <div className="text-sm text-default-500">Invitaciones Rechazadas</div>
+          <div className="text-sm text-default-500">
+            Invitaciones Rechazadas
+          </div>
         </CardBody>
       </Card>
     </div>
-  )
+  );
 }

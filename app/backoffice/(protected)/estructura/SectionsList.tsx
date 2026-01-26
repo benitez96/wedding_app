@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useOptimistic, useTransition } from "react";
 import {
   DndContext,
   closestCenter,
@@ -18,11 +18,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Card, CardBody, Switch, Button } from "@heroui/react";
-import { GripVertical, Save, CheckCircle } from "lucide-react";
+import { Card, CardBody } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { GripVertical, Trash2, Settings, Eye, EyeOff } from "lucide-react";
 import { SectionConfiguration } from "@/types/sections";
 import { SECTION_METADATA } from "@/components/sections/metadata";
-import { updateSectionsOrder } from "@/app/actions/sections";
+import { updateSectionsOrder, removeSection } from "@/app/actions/sections";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 
@@ -35,10 +36,12 @@ function SortableSection({
   section,
   onToggle,
   onClick,
+  onRemove,
 }: {
   section: SectionConfiguration;
   onToggle: (id: string, isEnabled: boolean) => void;
   onClick: (key: string) => void;
+  onRemove: (id: string) => void;
 }) {
   const {
     attributes,
@@ -75,26 +78,56 @@ function SortableSection({
               <GripVertical className="w-5 h-5" />
             </div>
 
-            {/* Icon + Info - Clickeable para editar */}
-            <button
-              type="button"
-              className="flex items-center gap-3 flex-1 cursor-pointer text-left"
-              onClick={() => onClick(section.key)}
-            >
+            {/* Icon + Info */}
+            <div className="flex items-center gap-3 flex-1">
               <div className="text-2xl">{metadata.icon}</div>
               <div className="flex-1">
                 <h4 className="font-medium text-gray-900">{metadata.name}</h4>
                 <p className="text-sm text-gray-600">{metadata.description}</p>
               </div>
-            </button>
+            </div>
 
-            {/* Switch */}
-            <Switch
-              isSelected={section.isEnabled}
-              onValueChange={(isEnabled) => onToggle(section.id, isEnabled)}
-              size="sm"
-              color="success"
-            />
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {/* Settings Button */}
+              <Button
+                size="sm"
+                variant="flat"
+                isIconOnly
+                onPress={() => onClick(section.key)}
+                aria-label="Configurar"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+
+              {/* Visibility Toggle Button */}
+              <Button
+                size="sm"
+                variant="flat"
+                color={section.isEnabled ? "success" : "default"}
+                isIconOnly
+                onPress={() => onToggle(section.id, !section.isEnabled)}
+                aria-label={section.isEnabled ? "Ocultar" : "Mostrar"}
+              >
+                {section.isEnabled ? (
+                  <Eye className="w-4 h-4" />
+                ) : (
+                  <EyeOff className="w-4 h-4" />
+                )}
+              </Button>
+
+              {/* Remove Button */}
+              <Button
+                size="sm"
+                variant="flat"
+                color="danger"
+                isIconOnly
+                onPress={() => onRemove(section.id)}
+                aria-label="Eliminar"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </CardBody>
       </Card>
@@ -102,12 +135,43 @@ function SortableSection({
   );
 }
 
+type OptimisticAction =
+  | { type: "reorder"; oldIndex: number; newIndex: number }
+  | { type: "toggle"; id: string; isEnabled: boolean }
+  | { type: "remove"; id: string };
+
 export default function SectionsList({ initialSections }: SectionsListProps) {
   const router = useRouter();
-  const [sections, setSections] = useState(initialSections);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  // Fix hydration mismatch - solo renderizar DnD en cliente
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // ✨ OPTIMISTIC UPDATES - React 19
+  const [optimisticSections, addOptimisticUpdate] = useOptimistic(
+    initialSections,
+    (state, action: OptimisticAction) => {
+      switch (action.type) {
+        case "reorder": {
+          const newSections = [...state];
+          const [removed] = newSections.splice(action.oldIndex, 1);
+          newSections.splice(action.newIndex, 0, removed);
+          return newSections;
+        }
+        case "toggle":
+          return state.map((s) =>
+            s.id === action.id ? { ...s, isEnabled: action.isEnabled } : s,
+          );
+        case "remove":
+          return state.filter((s) => s.id !== action.id);
+        default:
+          return state;
+      }
+    },
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -124,108 +188,110 @@ export default function SectionsList({ initialSections }: SectionsListProps) {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setSections((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
+      const oldIndex = optimisticSections.findIndex(
+        (item) => item.id === active.id,
+      );
+      const newIndex = optimisticSections.findIndex(
+        (item) => item.id === over.id,
+      );
 
-        setHasChanges(true);
-        return arrayMove(items, oldIndex, newIndex);
+      // Calcular los datos ANTES del optimistic update
+      const reorderedSections = arrayMove(
+        optimisticSections,
+        oldIndex,
+        newIndex,
+      );
+      const sectionsData = reorderedSections.map((section, index) => ({
+        id: section.id,
+        order: index,
+        isEnabled: section.isEnabled,
+      }));
+
+      startTransition(async () => {
+        // ✨ Update optimista
+        addOptimisticUpdate({ type: "reorder", oldIndex, newIndex });
+
+        // Guardar en background
+        await updateSectionsOrder(sectionsData);
       });
     }
   }
 
   function handleToggle(id: string, isEnabled: boolean) {
-    // Solo actualizar estado local, NO guardar en BD
-    setSections((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isEnabled } : s)),
-    );
-    setHasChanges(true);
-  }
-
-  async function handleSave() {
-    setIsSaving(true);
-    setSaveMessage(null);
-
-    // Preparar datos con orden y enabled/disabled
-    const sectionsData = sections.map((section, index) => ({
+    // Calcular los datos ANTES del optimistic update
+    const sectionsData = optimisticSections.map((section, index) => ({
       id: section.id,
       order: index,
-      isEnabled: section.isEnabled,
+      isEnabled: section.id === id ? isEnabled : section.isEnabled,
     }));
 
-    const result = await updateSectionsOrder(sectionsData);
+    startTransition(async () => {
+      // ✨ Update optimista
+      addOptimisticUpdate({ type: "toggle", id, isEnabled });
 
-    if (result.success) {
-      setHasChanges(false);
-      setSaveMessage(result.message || "Cambios guardados correctamente");
-      setTimeout(() => setSaveMessage(null), 3000);
-    } else {
-      setSaveMessage(result.error || "Error al guardar");
-      setTimeout(() => setSaveMessage(null), 3000);
-    }
+      // Guardar en background
+      await updateSectionsOrder(sectionsData);
+    });
+  }
 
-    setIsSaving(false);
+  function handleRemove(id: string) {
+    startTransition(async () => {
+      // Debug: verificar el ID antes de enviar
+      console.log("Removing section with ID:", id, "Type:", typeof id);
+
+      // ✨ Update optimista
+      addOptimisticUpdate({ type: "remove", id });
+
+      // Guardar en background
+      const result = await removeSection(id);
+
+      if (!result.success) {
+        console.error("Failed to remove section:", result.error);
+      }
+      // ✅ La revalidación automática actualiza initialSections
+    });
   }
 
   return (
     <div className="space-y-4">
-      {/* Header con botón de guardar */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          Arrastrá para reordenar, clickeá para editar
-        </p>
-        {hasChanges ? (
-          <Button
-            color="primary"
-            size="sm"
-            startContent={isSaving ? null : <Save className="w-4 h-4" />}
-            onPress={handleSave}
-            isLoading={isSaving}
-            isDisabled={isSaving}
-          >
-            {isSaving ? "Guardando..." : "Guardar Cambios"}
-          </Button>
-        ) : null}
-      </div>
-
-      {/* Mensaje de feedback */}
-      {saveMessage ? (
-        <div
-          className={clsx(
-            "p-3 rounded-lg flex items-center gap-2",
-            saveMessage.includes("Error") || saveMessage.includes("error")
-              ? "bg-danger-50 text-danger-700 border border-danger-200"
-              : "bg-success-50 text-success-700 border border-success-200",
-          )}
-        >
-          {!saveMessage.includes("Error") && (
-            <CheckCircle className="w-4 h-4" />
-          )}
-          <span>{saveMessage}</span>
-        </div>
-      ) : null}
-
       {/* Lista de secciones con scroll */}
       <div className="max-h-[calc(100vh-280px)] overflow-y-auto pr-2">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={sections.map((s) => s.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {sections.map((section) => (
+        {!mounted ? (
+          // Renderizado inicial (SSR) - sin DnD para evitar hydration mismatch
+          <>
+            {optimisticSections.map((section) => (
               <SortableSection
                 key={section.id}
                 section={section}
                 onToggle={handleToggle}
                 onClick={handleSectionClick}
+                onRemove={handleRemove}
               />
             ))}
-          </SortableContext>
-        </DndContext>
+          </>
+        ) : (
+          // Cliente - con DnD
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={optimisticSections.map((s) => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {optimisticSections.map((section) => (
+                <SortableSection
+                  key={section.id}
+                  section={section}
+                  onToggle={handleToggle}
+                  onClick={handleSectionClick}
+                  onRemove={handleRemove}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+        )}
       </div>
     </div>
   );

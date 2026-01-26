@@ -1,6 +1,9 @@
 "use client";
 
-import { Input, Button, Card, CardBody, Switch } from "@heroui/react";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { Switch } from "@heroui/switch";
 import { useState } from "react";
 import { PhotoUploadSectionSettings } from "./PhotoUploadSection.metadata";
 import { Save } from "lucide-react";

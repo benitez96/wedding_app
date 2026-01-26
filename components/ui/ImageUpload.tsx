@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Button, Card, CardBody } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 

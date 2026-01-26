@@ -1,6 +1,8 @@
 "use client";
 
-import { RadioGroup, useRadio, VisuallyHidden, cn } from "@heroui/react";
+import { RadioGroup, useRadio } from "@heroui/radio";
+import { VisuallyHidden } from "@react-aria/visually-hidden";
+import { cn } from "@heroui/theme";
 import Image from "next/image";
 import { Ban } from "lucide-react";
 import { DecorationSvg } from "@/types/decoration";

@@ -7,9 +7,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
-  Form,
-} from "@heroui/react";
+} from "@heroui/modal";
+import { Button } from "@heroui/button";
+import { Form } from "@heroui/form";
 import { Users, Heart } from "lucide-react";
 import {
   getCurrentUserData,

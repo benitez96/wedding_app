@@ -1,6 +1,9 @@
 "use client";
 
-import { Input, Switch, Button, Card, CardBody } from "@heroui/react";
+import { Input } from "@heroui/input";
+import { Switch } from "@heroui/switch";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
 import { useState } from "react";
 import { DateSectionSettings } from "./DateSection.metadata";
 import { Save } from "lucide-react";

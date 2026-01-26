@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, CardBody, Divider, Chip } from "@heroui/react";
+import { Card, CardBody } from "@heroui/card";
+import { Divider } from "@heroui/divider";
+import { Chip } from "@heroui/chip";
 import {
   Users,
   Phone,

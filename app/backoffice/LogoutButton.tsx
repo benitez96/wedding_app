@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { logoutAdmin } from "@/app/actions/admin";
-import { Button } from "@heroui/react";
+import { Button } from "@heroui/button";
 import { LogOut } from "lucide-react";
 
 export default function LogoutButton() {

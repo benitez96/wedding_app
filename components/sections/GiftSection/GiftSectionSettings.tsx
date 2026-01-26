@@ -1,13 +1,9 @@
 "use client";
 
-import {
-  Input,
-  Button,
-  Textarea,
-  Switch,
-  Accordion,
-  AccordionItem,
-} from "@heroui/react";
+import { Input, Textarea } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { Switch } from "@heroui/switch";
+import { Accordion, AccordionItem } from "@heroui/accordion";
 import { useState } from "react";
 import { GiftSectionSettings } from "./GiftSection.metadata";
 import { Save } from "lucide-react";

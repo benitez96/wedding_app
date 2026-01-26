@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, CardBody, Select, SelectItem, Slider } from "@heroui/react";
+import { Card, CardBody } from "@heroui/card";
+import { Select, SelectItem } from "@heroui/select";
+import { Slider } from "@heroui/slider";
 import {
   DecorationSvg,
   DecorationPattern,

@@ -1,6 +1,8 @@
 "use client";
 
-import { Switch, Button, Card, CardBody } from "@heroui/react";
+import { Switch } from "@heroui/switch";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
 import { useState } from "react";
 import { RSVPSectionSettings } from "./RSVPSection.metadata";
 import { Save } from "lucide-react";

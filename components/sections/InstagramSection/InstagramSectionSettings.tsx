@@ -1,6 +1,9 @@
 "use client";
 
-import { Input, Button, Card, CardBody, Textarea, Switch } from "@heroui/react";
+import { Input, Textarea } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { Switch } from "@heroui/switch";
 import { useState } from "react";
 import { InstagramSectionSettings } from "./InstagramSection.metadata";
 import { Save } from "lucide-react";

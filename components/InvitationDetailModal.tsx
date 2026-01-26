@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/react";
+import { Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/modal";
 import type { InvitationWithTokens } from "@/app/backoffice/(protected)/invitations/types";
 import InvitationInfoCard from "./InvitationDetailModal/InvitationInfoCard";
 import TokensTable from "./InvitationDetailModal/TokensTable";

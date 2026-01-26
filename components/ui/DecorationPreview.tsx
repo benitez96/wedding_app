@@ -2,7 +2,7 @@
 
 import { DecorationPreviewProps } from "@/types/decoration";
 import { DecorationLayer } from "./DecorationLayer";
-import { Card, CardBody } from "@heroui/react";
+import { Card, CardBody } from "@heroui/card";
 
 /**
  * Preview visual del patrón de decoración seleccionado

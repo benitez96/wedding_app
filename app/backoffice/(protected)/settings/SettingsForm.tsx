@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button, Input, Card, CardBody } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
+import { Card, CardBody } from "@heroui/card";
 import { Save, CheckCircle } from "lucide-react";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import { updateConfigurations } from "@/app/actions/settings";

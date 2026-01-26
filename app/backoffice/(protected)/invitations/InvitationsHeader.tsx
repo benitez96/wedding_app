@@ -1,7 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button, Input, Spinner, useDisclosure } from "@heroui/react";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
+import { Spinner } from "@heroui/spinner";
+import { useDisclosure } from "@heroui/use-disclosure";
 import { Plus, Search } from "lucide-react";
 import { useTransition, useState, useEffect } from "react";
 import CreateInvitationModal from "@/components/CreateInvitationModal";

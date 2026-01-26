@@ -5,6 +5,7 @@ import {
   HeroSectionSettings,
   TEXT_COLORS,
   LAYOUT_MODES,
+  OBJECT_FIT_MODES,
 } from "./HeroSection.metadata";
 
 interface HeroSectionProps {
@@ -20,6 +21,7 @@ export default function HeroSection({ settings }: HeroSectionProps) {
   const textColor = settings?.textColor || TEXT_COLORS.BLACK;
   const layoutMode = settings?.layoutMode || LAYOUT_MODES.OVERLAY;
   const mediaType = settings?.mediaType || "image";
+  const objectFit = settings?.objectFit || OBJECT_FIT_MODES.COVER;
 
   // ✅ Validar que la URL sea válida (evita crash mientras se tipea)
   const isValidUrl = (url: string): boolean => {
@@ -50,81 +52,80 @@ export default function HeroSection({ settings }: HeroSectionProps) {
   // Layout Overlay: texto superpuesto sobre imagen (contenedor h-[100dvh])
   if (layoutMode === LAYOUT_MODES.OVERLAY) {
     return (
-      <div className="relative h-[100dvh]" style={fadeStyles}>
-        <Section.Container className="animate-fade-in relative !p-0 h-full overflow-hidden">
-          {/* Media (imagen o video) */}
-          <div className="absolute inset-0 w-full h-full">
-            {!hasValidMedia ? (
-              // Placeholder cuando no hay media válida
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <p className="text-gray-500 text-sm">
-                  Ingresá una URL válida o subí una imagen/video
-                </p>
-              </div>
-            ) : mediaType === "video" ? (
-              <video
-                src={imageUrl}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                poster="/logo-2.jpeg"
-                className="w-full h-full object-cover"
-              >
-                Tu navegador no soporta videos
-              </video>
-            ) : (
-              <Image
-                src={imageUrl}
-                alt="Hero"
-                width={600}
-                height={800}
-                priority
-                className="w-full h-full object-fit"
-              />
-            )}
-          </div>
-
-          {/* Overlay oscuro opcional - cubre TODO el Section.Container */}
-          {enableOverlay && (
-            <div
-              className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
-              style={{
-                background:
-                  "linear-gradient(0deg, rgba(0,0,0,0.5), rgba(0,0,0,0.15))",
-              }}
+      <div className="relative h-[100dvh] overflow-hidden animate-fade-in">
+        {/* Media (imagen o video) */}
+        <div className="absolute inset-0 w-full h-full" style={fadeStyles}>
+          {!hasValidMedia ? (
+            // Placeholder cuando no hay media válida
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <p className="text-gray-500 text-sm">
+                Ingresá una URL válida o subí una imagen/video
+              </p>
+            </div>
+          ) : mediaType === "video" ? (
+            <video
+              src={imageUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              poster="/logo-2.jpeg"
+              className={`w-full h-full ${objectFit === OBJECT_FIT_MODES.COVER ? "object-cover" : "object-contain"}`}
+            >
+              Tu navegador no soporta videos
+            </video>
+          ) : (
+            <Image
+              src={imageUrl}
+              alt="Hero"
+              width={600}
+              height={800}
+              priority
+              className={`w-full h-full ${objectFit === OBJECT_FIT_MODES.COVER ? "object-cover" : "object-contain"}`}
             />
           )}
+        </div>
 
-          {/* Contenido - absolute al fondo del contenedor */}
-          <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-2 pb-4">
-            <h2
-              className={`text-3xl md:text-4xl drop-shadow-lg px-4 ${
+        {/* Overlay oscuro opcional */}
+        {enableOverlay && (
+          <div
+            className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
+            style={{
+              background:
+                "linear-gradient(0deg, rgba(0,0,0,0.5), rgba(0,0,0,0.15))",
+              ...fadeStyles,
+            }}
+          />
+        )}
+
+        {/* Contenido - centrado en el contenedor */}
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2">
+          <h2
+            className={`text-3xl md:text-4xl drop-shadow-lg px-4 ${
+              textColor === TEXT_COLORS.WHITE ? "text-white" : "text-black"
+            }`}
+          >
+            {title}
+          </h2>
+          {showScrollIndicator && (
+            <ChevronDown
+              className={`h-10 w-10 animate-bounce drop-shadow-lg ${
                 textColor === TEXT_COLORS.WHITE ? "text-white" : "text-black"
               }`}
-            >
-              {title}
-            </h2>
-            {showScrollIndicator && (
-              <ChevronDown
-                className={`h-10 w-10 animate-bounce drop-shadow-lg ${
-                  textColor === TEXT_COLORS.WHITE ? "text-white" : "text-black"
-                }`}
-              />
-            )}
-          </div>
-        </Section.Container>
+            />
+          )}
+        </div>
       </div>
     );
   }
 
   // Layout Stacked: imagen arriba, texto abajo (apilado)
   return (
-    <div className="relative overflow-hidden" style={fadeStyles}>
+    <div className="relative overflow-hidden">
       <Section.Container className="animate-fade-in relative !p-0">
         {/* Media (imagen o video) */}
-        <div className="relative w-full">
+        <div className="relative w-full" style={fadeStyles}>
           {!hasValidMedia ? (
             // Placeholder cuando no hay media válida
             <div className="w-full h-[calc(100dvh-120px)] bg-gray-200 flex items-center justify-center">
@@ -141,7 +142,7 @@ export default function HeroSection({ settings }: HeroSectionProps) {
               playsInline
               preload="metadata"
               poster="/logo-2.jpeg"
-              className="w-full h-[calc(100dvh-120px)] object-cover"
+              className={`w-full h-[calc(100dvh-120px)] ${objectFit === OBJECT_FIT_MODES.COVER ? "object-cover" : "object-contain"}`}
             >
               Tu navegador no soporta videos
             </video>
@@ -152,7 +153,7 @@ export default function HeroSection({ settings }: HeroSectionProps) {
               width={600}
               height={800}
               priority
-              className="w-full h-[calc(100dvh-120px)] object-fit"
+              className={`w-full h-[calc(100dvh-120px)] ${objectFit === OBJECT_FIT_MODES.COVER ? "object-cover" : "object-contain"}`}
             />
           )}
         </div>
@@ -164,6 +165,7 @@ export default function HeroSection({ settings }: HeroSectionProps) {
             style={{
               background:
                 "linear-gradient(0deg, rgba(0,0,0,0.5), rgba(0,0,0,0.15))",
+              ...fadeStyles,
             }}
           />
         )}
