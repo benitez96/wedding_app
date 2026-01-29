@@ -1,7 +1,13 @@
 import { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 
 import { siteConfig } from "@/config/site";
+import { auth } from "@/lib/auth";
+import { getUserEventContext } from "@/lib/event-context";
+import { getEventTheme } from "@/app/actions/theme";
+import { THEME_IDS } from "@/types/theme";
+import { ThemeSync } from "@/components/providers/ThemeSync";
 
 export const metadata: Metadata = {
   title: {
@@ -18,10 +24,37 @@ export const viewport: Viewport = {
   themeColor: [{ media: "(prefers-color-scheme: light)", color: "white" }],
 };
 
-export default function BackofficeLayout({
+// Force dynamic rendering to read session and cookies
+export const dynamic = "force-dynamic";
+
+export default async function BackofficeLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  return children;
+  // Obtener theme del evento activo del usuario (Better Auth)
+  let themeId = THEME_IDS.CLASSIC;
+
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (session?.user?.id) {
+      const eventContext = await getUserEventContext(session.user.id);
+      if (eventContext?.eventId) {
+        themeId = await getEventTheme(eventContext.eventId);
+        console.log("[Theme - Backoffice] EventId:", eventContext.eventId, "Theme:", themeId);
+      }
+    }
+  } catch (error) {
+    console.error("[Theme - Backoffice] Error:", error);
+  }
+
+  return (
+    <>
+      <ThemeSync themeId={themeId} />
+      {children}
+    </>
+  );
 }

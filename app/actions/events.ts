@@ -132,7 +132,8 @@ export const switchActiveEvent = withAuth(
         path: "/",
       });
 
-      revalidatePath("/backoffice");
+      // Invalidate backoffice layout to refresh theme
+      revalidatePath("/backoffice", "layout");
       return { success: true };
     } catch (error) {
       console.error("Error al cambiar evento activo:", error);
