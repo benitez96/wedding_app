@@ -4,9 +4,10 @@ import { useActionState } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody } from "@heroui/card";
-import { Save, CheckCircle } from "lucide-react";
+import { Save } from "lucide-react";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import { updateConfigurations } from "@/app/actions/settings";
+import FeedbackMessage, { MessageTypes } from "@/components/ui/FeedbackMessage";
 
 interface ConfigurationItem {
   id: string;
@@ -54,20 +55,12 @@ export default function SettingsForm({
 
   return (
     <form action={formAction} className="space-y-6">
-      {/* Mensaje de error */}
-      {state?.error ? (
-        <div className="p-3 bg-danger-50 border border-danger-200 text-danger-700 rounded-lg">
-          {state.error}
-        </div>
-      ) : null}
-
-      {/* Mensaje de éxito */}
-      {state?.success ? (
-        <div className="p-3 bg-success-50 border border-success-200 text-success-700 rounded-lg flex items-center gap-2">
-          <CheckCircle size={16} />
-          {state.message}
-        </div>
-      ) : null}
+      {state?.error && (
+        <FeedbackMessage type={MessageTypes.ERROR} message={state.error} />
+      )}
+      {state?.success && (
+        <FeedbackMessage type={MessageTypes.SUCCESS} message={state.message} />
+      )}
 
       <div className="grid gap-4">
         {/* PHOTO_UPLOAD_URL */}

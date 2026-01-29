@@ -57,7 +57,12 @@ export const getEventCollaborators = withEventAuth(
  * Crea un link de invitacion para colaboradores
  */
 export const createInviteLink = withEventAuth(
-  async (ctx, permissions: string, expiresInHours?: number) => {
+  async (
+    ctx,
+    permissions: string,
+    expiresInHours?: number,
+    maxUses?: number,
+  ) => {
     try {
       // Verificar que el owner tiene tier COMPANY
       const enforcement = await enforceCollaboratorAccess(ctx.user.id);
@@ -79,7 +84,7 @@ export const createInviteLink = withEventAuth(
           permissions: permissionsBigInt,
           createdBy: ctx.user.id,
           expiresAt,
-          maxUses: 1,
+          maxUses: maxUses ?? 1,
         },
       });
 

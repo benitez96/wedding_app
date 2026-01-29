@@ -28,7 +28,8 @@ import clsx from "clsx";
 import { authClient } from "@/lib/auth-client";
 import type { SubscriptionTier } from "@/types/subscription";
 import TierBadge from "@/components/backoffice/TierBadge";
-import EventSelector from "@/components/backoffice/EventSelector";
+import EventListSelector from "@/components/backoffice/EventListSelector";
+import CreateEventModal from "@/components/backoffice/CreateEventModal";
 
 interface MenuItem {
   label: string;
@@ -64,7 +65,7 @@ const MENU_ITEMS: MenuItem[] = [
     icon: <Settings className="w-5 h-5" />,
   },
   {
-    label: "Colaboradores",
+    label: "Miembros",
     href: "/backoffice/collaborators",
     icon: <UserPlus className="w-5 h-5" />,
     tierRequired: "COMPANY",
@@ -89,6 +90,7 @@ export default function BackofficeMenu({
   activeEventId = "",
 }: BackofficeMenuProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const createEventModal = useDisclosure();
   const pathname = usePathname();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -142,12 +144,13 @@ export default function BackofficeMenu({
           </DrawerHeader>
           <DrawerBody>
             <div className="flex flex-col gap-4">
-              {/* Event Selector for COMPANY tier */}
-              {isCompany && events.length > 0 && (
+              {/* Event List Selector for COMPANY tier */}
+              {isCompany && (
                 <>
-                  <EventSelector
+                  <EventListSelector
                     events={events}
-                    activeEventId={activeEventId}
+                    activeEventId={activeEventId || null}
+                    onCreateEvent={createEventModal.onOpen}
                   />
                   <Divider />
                 </>
@@ -202,6 +205,12 @@ export default function BackofficeMenu({
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Create Event Modal */}
+      <CreateEventModal
+        isOpen={createEventModal.isOpen}
+        onClose={createEventModal.onClose}
+      />
     </>
   );
 }

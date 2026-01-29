@@ -15,6 +15,7 @@ import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 import { SectionIconSelector } from "@/components/ui/SectionIconSelector";
 import { SectionIcon } from "@/types/section-icon";
+import FeedbackMessage, { MessageTypes } from "@/components/ui/FeedbackMessage";
 
 export function CelebrationSectionSettingsForm({
   initialSettings,
@@ -63,15 +64,10 @@ export function CelebrationSectionSettingsForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {message && (
-        <div
-          className={
-            message.includes("Error")
-              ? "p-3 bg-danger-50 text-danger-700 border border-danger-200 rounded-lg"
-              : "p-3 bg-success-50 text-success-700 border border-success-200 rounded-lg"
-          }
-        >
-          {message}
-        </div>
+        <FeedbackMessage
+          type={message.includes("Error") ? MessageTypes.ERROR : MessageTypes.SUCCESS}
+          message={message}
+        />
       )}
 
       <Card>

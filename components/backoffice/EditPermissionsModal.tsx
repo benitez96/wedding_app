@@ -9,32 +9,12 @@ import {
   ModalFooter,
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
-import { RadioGroup, Radio } from "@heroui/radio";
-import { Checkbox } from "@heroui/checkbox";
 import { updateCollaboratorPermissions } from "@/app/actions/collaborators";
-import {
-  PERMISSIONS,
-  PERMISSION_PRESETS,
-  PERMISSION_GROUPS,
-} from "@/lib/permissions";
-
-const PRESET_OPTIONS = {
-  ADMIN: "Admin",
-  EDITOR: "Editor",
-  VIEWER: "Viewer",
-  CLIENT: "Cliente",
-  CUSTOM: "Personalizado",
-} as const;
-
-type PresetKey = keyof typeof PRESET_OPTIONS;
-
-function detectPreset(permissions: bigint): PresetKey {
-  if (permissions === PERMISSION_PRESETS.ADMIN) return "ADMIN";
-  if (permissions === PERMISSION_PRESETS.EDITOR) return "EDITOR";
-  if (permissions === PERMISSION_PRESETS.VIEWER) return "VIEWER";
-  if (permissions === PERMISSION_PRESETS.CLIENT) return "CLIENT";
-  return "CUSTOM";
-}
+import PermissionsSelector, {
+  type PresetKey,
+  detectPreset,
+  getPermissionsBigInt,
+} from "@/components/backoffice/PermissionsSelector";
 
 interface EditPermissionsModalProps {
   isOpen: boolean;
@@ -61,17 +41,15 @@ export default function EditPermissionsModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getPermissionsBigInt = (): bigint => {
-    if (selectedPreset === "CUSTOM") return customPermissions;
-    return PERMISSION_PRESETS[selectedPreset];
-  };
-
   const handleSave = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const permissions = getPermissionsBigInt();
+      const permissions = getPermissionsBigInt(
+        selectedPreset,
+        customPermissions,
+      );
       const result = await updateCollaboratorPermissions(
         memberId,
         permissions.toString(),
@@ -90,13 +68,6 @@ export default function EditPermissionsModal({
     }
   };
 
-  const togglePermission = (permKey: keyof typeof PERMISSIONS) => {
-    const perm = PERMISSIONS[permKey];
-    setCustomPermissions((prev) =>
-      (prev & perm) === perm ? prev & ~perm : prev | perm,
-    );
-  };
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" placement="center">
       <ModalContent>
@@ -109,65 +80,13 @@ export default function EditPermissionsModal({
             </div>
           )}
 
-          <RadioGroup
-            label="Tipo de acceso"
-            value={selectedPreset}
-            onValueChange={(v) => setSelectedPreset(v as PresetKey)}
-          >
-            <Radio value="ADMIN" description="Todo excepto eliminar evento">
-              Admin
-            </Radio>
-            <Radio
-              value="EDITOR"
-              description="Gestionar invitados y ver analytics"
-            >
-              Editor
-            </Radio>
-            <Radio value="VIEWER" description="Solo lectura">
-              Viewer
-            </Radio>
-            <Radio
-              value="CLIENT"
-              description="Gestionar invitados + ver diseño"
-            >
-              Cliente
-            </Radio>
-            <Radio
-              value="CUSTOM"
-              description="Seleccionar permisos individualmente"
-            >
-              Personalizado
-            </Radio>
-          </RadioGroup>
-
-          {selectedPreset === "CUSTOM" && (
-            <div className="flex flex-col gap-3 pl-2">
-              {PERMISSION_GROUPS.filter(
-                (g) => g.label !== "Evento (Crítico)",
-              ).map((group) => (
-                <div key={group.label}>
-                  <p className="text-sm font-medium mb-1">{group.label}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {group.permissions.map((perm) => {
-                      const permValue = PERMISSIONS[perm.key];
-                      const isChecked =
-                        (customPermissions & permValue) === permValue;
-                      return (
-                        <Checkbox
-                          key={perm.key}
-                          size="sm"
-                          isSelected={isChecked}
-                          onValueChange={() => togglePermission(perm.key)}
-                        >
-                          {perm.label}
-                        </Checkbox>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <PermissionsSelector
+            selectedPreset={selectedPreset}
+            customPermissions={customPermissions}
+            onPresetChange={setSelectedPreset}
+            onCustomPermissionsChange={setCustomPermissions}
+            isDisabled={isLoading}
+          />
         </ModalBody>
 
         <ModalFooter>

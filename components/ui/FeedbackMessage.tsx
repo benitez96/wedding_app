@@ -1,0 +1,48 @@
+"use client";
+
+import { CheckCircle, AlertCircle } from "lucide-react";
+import clsx from "clsx";
+
+export enum MessageTypes {
+  SUCCESS = "success",
+  ERROR = "error",
+}
+
+export interface FeedbackMessageProps {
+  type: MessageTypes;
+  message: string;
+  icon?: React.ReactNode;
+  className?: string;
+}
+
+export default function FeedbackMessage({
+  type,
+  message,
+  icon,
+  className,
+}: FeedbackMessageProps) {
+  const isSuccess = type === MessageTypes.SUCCESS;
+  const isError = type === MessageTypes.ERROR;
+
+  const defaultIcon = isSuccess ? (
+    <CheckCircle className="w-4 h-4 flex-shrink-0" />
+  ) : (
+    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+  );
+
+  return (
+    <div
+      className={clsx(
+        "p-3 rounded-lg text-sm flex items-start gap-2",
+        {
+          "bg-success-50 border border-success-200 text-success-700": isSuccess,
+          "bg-danger-50 border border-danger-200 text-danger-700": isError,
+        },
+        className,
+      )}
+    >
+      {isSuccess && (icon ?? defaultIcon)}
+      <span className="flex-1">{message}</span>
+    </div>
+  );
+}

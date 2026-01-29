@@ -6,8 +6,9 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { Mail, User } from "lucide-react";
 import Link from "next/link";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 interface SignUpFormProps {
   redirectTo?: string;
@@ -18,8 +19,6 @@ export function SignUpForm({
   redirectTo = "/backoffice",
   showLoginLink = true,
 }: SignUpFormProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string>();
   const router = useRouter();
@@ -112,67 +111,21 @@ export function SignUpForm({
                 fullWidth
               />
 
-              <Input
-                type={showPassword ? "text" : "password"}
+              <PasswordInput
                 name="password"
                 label="Contraseña"
-                placeholder="••••••••"
                 description="Mínimo 8 caracteres"
-                startContent={<Lock className="w-4 h-4" />}
-                endContent={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onTouchStart={(e) => e.preventDefault()}
-                    className="focus:outline-none"
-                    aria-label={
-                      showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                    }
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <Eye className="w-4 h-4 text-gray-400" />
-                    )}
-                  </button>
-                }
                 isRequired
                 isDisabled={isPending}
                 autoComplete="new-password"
-                fullWidth
               />
 
-              <Input
-                type={showConfirmPassword ? "text" : "password"}
+              <PasswordInput
                 name="confirmPassword"
                 label="Confirmar contraseña"
-                placeholder="••••••••"
-                startContent={<Lock className="w-4 h-4" />}
-                endContent={
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onTouchStart={(e) => e.preventDefault()}
-                    className="focus:outline-none"
-                    aria-label={
-                      showConfirmPassword
-                        ? "Ocultar contraseña"
-                        : "Mostrar contraseña"
-                    }
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <Eye className="w-4 h-4 text-gray-400" />
-                    )}
-                  </button>
-                }
                 isRequired
                 isDisabled={isPending}
                 autoComplete="new-password"
-                fullWidth
               />
 
               {error && (

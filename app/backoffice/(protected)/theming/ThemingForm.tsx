@@ -6,6 +6,7 @@ import { Button } from "@heroui/button";
 import { updateActiveTheme } from "@/app/actions/theme";
 import { THEME_LIST, type ThemeId } from "@/types/theme";
 import { useRouter } from "next/navigation";
+import FeedbackMessage, { MessageTypes } from "@/components/ui/FeedbackMessage";
 
 interface ThemingFormProps {
   initialThemeId: ThemeId;
@@ -126,15 +127,10 @@ export default function ThemingForm({ initialThemeId }: ThemingFormProps) {
 
       {/* Mensaje de feedback */}
       {message && (
-        <div
-          className={`p-4 rounded-lg ${
-            message.type === "success"
-              ? "bg-green-50 text-green-800 border border-green-200"
-              : "bg-red-50 text-red-800 border border-red-200"
-          }`}
-        >
-          {message.text}
-        </div>
+        <FeedbackMessage
+          type={message.type === "success" ? MessageTypes.SUCCESS : MessageTypes.ERROR}
+          message={message.text}
+        />
       )}
 
       {/* Botón de guardar */}

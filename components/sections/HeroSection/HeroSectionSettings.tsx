@@ -19,6 +19,7 @@ import {
   createSettingsUpdater,
   useInitialSettingsSync,
 } from "@/types/section-settings-form";
+import FeedbackMessage, { MessageTypes } from "@/components/ui/FeedbackMessage";
 
 // ✅ BUNDLE SIZE: Cargar ImageUpload solo cuando se necesite (lazy loading)
 const ImageUpload = dynamic(
@@ -84,15 +85,10 @@ export function HeroSectionSettingsForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Mensaje de feedback */}
       {message && (
-        <div
-          className={
-            message.includes("Error")
-              ? "p-3 bg-danger-50 text-danger-700 border border-danger-200 rounded-lg"
-              : "p-3 bg-success-50 text-success-700 border border-success-200 rounded-lg"
-          }
-        >
-          {message}
-        </div>
+        <FeedbackMessage
+          type={message.includes("Error") ? MessageTypes.ERROR : MessageTypes.SUCCESS}
+          message={message}
+        />
       )}
 
       <Card>
