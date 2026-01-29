@@ -2,26 +2,44 @@
 
 > **Skills Reference**
 >
+> - [`better-auth-best-practices`](../skills/better-auth-best-practices/SKILL.md) - Better Auth integration
+> - [`frontend-design`](../skills/frontend-design/SKILL.md) - Distinctive, production-grade frontend interfaces
 > - [`nextjs-15`](../skills/nextjs-15/SKILL.md) - App Router, Server Actions
+> - [`playwright`](../skills/playwright/SKILL.md) - Playwright E2E testing
+> - [`react-19`](../skills/react-19/SKILL.md) - React 19 patterns with React Compiler
+> - [`skill-sync`](../skills/skill-sync/SKILL.md) - Syncs skill metadata to AGENTS.md
+> - [`tailwind-4`](../skills/tailwind-4/SKILL.md) - Tailwind CSS 4 patterns and best practices
+> - [`typescript`](../skills/typescript/SKILL.md) - TypeScript strict patterns and best practices
+> - [`vercel-composition-patterns`](../skills/vercel-composition-patterns/SKILL.md) - React composition patterns
+> - [`vercel-react-best-practices`](../skills/vercel-react-best-practices/SKILL.md) - React/Next.js performance optimization
+> - [`web-design-guidelines`](../skills/web-design-guidelines/SKILL.md) - UI review & Web Interface Guidelines compliance
+> - [`zod-4`](../skills/zod-4/SKILL.md) - Zod 4 schema validation patterns
 
 ### Auto-invoke Skills
 
 When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
-| Action | Skill |
-|--------|-------|
-| -- | `vercel-react-best-practices` |
-| After creating/modifying a skill | `skill-sync` |
-| App Router / Server Actions | `nextjs-15` |
-| Bundle size or rendering performance work | `vercel-react-best-practices` |
-| Playwright E2E testing | `playwright` |
-| React component patterns | `react-19` |
-| React/Next.js performance optimization | `vercel-react-best-practices` |
-| Regenerate AGENTS.md Auto-invoke tables (sync.sh) | `skill-sync` |
-| Tailwind styling and classes | `tailwind-4` |
-| Troubleshoot why a skill is missing from AGENTS.md auto-invoke | `skill-sync` |
-| TypeScript types and interfaces | `typescript` |
-| Zod validation and schemas | `zod-4` |
+| Action                                                         | Skill                         |
+| -------------------------------------------------------------- | ----------------------------- |
+| After creating/modifying a skill                               | `skill-sync`                  |
+| App Router / Server Actions                                    | `nextjs-15`                   |
+| Authentication setup or configuration with Better Auth         | `better-auth-best-practices`  |
+| Building compound components or component libraries            | `vercel-composition-patterns` |
+| Building new pages, landing pages, or dashboards from scratch  | `frontend-design`             |
+| Bundle size or rendering performance work                      | `vercel-react-best-practices` |
+| Creating visually distinctive UI components or layouts         | `frontend-design`             |
+| Designing reusable component APIs with context providers       | `vercel-composition-patterns` |
+| Playwright E2E testing                                         | `playwright`                  |
+| React component patterns                                       | `react-19`                    |
+| React/Next.js performance optimization                         | `vercel-react-best-practices` |
+| Refactoring components with boolean prop proliferation         | `vercel-composition-patterns` |
+| Regenerate AGENTS.md Auto-invoke tables (sync.sh)              | `skill-sync`                  |
+| Session management, OAuth, or auth plugin integration          | `better-auth-best-practices`  |
+| Tailwind styling and classes                                   | `tailwind-4`                  |
+| Troubleshoot why a skill is missing from AGENTS.md auto-invoke | `skill-sync`                  |
+| TypeScript types and interfaces                                | `typescript`                  |
+| UI review, accessibility audit, or UX best practices check     | `web-design-guidelines`       |
+| Zod validation and schemas                                     | `zod-4`                       |
 
 ---
 
