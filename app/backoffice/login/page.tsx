@@ -1,9 +1,10 @@
-import { getCSRFTokenForForm } from "@/lib/csrf";
-import AdminLoginForm from "@/components/backoffice/AdminLoginForm";
+import { LoginForm } from "@/components/auth/LoginForm";
 
-export default async function AdminLoginPage() {
-  // Generar CSRF token en el servidor (sin waterfall)
-  const csrfData = await getCSRFTokenForForm();
+export const metadata = {
+  title: "Backoffice - Iniciar Sesión",
+  description: "Ingresa para gestionar tu evento",
+};
 
-  return <AdminLoginForm csrfData={csrfData} />;
+export default function BackofficeLoginPage() {
+  return <LoginForm redirectTo="/backoffice" showSignUpLink={true} />;
 }

@@ -60,6 +60,39 @@ function SortableSection({
   const metadata =
     SECTION_METADATA[section.key as keyof typeof SECTION_METADATA];
 
+  if (!metadata) {
+    return (
+      <div ref={setNodeRef} style={style} className={clsx("mb-3", isDragging && "opacity-50 z-50")}>
+        <Card className="transition-shadow hover:shadow-md opacity-60">
+          <CardBody className="p-4">
+            <div className="flex items-center gap-3">
+              <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+                <GripVertical className="w-5 h-5" />
+              </div>
+              <div className="flex items-center gap-3 flex-1">
+                <div className="text-2xl">📄</div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">{section.key}</h4>
+                  <p className="text-sm text-gray-400">Sección sin metadata registrada</p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="flat"
+                color="danger"
+                isIconOnly
+                onPress={() => onRemove(section.id)}
+                aria-label="Eliminar sección"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={setNodeRef}

@@ -1,6 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { getUserEventContext } from "@/lib/event-context";
 import { SECTION_METADATA, isSectionKey } from "@/components/sections/metadata";
 import {
   getSectionConfigurations,
@@ -18,10 +21,25 @@ interface EditSectionPageProps {
 export default async function EditSectionPage({
   params,
 }: EditSectionPageProps) {
-  // Iniciar fetch de secciones ANTES de await params (parallel fetching)
-  const sectionsPromise = getSectionConfigurations();
-
   const { key } = await params;
+
+  // Obtener el evento del usuario
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    redirect("/backoffice/login");
+  }
+
+  const eventContext = await getUserEventContext(session.user.id);
+
+  if (!eventContext?.eventId) {
+    redirect("/backoffice");
+  }
+
+  // Obtener secciones del evento
+  const sections = await getSectionConfigurations(eventContext.eventId);
 
   // Verificar que el key sea válido
   if (!isSectionKey(key)) {
@@ -31,8 +49,6 @@ export default async function EditSectionPage({
   // Obtener metadata
   const metadata = SECTION_METADATA[key];
 
-  // Ahora sí await (ya está corriendo en paralelo)
-  const sections = await sectionsPromise;
   const section = sections.find((s) => s.key === key);
 
   if (!section) {

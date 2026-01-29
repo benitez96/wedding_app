@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -8,41 +9,283 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Invitaciones principales
-model Invitation {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// ============================================
+// AUTHENTICATION & USERS
+// ============================================
+
+// Usuario del sistema
+// Better Auth maneja los campos core de autenticación
+// Cada usuario puede crear sus propios eventos (bodas/fiestas)
+// y manejar el backoffice de SUS eventos
+
+model User {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   
+  // Campos de Better Auth (auto-generados por CLI)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  name          String
+  image         String?
+  
+  // Relaciones
+  ownedEvents          Event[]                @relation("EventOwner")
+  eventMemberships     EventMember[]
+  sessions             Session[]
+  accounts             Account[]
+  subscription         Subscription?          @relation("UserSubscription")
+  subscriptionHistory  SubscriptionHistory[]
+
+  @@map("users")
+}
+
+// ============================================
+// SUSCRIPCIONES
+// ============================================
+
+// Enums para suscripciones
+enum SubscriptionTier {
+  FREE
+  BASIC
+  COMPANY
+}
+
+enum SubscriptionStatus {
+  active
+  past_due
+  canceled
+  incomplete
+  trialing
+  paused
+}
+
+enum SubscriptionEventType {
+  created
+  upgraded
+  downgraded
+  renewed
+  canceled
+  expired
+  payment_failed
+  reactivated
+}
+
+enum SecurityLogType {
+  login_attempt
+  login_success
+  login_failed
+  rate_limit_triggered
+  honeypot_triggered
+}
+
+// Suscripción ACTUAL del usuario (1 fila por usuario)
+model Subscription {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Usuario (relación 1:1)
+  userId    String   @unique
+  user      User     @relation("UserSubscription", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Plan actual
+  tier      SubscriptionTier   @default(FREE)
+  status    SubscriptionStatus @default(active)
+  
+  // Payment Provider (agnóstico)
+  paymentProvider           String?  // stripe | mercadopago | paypal | etc
+  paymentProviderCustomerId String?  @unique // ID del customer en el proveedor
+  externalSubscriptionId    String?  @unique // ID de la suscripción en el proveedor externo
+  externalPriceId           String?  // ID del precio/plan en el proveedor
+  externalProductId         String?  // ID del producto en el proveedor
+  
+  // Fechas del ciclo de facturación
+  currentPeriodStart DateTime? // Inicio del período actual
+  currentPeriodEnd   DateTime? // Fin del período actual (cuándo se cobra el próximo pago)
+  
+  // Cancelación
+  cancelAtPeriodEnd Boolean  @default(false) // Si está cancelado pero sigue activo hasta el fin del período
+  canceledAt        DateTime? // Cuándo se canceló
+  
+  // Trial (si aplica)
+  trialStart DateTime? // Inicio del trial
+  trialEnd   DateTime? // Fin del trial
+  
+  @@index([status])
+  @@index([currentPeriodEnd])
+  @@map("subscriptions")
+}
+
+// Historial completo de suscripciones (auditoría)
+model SubscriptionHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // Usuario
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Qué cambió
+  eventType SubscriptionEventType
+  
+  // Estado anterior y nuevo
+  fromTier  SubscriptionTier?   // Tier anterior (null si es nueva suscripción)
+  toTier    SubscriptionTier    // Tier nuevo
+  
+  fromStatus SubscriptionStatus? // Status anterior
+  toStatus   SubscriptionStatus  // Status nuevo
+  
+  // Metadata del cambio
+  reason       String?  // Motivo del cambio (ej: "User requested cancellation", "Payment failed", "Admin upgrade")
+  changedBy    String?  // Quién hizo el cambio (userId del admin, "webhook:stripe", "webhook:mercadopago", "system", etc.)
+  
+  // Datos de pago (agnóstico del proveedor)
+  paymentProvider      String? // stripe | mercadopago | paypal
+  externalEventId      String? // ID del evento/webhook del proveedor
+  externalInvoiceId    String? // ID de la factura en el proveedor
+  externalTransactionId String? // ID de la transacción
+  amount               Int?    // Monto pagado (en centavos)
+  currency             String? // Moneda (USD, ARS, EUR, etc.)
+  
+  // Fechas relevantes
+  effectiveDate    DateTime @default(now()) // Cuándo el cambio tomó efecto
+  periodStart      DateTime? // Inicio del período de esta suscripción
+  periodEnd        DateTime? // Fin del período de esta suscripción
+  
+  // Metadata adicional (JSON para flexibilidad)
+  metadata Json? // Cualquier dato extra (ej: descuentos, cupones, etc.)
+  
+  @@index([userId, createdAt])
+  @@index([eventType])
+  @@index([effectiveDate])
+  @@map("subscription_history")
+}
+
+// ============================================
+// EVENTOS (Multi-tenant)
+// ============================================
+
+// Evento = Invitación/Servidor (cada evento es independiente)
+
+model Event {
+  id          String                 @id @default(cuid())
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  // Información básica
+  name        String
+  slug        String                 @unique
+  description String?
+  // Configuración visual (cada evento tiene su propio theme)
+  activeTheme String                 @default("classic")
+  // Owner (quien creó el evento)
+  ownerId     String
+  owner       User                   @relation("EventOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  // Relaciones
+  invitations Invitation[]
+  sections    SectionConfiguration[]
+  members     EventMember[]
+  inviteLinks EventInviteLink[]
+
+  @@index([ownerId])
+  @@index([slug])
+  @@map("events")
+}
+
+// Miembro de un evento (colaborador)
+
+model EventMember {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // Relaciones
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Permisos (bitmask - BigInt para soportar 64 permisos)
+  permissions BigInt    @default(0)
+  // Metadata de invitación
+  invitedBy   String
+  invitedAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_members")
+}
+
+// Links de invitación para colaboradores
+
+model EventInviteLink {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  // Token único para el link
+  token       String    @unique
+  // Permisos que se asignarán al aceptar
+  permissions BigInt    @default(0)
+  // Metadata
+  createdBy   String
+  expiresAt   DateTime?
+  maxUses     Int?      @default(1)
+  usedCount   Int       @default(0)
+  isActive    Boolean   @default(true)
+
+  @@index([token])
+  @@index([eventId])
+  @@map("event_invite_links")
+}
+
+// ============================================
+// INVITACIONES
+// ============================================
+
+// Invitaciones principales
+
+model Invitation {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  // Relación con evento
+  eventId       String
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   // Información de la invitación
   guestName     String
-  guestNickname  String?
+  guestNickname String?
   guestPhone    String?
   maxGuests     Int      @default(1)
 
-  
   // Respuesta del invitado
-  hasResponded  Boolean  @default(false)
-  isAttending   Boolean?
-  guestCount    Int?
-  respondedAt   DateTime?
-  
+  hasResponded Boolean           @default(false)
+  isAttending  Boolean?
+  guestCount   Int?
+  respondedAt  DateTime?
   // Relaciones
-  tokens          InvitationToken[]
-  
+  tokens       InvitationToken[]
+
+  @@index([eventId])
+  @@index([guestName])
+  @@index([guestPhone])
   @@map("invitations")
 }
 
 // Tokens únicos para cada invitación
+
 model InvitationToken {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Token único
+  token         String    @unique
   
   // Estado del token (se puede revocar sin eliminar)
-  isActive    Boolean  @default(true)
-  isUsed      Boolean  @default(false)
-  
+  isActive      Boolean   @default(true)
+  isUsed        Boolean   @default(false)
   // Información de uso del token
   firstAccessAt DateTime?
   lastAccessAt  DateTime?
@@ -50,116 +293,147 @@ model InvitationToken {
   userAgent     String?
   accessCount   Int       @default(0)
 
-  
   // Relaciones
   invitationId String
   invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
-  
+
   @@index([invitationId])
   @@index([isActive])
   @@map("invitation_tokens")
 }
 
-// Usuarios del backoffice (administradores)
-model AdminUser {
-  id          String   @id @default(cuid())
-  
-  // Información del usuario
-  username    String   @unique
-  password    String
-  
-  @@map("admin_users")
-}
+// ============================================
+// RATE LIMITING & SECURITY
+// ============================================
 
 // Rate limiting - Intentos de acceso
+
 model RateLimitAttempt {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
   // Información del intento
-  ip          String
-  actionType  String   // 'invitation-token', 'admin-login', 'invitation-actions'
-  success     Boolean  @default(false)
-  timestamp   DateTime @default(now())
-  
-  @@index([ip, actionType, timestamp])
+  ip        String
+  actionType String // 'invitation-token', 'admin-login', 'invitation-actions'
+  success   Boolean  @default(false)
+
+  @@index([ip, actionType, createdAt])
   @@map("rate_limit_attempts")
 }
 
 // Rate limiting - Bloqueos de IP
+
 model RateLimitBlock {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
   // Información del bloqueo
-  ip          String
-  actionType  String   // 'invitation-token', 'admin-login', 'invitation-actions'
+  ip           String
+  actionType   String // 'invitation-token', 'admin-login', 'invitation-actions'
   blockedUntil DateTime
-  reason      String?
-  
+  reason       String?
+
   @@index([ip, actionType, blockedUntil])
   @@map("rate_limit_blocks")
 }
 
-model Configuration {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// Logs de seguridad para auditoría
 
-  key         String   @unique
+model SecurityLog {
+  id        String          @id @default(cuid())
+  createdAt DateTime        @default(now())
+  // Tipo de evento
+  type      SecurityLogType
+  // Información del cliente
+  ip        String
+  userAgent String
+  // Detalles adicionales (JSON)
+  details   Json?
+
+  @@index([ip, type, createdAt])
+  @@map("security_logs")
+}
+
+// ============================================
+// CONFIGURACIÓN
+// ============================================
+
+model Configuration {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  key         String  @unique
   value       String
   description String?
 
   @@map("configurations")
 }
 
-// Configuración de secciones de la invitación
+// Configuración de secciones de la invitación (ahora por evento)
+
 model SectionConfiguration {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // Relación con evento
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   // Identificador único (hero, date, ceremony, etc.)
-  key         String   @unique
-  
+  key       String
   // Control de visualización
-  isEnabled   Boolean  @default(true)
-  order       Int      @unique
-  
+  isEnabled Boolean  @default(true)
+  order     Int
   // Configuración específica (JSON validado con Zod)
-  settings    Json?
-  
-  @@index([order])
+  settings  Json?
+
+  @@unique([eventId, key])
+  @@index([eventId, order])
   @@map("section_configurations")
 }
 
-// Configuración de theme activo (singleton)
-model ThemeSettings {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Theme activo ('classic' | 'pastel-green')
-  activeTheme String   @default("classic")
-  
-  @@map("theme_settings")
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
 }
 
-// Logs de seguridad para auditoría
-model SecurityLog {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  
-  // Tipo de evento
-  type        String   // 'login-attempt', 'login-success', 'login-failed', 'rate-limit-triggered', 'honeypot-triggered'
-  
-  // Información del cliente
-  ip          String
-  userAgent   String
-  
-  // Detalles adicionales (JSON)
-  details     Json?
-  
-  @@index([ip, type, createdAt])
-  @@map("security_logs")
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([providerId, accountId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verifications")
 }

@@ -1,148 +1,151 @@
-'use server'
+"use server";
 
-import { withAdminAuth, AdminUser } from '@/lib/admin-auth'
-import prisma from '@/lib/prisma'
-import * as XLSX from 'xlsx'
-import { validateCSRFToken } from '@/lib/csrf'
+import { withEventAuth } from "@/lib/server-auth";
+import prisma from "@/lib/prisma";
+import * as XLSX from "xlsx";
+import { PERMISSIONS } from "@/lib/permissions";
 
-// Ejemplo de action protegido para obtener estadísticas
-export const getAdminStats = withAdminAuth(async (user: AdminUser) => {
+// Action protegido para obtener estadísticas (scoped por evento)
+export const getAdminStats = withEventAuth(async (ctx) => {
+  const eventId = ctx.event.eventId;
+
   const [
     totalInvitations,
     respondedInvitations,
     attendingInvitations,
-    notAttendingInvitations
+    notAttendingInvitations,
   ] = await Promise.all([
-    prisma.invitation.count(),
-    prisma.invitation.count({ where: { hasResponded: true } }),
-    prisma.invitation.count({ where: { isAttending: true } }),
-    prisma.invitation.count({ where: { isAttending: false } })
-  ])
+    prisma.invitation.count({ where: { eventId } }),
+    prisma.invitation.count({ where: { eventId, hasResponded: true } }),
+    prisma.invitation.count({ where: { eventId, isAttending: true } }),
+    prisma.invitation.count({ where: { eventId, isAttending: false } }),
+  ]);
 
   return {
     totalInvitations,
     respondedInvitations,
     attendingInvitations,
     notAttendingInvitations,
-    responseRate: totalInvitations > 0 ? Math.round((respondedInvitations / totalInvitations) * 100) : 0
-  }
-})
+    responseRate:
+      totalInvitations > 0
+        ? Math.round((respondedInvitations / totalInvitations) * 100)
+        : 0,
+  };
+});
 
-// Ejemplo de action protegido para obtener todas las invitaciones
-export const getAllInvitations = withAdminAuth(async (user: AdminUser) => {
-  const invitations = await prisma.invitation.findMany({
-    include: {
-      tokens: true
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  })
-
-  return invitations
-})
-
-// Ejemplo de action protegido para eliminar una invitación
-export const deleteInvitation = withAdminAuth(async (user: AdminUser, invitationId: string, csrfToken?: string, csrfHash?: string) => {
-  try {
-    // Validar CSRF token
-    if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-      return { success: false, error: 'Token CSRF inválido' }
-    }
-
-    await prisma.invitation.delete({
-      where: { id: invitationId }
-    })
-
-    return { success: true }
-  } catch (error) {
-    console.error('Error eliminando invitación:', error)
-    return { success: false, error: 'Error al eliminar la invitación' }
-  }
-})
-
-// Ejemplo de action protegido para actualizar una invitación
-export const updateInvitation = withAdminAuth(async (
-  user: AdminUser, 
-  invitationId: string, 
-  data: {
-    guestName?: string
-    guestNickname?: string
-    guestPhone?: string
-    maxGuests?: number
-    csrfToken?: string
-    csrfHash?: string
-  }
-) => {
-  try {
-    // Validar CSRF token
-    if (data.csrfToken && !(await validateCSRFToken(data.csrfToken, data.csrfHash))) {
-      return { success: false, error: 'Token CSRF inválido' }
-    }
-
-    const { csrfToken, csrfHash, ...updateData } = data
-    const invitation = await prisma.invitation.update({
-      where: { id: invitationId },
-      data: updateData
-    })
-
-    return { success: true, invitation }
-  } catch (error) {
-    console.error('Error actualizando invitación:', error)
-    return { success: false, error: 'Error al actualizar la invitación' }
-  }
-})
-
-export const exportConfirmedGuestsToExcel = withAdminAuth(async (user: AdminUser) => {
-  try {
-    // Obtener todas las invitaciones confirmadas
-    const confirmedInvitations = await prisma.invitation.findMany({
-      where: {
-        isAttending: true,
-        hasResponded: true
-      },
-      select: {
-        guestName: true,
-        guestCount: true
+// Action protegido para obtener todas las invitaciones (scoped por evento)
+export const getAllInvitations = withEventAuth(
+  async (ctx) => {
+    const invitations = await prisma.invitation.findMany({
+      where: { eventId: ctx.event.eventId },
+      include: {
+        tokens: true,
       },
       orderBy: {
-        guestName: 'asc'
-      }
-    })
+        createdAt: "desc",
+      },
+    });
 
-    // Preparar los datos para el Excel
-    const excelData = confirmedInvitations.map(invitation => ({
-      'Invitado': invitation.guestName,
-      'Confirmados': invitation.guestCount || 1
-    }))
+    return invitations;
+  },
+  PERMISSIONS.GUESTS_VIEW,
+);
 
-    // Crear el workbook y worksheet
-    const workbook = XLSX.utils.book_new()
-    const worksheet = XLSX.utils.json_to_sheet(excelData)
+// Action protegido para eliminar una invitación (scoped por evento)
+export const deleteInvitation = withEventAuth(
+  async (ctx, invitationId: string) => {
+    try {
+      await prisma.invitation.delete({
+        where: { id: invitationId, eventId: ctx.event.eventId },
+      });
 
-    // Ajustar el ancho de las columnas
-    const columnWidths = [
-      { wch: 30 }, // Invitado
-      { wch: 15 }  // Confirmados
-    ]
-    worksheet['!cols'] = columnWidths
-
-    // Agregar el worksheet al workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Invitados Confirmados')
-
-    // Generar el buffer del archivo
-    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
-
-    return {
-      success: true,
-      data: excelBuffer,
-      filename: `invitados-confirmados-${new Date().toISOString().split('T')[0]}.xlsx`
+      return { success: true };
+    } catch (error) {
+      console.error("Error eliminando invitación:", error);
+      return { success: false, error: "Error al eliminar la invitación" };
     }
-  } catch (error) {
-    console.error('Error al exportar invitados confirmados:', error)
-    return {
-      success: false,
-      error: 'Error al generar el archivo Excel'
+  },
+  PERMISSIONS.GUESTS_DELETE,
+);
+
+// Action protegido para actualizar una invitación (scoped por evento)
+export const updateInvitation = withEventAuth(
+  async (
+    ctx,
+    invitationId: string,
+    data: {
+      guestName?: string;
+      guestNickname?: string;
+      guestPhone?: string;
+      maxGuests?: number;
+    },
+  ) => {
+    try {
+      const invitation = await prisma.invitation.update({
+        where: { id: invitationId, eventId: ctx.event.eventId },
+        data: data,
+      });
+
+      return { success: true, invitation };
+    } catch (error) {
+      console.error("Error actualizando invitación:", error);
+      return { success: false, error: "Error al actualizar la invitación" };
     }
-  }
-})
+  },
+  PERMISSIONS.GUESTS_EDIT,
+);
+
+export const exportConfirmedGuestsToExcel = withEventAuth(
+  async (ctx) => {
+    try {
+      const confirmedInvitations = await prisma.invitation.findMany({
+        where: {
+          eventId: ctx.event.eventId,
+          isAttending: true,
+          hasResponded: true,
+        },
+        select: {
+          guestName: true,
+          guestCount: true,
+        },
+        orderBy: {
+          guestName: "asc",
+        },
+      });
+
+      const excelData = confirmedInvitations.map((invitation) => ({
+        Invitado: invitation.guestName,
+        Confirmados: invitation.guestCount || 1,
+      }));
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      const columnWidths = [
+        { wch: 30 },
+        { wch: 15 },
+      ];
+      worksheet["!cols"] = columnWidths;
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Invitados Confirmados");
+
+      const excelBuffer = XLSX.write(workbook, {
+        type: "buffer",
+        bookType: "xlsx",
+      });
+
+      return {
+        success: true,
+        data: excelBuffer,
+        filename: `invitados-confirmados-${new Date().toISOString().split("T")[0]}.xlsx`,
+      };
+    } catch (error) {
+      console.error("Error al exportar invitados confirmados:", error);
+      return {
+        success: false,
+        error: "Error al generar el archivo Excel",
+      };
+    }
+  },
+  PERMISSIONS.GUESTS_VIEW,
+);

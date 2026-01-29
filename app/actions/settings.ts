@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { verifyAdminAuth } from "@/lib/admin-auth";
+import { verifyUserAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 
@@ -17,7 +17,7 @@ export async function updateConfigurations(
 ): Promise<ActionState> {
   try {
     // Verificar autenticación de admin
-    const authResult = await verifyAdminAuth();
+    const authResult = await verifyUserAuth();
     if (!authResult.success) {
       return { success: false, error: "No autorizado" };
     }
@@ -114,7 +114,7 @@ export async function updateConfigurations(
 export async function getConfigurations() {
   try {
     // Verificar autenticación de admin
-    const authResult = await verifyAdminAuth();
+    const authResult = await verifyUserAuth();
     if (!authResult.success) {
       throw new Error("No autorizado");
     }

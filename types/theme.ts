@@ -7,21 +7,15 @@ export const THEME_IDS = {
 
 export type ThemeId = (typeof THEME_IDS)[keyof typeof THEME_IDS];
 
-// Definición de colores de un theme
+// Colores básicos para preview UI
 export interface ThemeColors {
   primary: string;
-  primaryForeground: string;
   secondary: string;
-  secondaryForeground: string;
   accent: string;
-  accentForeground: string;
   warm: string;
-  warmForeground: string;
-  background: string;
-  foreground: string;
 }
 
-// Definición completa de un theme
+// Definición de un theme (metadata + colores para preview)
 export interface Theme {
   id: ThemeId;
   name: string;
@@ -29,23 +23,18 @@ export interface Theme {
   colors: ThemeColors;
 }
 
-// Themes disponibles
+// Themes disponibles (metadata + colores para UI preview)
+// Los colores completos están en tailwind.config.js
 export const THEMES: Record<ThemeId, Theme> = {
   [THEME_IDS.CLASSIC]: {
     id: THEME_IDS.CLASSIC,
     name: "Clásico",
     description: "Blanco, negro y grises elegantes",
     colors: {
-      primary: "#000000", // Negro
-      primaryForeground: "#FFFFFF", // Blanco
-      secondary: "#2C2C2C", // Gris oscuro
-      secondaryForeground: "#FFFFFF", // Blanco
-      accent: "#4A4A4A", // Gris medio
-      accentForeground: "#FFFFFF", // Blanco
-      warm: "#6B6B6B", // Gris claro
-      warmForeground: "#FFFFFF", // Blanco
-      background: "#FFFFFF", // Blanco
-      foreground: "#000000", // Negro
+      primary: "#000000",
+      secondary: "#2C2C2C",
+      accent: "#4A4A4A",
+      warm: "#6B6B6B",
     },
   },
   [THEME_IDS.WARM]: {
@@ -54,15 +43,9 @@ export const THEMES: Record<ThemeId, Theme> = {
     description: "Marrón dorado elegante",
     colors: {
       primary: "#8B5A3C",
-      primaryForeground: "#FFFFFF",
       secondary: "#B89A7A",
-      secondaryForeground: "#FFFFFF",
       accent: "#D4AF37",
-      accentForeground: "#000000",
       warm: "#E8B4A0",
-      warmForeground: "#000000",
-      background: "#FFFFFF",
-      foreground: "#1A1A1A",
     },
   },
   [THEME_IDS.PASTEL_GREEN]: {
@@ -71,15 +54,9 @@ export const THEMES: Record<ThemeId, Theme> = {
     description: "Verde menta suave y elegante",
     colors: {
       primary: "#7FB069",
-      primaryForeground: "#FFFFFF",
       secondary: "#A8DADC",
-      secondaryForeground: "#1D3557",
       accent: "#98C1A3",
-      accentForeground: "#1D3557",
       warm: "#C5E1A5",
-      warmForeground: "#2E7D32",
-      background: "#F1FAEE",
-      foreground: "#1D3557",
     },
   },
 } as const;

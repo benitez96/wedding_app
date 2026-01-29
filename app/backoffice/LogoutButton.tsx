@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { logoutAdmin } from "@/app/actions/admin";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@heroui/button";
 import { LogOut } from "lucide-react";
 
@@ -14,11 +14,7 @@ export default function LogoutButton() {
     setIsLoading(true);
 
     try {
-      const result = await logoutAdmin();
-
-      if (!result.success) {
-        console.error("Error al cerrar sesión:", result.error);
-      }
+      await authClient.signOut();
 
       // Redirigir a la página de login
       router.replace("/backoffice/login");

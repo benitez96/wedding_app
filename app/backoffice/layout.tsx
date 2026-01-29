@@ -1,8 +1,7 @@
-import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
 
 import { siteConfig } from "@/config/site";
-import BackofficeNavbar from "./BackofficeNavbar";
 
 export const metadata: Metadata = {
   title: {
@@ -22,7 +21,7 @@ export const viewport: Viewport = {
 export default function BackofficeLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return children;
 }

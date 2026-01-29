@@ -2,38 +2,17 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@/app/generated/prisma";
 import * as jose from "jose";
-import { headers } from "next/headers";
-import { cookies } from "next/headers";
+import { headers, cookies } from "next/headers";
 import crypto from "crypto";
 import { JWT_SECRET, SECURITY_CONFIG } from "@/lib/config";
-import {
-  invitationResponseSchema,
-  tokenSchema,
-  validateAndSanitize,
-} from "@/utils/validation";
-import { validateCSRFToken } from "@/lib/csrf";
+import { tokenSchema, validateAndSanitize } from "@/utils/validation";
 import { getClientIP, recordAttempt } from "@/lib/rate-limiter";
-import { logError, logWarning } from "@/lib/logger";
+import { logError } from "@/lib/logger";
 
-// Función para generar fingerprint del dispositivo (versión mejorada)
-async function generateDeviceFingerprint(userAgent: string): Promise<string> {
-  const hash = crypto.createHash("sha256");
-
-  // Normalizar el user agent para ser menos sensible a actualizaciones menores
-  const normalizedUA = userAgent
-    .replace(/\d+\.\d+\.\d+\.\d+/g, "VERSION") // Reemplazar versiones específicas
-    .replace(/Chrome\/[\d.]+/g, "Chrome/VERSION") // Normalizar versión de Chrome
-    .replace(/Safari\/[\d.]+/g, "Safari/VERSION") // Normalizar versión de Safari
-    .replace(/Firefox\/[\d.]+/g, "Firefox/VERSION") // Normalizar versión de Firefox
-    .replace(/Edge\/[\d.]+/g, "Edge/VERSION"); // Normalizar versión de Edge
-
-  hash.update(normalizedUA + JWT_SECRET);
-  return hash.digest("hex").substring(0, 16); // Primeros 16 caracteres
-}
-
-// Helper function para validar tokens
+/**
+ * Helper: Validate invitation token exists and is active
+ */
 async function validateToken(tokenId: string) {
   const token = await prisma.invitationToken.findUnique({
     where: { id: tokenId },
@@ -41,27 +20,29 @@ async function validateToken(tokenId: string) {
   });
 
   if (!token || !token.isActive) {
-    return { valid: false, error: "Token inválido o revocado" };
+    return { valid: false, error: "Token invalid or revoked" };
   }
 
   if (!token.invitation) {
-    return { valid: false, error: "Invitación no encontrada" };
+    return { valid: false, error: "Invitation not found" };
   }
 
   return { valid: true, token, invitation: token.invitation };
 }
 
-// ACCIONES PÚBLICAS (no requieren autenticación)
-
+/**
+ * Process invitation token: validate and create JWT session
+ * Public action - no auth required
+ */
 export async function processInvitationToken(token: string) {
   try {
-    // Validar token
+    // Validate token format
     const tokenValidation = validateAndSanitize(tokenSchema, token);
     if (!tokenValidation.success) {
-      return { success: false, action: "error", error: "token-invalido" };
+      return { success: false, action: "error", error: "invalid-token" };
     }
 
-    // Verificar rate limiting antes de procesar
+    // Check rate limiting
     const clientIP = await getClientIP();
     const rateLimitResult = await recordAttempt(
       clientIP,
@@ -78,131 +59,86 @@ export async function processInvitationToken(token: string) {
       };
     }
 
-    // Obtener user agent para información del dispositivo
     const headersList = await headers();
     const userAgent = headersList.get("user-agent") || "Unknown";
-
     const cookieStore = await cookies();
     const session = cookieStore.get("session");
 
-    // Verificar si tiene una sesión activa
+    // If user already has session, check if it's the same token
     if (session) {
       try {
         const secret = new TextEncoder().encode(JWT_SECRET);
         const { payload } = await jose.jwtVerify(session.value, secret, {
-          issuer: "wedding-app",
-          audience: "wedding-invitation",
-          algorithms: ["HS512"],
+          issuer: SECURITY_CONFIG.JWT_ISSUER,
+          audience: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
+          algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
         });
 
-        // Verificar claims adicionales de seguridad
+        // Verify claims
         if (
-          payload.iss !== "wedding-app" ||
-          payload.aud !== "wedding-invitation"
+          payload.iss !== SECURITY_CONFIG.JWT_ISSUER ||
+          payload.aud !== SECURITY_CONFIG.JWT_INVITATION_AUDIENCE
         ) {
           throw new Error("Invalid JWT claims");
         }
 
-        const currentDeviceFp = await generateDeviceFingerprint(userAgent);
-        if (payload.deviceFp !== currentDeviceFp) {
-          // Log de seguridad para monitoreo, pero no invalidamos la sesión
-          logWarning(
-            "Device fingerprint mismatch detected",
-            "Browser may have updated",
-            {
-              tokenId: payload.tokenId as string,
-              expected: payload.deviceFp as string,
-              got: currentDeviceFp,
-            },
-          );
-
-          // Opcional: podrías registrar esto en una tabla de auditoría para análisis posterior
-          // await logSecurityEvent({
-          //   type: 'fingerprint-mismatch',
-          //   ip: await getClientIP(),
-          //   userAgent,
-          //   details: { tokenId: payload.tokenId, expectedFp: payload.deviceFp, currentFp: currentDeviceFp }
-          // })
-
-          // Continuar con la validación normal en lugar de invalidar la sesión
-        }
-
-        // Verificar si es el mismo token que ya está en la sesión
+        // If same token, just redirect
         if (payload.tokenId === token) {
           return { success: true, action: "redirect" };
         }
-
-        if (process.env.NODE_ENV === "development") {
-          console.log("Token diferente al de la sesión, validando nuevo token");
-        }
       } catch (jwtError) {
-        if (process.env.NODE_ENV === "development") {
-          console.log("Sesión inválida, continuando con validación de token");
-        }
+        // Invalid session, continue with new token
       }
     }
 
-    // Buscar el token en la base de datos
+    // Lookup token in database
     const validatedToken = (tokenValidation as { success: true; data: string })
       .data;
     const invitationToken = await prisma.invitationToken.findUnique({
       where: { id: validatedToken },
-      include: {
-        invitation: true,
-      },
+      include: { invitation: true },
     });
 
-    // Si el token no existe o está inactivo, retornar error
     if (!invitationToken || !invitationToken.isActive) {
-      // Registrar intento fallido
       await recordAttempt(clientIP, "invitation-token", false);
-      return { success: false, action: "error", error: "token-invalido" };
+      return { success: false, action: "error", error: "invalid-token" };
     }
 
-    // Verificar que el token no esté usado
     if (invitationToken.isUsed) {
-      // Registrar intento fallido
       await recordAttempt(clientIP, "invitation-token", false);
-      return { success: false, action: "error", error: "token-ya-usado" };
+      return { success: false, action: "error", error: "token-already-used" };
     }
 
-    // Marcar el token como usado y guardar user agent
+    // Mark token as used
     await prisma.invitationToken.update({
       where: { id: validatedToken },
       data: {
         isUsed: true,
-        userAgent: userAgent,
+        userAgent,
       },
     });
 
-    // Generar JWT con hardening de seguridad
+    // Create JWT session for guest
     const secret = new TextEncoder().encode(JWT_SECRET);
     const sessionToken = await new jose.SignJWT({
       tokenId: validatedToken,
       invitationId: invitationToken.invitation.id,
-      // Agregar claims adicionales para mayor seguridad
-      iss: SECURITY_CONFIG.JWT_ISSUER, // Issuer
-      aud: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE, // Audience
-      sub: invitationToken.invitation.id, // Subject
-      // Fingerprint del dispositivo para detectar cambios
-      deviceFp: await generateDeviceFingerprint(userAgent),
-      // Timestamp de creación para tracking
+      iss: SECURITY_CONFIG.JWT_ISSUER,
+      aud: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
+      sub: invitationToken.invitation.id,
       createdAt: Date.now(),
-      // Tipo de sesión para diferenciar de admin
-      sessionType: "invitation",
     })
       .setProtectedHeader({
-        alg: SECURITY_CONFIG.JWT_ALGORITHM, // Algoritmo más fuerte
+        alg: SECURITY_CONFIG.JWT_ALGORITHM,
         typ: "JWT",
-        kid: "wedding-v1", // Key ID para versioning
       })
       .setIssuedAt()
-      .setNotBefore(new Date()) // No válido antes de ahora
+      .setNotBefore(new Date())
       .setExpirationTime(`${SECURITY_CONFIG.INVITATION_SESSION_DURATION}s`)
-      .setJti(crypto.randomUUID()) // JWT ID único
+      .setJti(crypto.randomUUID())
       .sign(secret);
 
-    // Setear la cookie
+    // Set HTTP-only cookie with guest session
     cookieStore.set("session", sessionToken, {
       httpOnly: true,
       secure: SECURITY_CONFIG.COOKIE_SECURE,
@@ -210,7 +146,7 @@ export async function processInvitationToken(token: string) {
       maxAge: SECURITY_CONFIG.INVITATION_SESSION_DURATION,
     });
 
-    // Registrar intento exitoso
+    // Log successful token use
     await recordAttempt(clientIP, "invitation-token", true);
 
     return {
@@ -218,11 +154,14 @@ export async function processInvitationToken(token: string) {
       action: "authenticated",
     };
   } catch (error) {
-    logError("Error al procesar token", error);
-    return { success: false, action: "error", error: "error-procesando-token" };
+    logError("Error processing invitation token", error);
+    return { success: false, action: "error", error: "error-processing-token" };
   }
 }
 
+/**
+ * Get current invitation guest user from session
+ */
 export async function getCurrentUser() {
   try {
     const cookieStore = await cookies();
@@ -234,17 +173,20 @@ export async function getCurrentUser() {
 
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jose.jwtVerify(session.value, secret, {
-      issuer: "wedding-app",
-      audience: "wedding-invitation",
-      algorithms: ["HS512"],
+      issuer: SECURITY_CONFIG.JWT_ISSUER,
+      audience: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
+      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
     });
 
-    // Verificar claims adicionales de seguridad
-    if (payload.iss !== "wedding-app" || payload.aud !== "wedding-invitation") {
+    // Verify claims
+    if (
+      payload.iss !== SECURITY_CONFIG.JWT_ISSUER ||
+      payload.aud !== SECURITY_CONFIG.JWT_INVITATION_AUDIENCE
+    ) {
       return { success: false, user: null };
     }
 
-    // Validar el token usando la helper function
+    // Validate token exists and is active
     const validation = await validateToken(payload.tokenId as string);
 
     if (!validation.valid || !validation.invitation) {
@@ -256,6 +198,7 @@ export async function getCurrentUser() {
       user: {
         invitationId: payload.invitationId,
         tokenId: payload.tokenId,
+        eventId: validation.invitation.eventId,
         guestName: validation.invitation.guestName,
         guestNickname: validation.invitation.guestNickname,
         maxGuests: validation.invitation.maxGuests,
@@ -266,12 +209,11 @@ export async function getCurrentUser() {
       },
     };
   } catch (error) {
-    logError("Error al obtener usuario actual", error);
+    logError("Error getting current user", error);
     return { success: false, user: null };
   }
 }
 
-// Importar y re-exportar el action protegido
+// Re-export protected invitation actions
 import { updateInvitationResponse as protectedUpdateInvitationResponse } from "./protected-invitations";
-
 export const updateInvitationResponse = protectedUpdateInvitationResponse;

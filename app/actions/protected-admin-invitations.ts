@@ -1,22 +1,23 @@
 "use server";
 
-import { withAdminAuth, AdminUser } from "@/lib/admin-auth";
+import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/app/generated/prisma";
 import {
   invitationSchema,
-  invitationResponseSchema,
   searchSchema,
   validateAndSanitize,
   sanitizeString,
 } from "@/utils/validation";
-import { validateCSRFToken } from "@/lib/csrf";
+import { enforceGuestLimit, getGuestUsage } from "@/lib/tier-enforcement";
+import { PERMISSIONS } from "@/lib/permissions";
 
-// Action protegido para obtener invitaciones
-export const getInvitations = withAdminAuth(
-  async (user: AdminUser, searchTerm?: string) => {
+// Action protegido para obtener invitaciones (scoped por evento)
+export const getInvitations = withEventAuth(
+  async (ctx, searchTerm?: string) => {
     try {
+      const { event } = ctx;
       // Validar término de búsqueda
       if (searchTerm) {
         const validation = validateAndSanitize(searchSchema, { searchTerm });
@@ -30,24 +31,27 @@ export const getInvitations = withAdminAuth(
         searchTerm = sanitizeString(validatedData.data.searchTerm || "");
       }
 
-      const where = searchTerm
-        ? {
-            OR: [
-              {
-                guestName: {
-                  contains: searchTerm,
-                  mode: Prisma.QueryMode.insensitive,
+      const where: Prisma.InvitationWhereInput = {
+        eventId: event.eventId,
+        ...(searchTerm
+          ? {
+              OR: [
+                {
+                  guestName: {
+                    contains: searchTerm,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
                 },
-              },
-              {
-                guestNickname: {
-                  contains: searchTerm,
-                  mode: Prisma.QueryMode.insensitive,
+                {
+                  guestNickname: {
+                    contains: searchTerm,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
                 },
-              },
-            ],
-          }
-        : {};
+              ],
+            }
+          : {}),
+      };
 
       const invitations = await prisma.invitation.findMany({
         where,
@@ -68,17 +72,23 @@ export const getInvitations = withAdminAuth(
       return { success: false, error: "Error al cargar las invitaciones" };
     }
   },
+  PERMISSIONS.GUESTS_VIEW,
 );
 
-// Action protegido para crear invitación
-export const createInvitation = withAdminAuth(
-  async (user: AdminUser, formData: FormData) => {
+// Action protegido para crear invitación (con enforcement de tier)
+export const createInvitation = withEventAuth(
+  async (ctx, formData: FormData) => {
     try {
-      // Validar CSRF token
-      const csrfToken = formData.get("_csrf") as string;
-      const csrfHash = formData.get("_csrf_hash") as string;
-      if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-        return { success: false, error: "Token CSRF inválido" };
+      const { user, event } = ctx;
+
+      // Enforce guest limit antes de crear
+      const enforcement = await enforceGuestLimit(user.id, event.eventId);
+      if (!enforcement.allowed) {
+        return {
+          success: false,
+          error: enforcement.reason,
+          limitReached: true,
+        };
       }
 
       const guestName = formData.get("guestName") as string;
@@ -110,6 +120,7 @@ export const createInvitation = withAdminAuth(
 
       const invitation = await prisma.invitation.create({
         data: {
+          eventId: event.eventId,
           guestName: data.guestName,
           guestNickname: data.guestNickname || null,
           guestPhone: data.guestPhone || null,
@@ -129,18 +140,14 @@ export const createInvitation = withAdminAuth(
       return { success: false, error: "Error al crear la invitación" };
     }
   },
+  PERMISSIONS.GUESTS_CREATE,
 );
 
-// Action protegido para actualizar invitación
-export const updateInvitation = withAdminAuth(
-  async (user: AdminUser, id: string, formData: FormData) => {
+// Action protegido para actualizar invitación (scoped por evento)
+export const updateInvitation = withEventAuth(
+  async (ctx, id: string, formData: FormData) => {
     try {
-      // Validar CSRF token
-      const csrfToken = formData.get("_csrf") as string;
-      const csrfHash = formData.get("_csrf_hash") as string;
-      if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
+      const { event } = ctx;
 
       const guestName = formData.get("guestName") as string;
       const guestNickname = formData.get("guestNickname") as string;
@@ -171,8 +178,9 @@ export const updateInvitation = withAdminAuth(
         };
       }
 
+      // Verificar que la invitación pertenece al evento activo
       const invitation = await prisma.invitation.update({
-        where: { id },
+        where: { id, eventId: event.eventId },
         data: {
           guestName,
           guestNickname: guestNickname || null,
@@ -192,6 +200,7 @@ export const updateInvitation = withAdminAuth(
       return { success: false, error: "Error al actualizar la invitación" };
     }
   },
+  PERMISSIONS.GUESTS_EDIT,
 );
 
 // Wrapper para useActionState - actualizar invitación
@@ -213,22 +222,13 @@ export async function createInvitationAction(
   return result;
 }
 
-// Action protegido para eliminar invitación
-export const deleteInvitation = withAdminAuth(
-  async (
-    user: AdminUser,
-    id: string,
-    csrfToken?: string,
-    csrfHash?: string,
-  ) => {
+// Action protegido para eliminar invitación (scoped por evento)
+export const deleteInvitation = withEventAuth(
+  async (ctx, id: string) => {
     try {
-      // Validar CSRF token
-      if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
-
+      // Verificar que la invitación pertenece al evento activo
       await prisma.invitation.delete({
-        where: { id },
+        where: { id, eventId: ctx.event.eventId },
       });
 
       revalidatePath("/backoffice/invitations");
@@ -238,14 +238,15 @@ export const deleteInvitation = withAdminAuth(
       return { success: false, error: "Error al eliminar la invitación" };
     }
   },
+  PERMISSIONS.GUESTS_DELETE,
 );
 
-// Action protegido para obtener invitación con tokens
-export const getInvitationWithTokens = withAdminAuth(
-  async (user: AdminUser, id: string) => {
+// Action protegido para obtener invitación con tokens (scoped por evento)
+export const getInvitationWithTokens = withEventAuth(
+  async (ctx, id: string) => {
     try {
-      const invitation = await prisma.invitation.findUnique({
-        where: { id },
+      const invitation = await prisma.invitation.findFirst({
+        where: { id, eventId: ctx.event.eventId },
         include: {
           tokens: {
             orderBy: {
@@ -265,87 +266,96 @@ export const getInvitationWithTokens = withAdminAuth(
       return { success: false, error: "Error al cargar la invitación" };
     }
   },
+  PERMISSIONS.GUESTS_VIEW,
 );
 
-// Action protegido para obtener estadísticas de invitaciones
-export const getInvitationsStats = withAdminAuth(async (user: AdminUser) => {
-  try {
-    const [total, pending, declined, confirmedGuests] = await Promise.all([
-      // Total de invitaciones
-      prisma.invitation.count(),
+// Action protegido para obtener estadísticas de invitaciones (scoped por evento)
+export const getInvitationsStats = withEventAuth(
+  async (ctx) => {
+    try {
+      const eventId = ctx.event.eventId;
 
-      // Pendientes (no han respondido)
-      prisma.invitation.count({
-        where: {
-          hasResponded: false,
-        },
-      }),
+      const [total, pending, declined, confirmedGuests] = await Promise.all([
+        prisma.invitation.count({
+          where: { eventId },
+        }),
 
-      // No asistirán (respondieron pero no van a asistir)
-      prisma.invitation.count({
-        where: {
-          hasResponded: true,
-          isAttending: false,
-        },
-      }),
-
-      // Total de invitados confirmados (suma de guestCount)
-      prisma.invitation.aggregate({
-        where: {
-          hasResponded: true,
-          isAttending: true,
-          guestCount: {
-            not: null,
+        prisma.invitation.count({
+          where: {
+            eventId,
+            hasResponded: false,
           },
-        },
-        _sum: {
-          guestCount: true,
-        },
-      }),
-    ]);
+        }),
 
-    return {
-      success: true,
-      data: {
-        total,
-        pending,
-        confirmed: confirmedGuests._sum.guestCount || 0,
-        declined,
-      },
-    };
+        prisma.invitation.count({
+          where: {
+            eventId,
+            hasResponded: true,
+            isAttending: false,
+          },
+        }),
+
+        prisma.invitation.aggregate({
+          where: {
+            eventId,
+            hasResponded: true,
+            isAttending: true,
+            guestCount: {
+              not: null,
+            },
+          },
+          _sum: {
+            guestCount: true,
+          },
+        }),
+      ]);
+
+      return {
+        success: true,
+        data: {
+          total,
+          pending,
+          confirmed: confirmedGuests._sum.guestCount || 0,
+          declined,
+        },
+      };
+    } catch (error) {
+      console.error("Error al obtener estadísticas de invitaciones:", error);
+      return { success: false, error: "Error al cargar las estadísticas" };
+    }
+  },
+  PERMISSIONS.GUESTS_VIEW,
+);
+
+// Action para obtener el uso de invitados (limites de tier)
+export const getInvitationUsage = withEventAuth(async (ctx) => {
+  try {
+    const usage = await getGuestUsage(ctx.user.id, ctx.event.eventId);
+    return { success: true, data: usage };
   } catch (error) {
-    console.error("Error al obtener estadísticas de invitaciones:", error);
-    return { success: false, error: "Error al cargar las estadísticas" };
+    console.error("Error al obtener uso de invitaciones:", error);
+    return { success: false, error: "Error al obtener el uso" };
   }
 });
 
-// Action protegido para crear token de invitación
-export const createInvitationToken = withAdminAuth(
-  async (
-    user: AdminUser,
-    invitationId: string,
-    csrfToken?: string,
-    csrfHash?: string,
-  ) => {
+// Action protegido para crear token de invitación (scoped por evento)
+export const createInvitationToken = withEventAuth(
+  async (ctx, invitationId: string) => {
     try {
-      // Validar CSRF token
-      if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
-
-      // Verificar que la invitación existe
-      const invitation = await prisma.invitation.findUnique({
-        where: { id: invitationId },
+      // Verificar que la invitación pertenece al evento activo
+      const invitation = await prisma.invitation.findFirst({
+        where: { id: invitationId, eventId: ctx.event.eventId },
       });
 
       if (!invitation) {
         return { success: false, error: "Invitación no encontrada" };
       }
 
-      // Crear el token en la base de datos (el id será generado automáticamente como cuid)
+      const crypto = await import("crypto");
       const invitationToken = await prisma.invitationToken.create({
         data: {
           invitationId,
+          token: crypto.randomBytes(32).toString("hex"),
         },
       });
 
@@ -356,22 +366,13 @@ export const createInvitationToken = withAdminAuth(
       return { success: false, error: "Error al crear el token de invitación" };
     }
   },
+  PERMISSIONS.GUESTS_SEND,
 );
 
 // Action protegido para revocar token de invitación
-export const revokeInvitationToken = withAdminAuth(
-  async (
-    user: AdminUser,
-    tokenId: string,
-    csrfToken?: string,
-    csrfHash?: string,
-  ) => {
+export const revokeInvitationToken = withEventAuth(
+  async (ctx, tokenId: string) => {
     try {
-      // Validar CSRF token
-      if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
-
       const token = await prisma.invitationToken.update({
         where: { id: tokenId },
         data: { isActive: false },
@@ -384,22 +385,13 @@ export const revokeInvitationToken = withAdminAuth(
       return { success: false, error: "Error al revocar el token" };
     }
   },
+  PERMISSIONS.GUESTS_EDIT,
 );
 
 // Action protegido para reactivar token de invitación
-export const reactivateInvitationToken = withAdminAuth(
-  async (
-    user: AdminUser,
-    tokenId: string,
-    csrfToken?: string,
-    csrfHash?: string,
-  ) => {
+export const reactivateInvitationToken = withEventAuth(
+  async (ctx, tokenId: string) => {
     try {
-      // Validar CSRF token
-      if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
-
       const token = await prisma.invitationToken.update({
         where: { id: tokenId },
         data: { isActive: true },
@@ -412,22 +404,13 @@ export const reactivateInvitationToken = withAdminAuth(
       return { success: false, error: "Error al reactivar el token" };
     }
   },
+  PERMISSIONS.GUESTS_EDIT,
 );
 
 // Action protegido para eliminar token de invitación
-export const deleteInvitationToken = withAdminAuth(
-  async (
-    user: AdminUser,
-    tokenId: string,
-    csrfToken?: string,
-    csrfHash?: string,
-  ) => {
+export const deleteInvitationToken = withEventAuth(
+  async (ctx, tokenId: string) => {
     try {
-      // Validar CSRF token
-      if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
-
       await prisma.invitationToken.delete({
         where: { id: tokenId },
       });
@@ -439,4 +422,5 @@ export const deleteInvitationToken = withAdminAuth(
       return { success: false, error: "Error al eliminar el token" };
     }
   },
+  PERMISSIONS.GUESTS_DELETE,
 );

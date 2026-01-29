@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exportConfirmedGuestsToExcel } from "@/app/actions/backoffice";
-import { verifyAdminAuth } from "@/lib/admin-auth";
+import { verifyUserAuth } from "@/lib/server-auth";
 
 // Forzar renderizado dinámico (no estático)
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    // Verificar autenticación de admin
-    const authResult = await verifyAdminAuth();
+    // Verificar autenticación
+    const authResult = await verifyUserAuth();
 
     if (!authResult.success || !authResult.user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });

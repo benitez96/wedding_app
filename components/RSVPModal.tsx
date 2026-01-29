@@ -17,7 +17,6 @@ import {
 } from "@/app/actions/protected-invitations";
 import CustomRadioGroup from "./sections/RSVPStatus/CustomRadioGroup";
 import GuestCountSelector from "./GuestCountSelector";
-import { useCSRF } from "@/hooks/useCSRF";
 import SimpleConfetti from "./SimpleConfetti";
 
 interface RSVPModalProps {
@@ -39,7 +38,6 @@ export default function RSVPModal({
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isProcessingRef = useRef(false);
-  const { csrfData } = useCSRF();
 
   // useActionState para manejar el estado del formulario
   const [state, formAction, isPending] = useActionState(
@@ -51,7 +49,6 @@ export default function RSVPModal({
         const result = await updateInvitationResponse({
           isAttending: response === "attending",
           guestCount: response === "attending" ? guestCount : null,
-          csrfToken: csrfData?.token,
         });
 
         if (result.success) {

@@ -11,7 +11,6 @@ import {
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
 import { AlertTriangle } from "lucide-react";
-import { useCSRF } from "@/hooks/useCSRF";
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -28,7 +27,6 @@ export default function DeleteConfirmationModal({
 }: DeleteConfirmationModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
-  const { csrfData } = useCSRF();
 
   const handleDelete = async () => {
     if (!invitation) return;
@@ -37,7 +35,7 @@ export default function DeleteConfirmationModal({
     setError("");
 
     try {
-      const result = await deleteInvitation(invitation.id, csrfData?.token);
+      const result = await deleteInvitation(invitation.id);
 
       if (result.success) {
         onSuccess();

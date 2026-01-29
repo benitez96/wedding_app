@@ -1,5 +1,5 @@
-import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
 
 import { siteConfig } from "@/config/site";
 
@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 export default function InvitationLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <main className="container mx-auto max-w-screen-sm">

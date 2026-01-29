@@ -19,17 +19,22 @@ import {
   Users,
   Layout,
   Settings,
-  X,
   LogOut,
   Palette,
+  UserPlus,
+  CalendarDays,
 } from "lucide-react";
 import clsx from "clsx";
-import { logoutAdmin } from "@/app/actions/admin";
+import { authClient } from "@/lib/auth-client";
+import type { SubscriptionTier } from "@/types/subscription";
+import TierBadge from "@/components/backoffice/TierBadge";
+import EventSelector from "@/components/backoffice/EventSelector";
 
 interface MenuItem {
   label: string;
   href: string;
   icon: React.ReactNode;
+  tierRequired?: SubscriptionTier;
 }
 
 const MENU_ITEMS: MenuItem[] = [
@@ -58,9 +63,31 @@ const MENU_ITEMS: MenuItem[] = [
     href: "/backoffice/settings",
     icon: <Settings className="w-5 h-5" />,
   },
+  {
+    label: "Colaboradores",
+    href: "/backoffice/collaborators",
+    icon: <UserPlus className="w-5 h-5" />,
+    tierRequired: "COMPANY",
+  },
 ];
 
-export default function BackofficeMenu() {
+interface EventOption {
+  id: string;
+  name: string;
+  isOwner: boolean;
+}
+
+interface BackofficeMenuProps {
+  tier?: SubscriptionTier;
+  events?: EventOption[];
+  activeEventId?: string;
+}
+
+export default function BackofficeMenu({
+  tier = "FREE",
+  events = [],
+  activeEventId = "",
+}: BackofficeMenuProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const pathname = usePathname();
   const router = useRouter();
@@ -70,24 +97,27 @@ export default function BackofficeMenu() {
     setIsLoggingOut(true);
 
     try {
-      const result = await logoutAdmin();
+      await authClient.signOut();
 
-      if (!result.success) {
-        console.error("Error al cerrar sesión:", result.error);
-      }
-
-      // Redirigir a la página de login
       router.replace("/backoffice/login");
       router.refresh();
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
-      // Aún así redirigir al login
       router.replace("/backoffice/login");
       router.refresh();
     } finally {
       setIsLoggingOut(false);
     }
   };
+
+  const visibleItems = MENU_ITEMS.filter((item) => {
+    if (!item.tierRequired) return true;
+    // COMPANY items only for COMPANY tier
+    if (item.tierRequired === "COMPANY") return tier === "COMPANY";
+    return true;
+  });
+
+  const isCompany = tier === "COMPANY";
 
   return (
     <>
@@ -105,30 +135,56 @@ export default function BackofficeMenu() {
       <Drawer isOpen={isOpen} onClose={onClose} placement="left">
         <DrawerContent>
           <DrawerHeader className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Menú</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">Menú</h2>
+              <TierBadge tier={tier} />
+            </div>
           </DrawerHeader>
           <DrawerBody>
-            <nav className="flex flex-col gap-2">
-              {MENU_ITEMS.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={onClose}
-                    className={clsx(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground font-medium"
-                        : "text-gray-700 hover:bg-gray-100",
-                    )}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+            <div className="flex flex-col gap-4">
+              {/* Event Selector for COMPANY tier */}
+              {isCompany && events.length > 0 && (
+                <>
+                  <EventSelector
+                    events={events}
+                    activeEventId={activeEventId}
+                  />
+                  <Divider />
+                </>
+              )}
+
+              {/* Event name for non-COMPANY tiers */}
+              {!isCompany && events.length > 0 && (
+                <>
+                  <div className="px-4 py-1 text-sm text-default-500">
+                    {events[0]?.name}
+                  </div>
+                  <Divider />
+                </>
+              )}
+
+              <nav className="flex flex-col gap-2">
+                {visibleItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onClose}
+                      className={clsx(
+                        "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground font-medium"
+                          : "text-gray-700 hover:bg-gray-100",
+                      )}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
           </DrawerBody>
           <DrawerFooter className="flex flex-col gap-2">
             <Divider />

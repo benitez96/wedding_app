@@ -10,14 +10,8 @@ import DynamicSectionRenderer from "@/components/sections/DynamicSectionRenderer
 export const revalidate = 3600;
 
 export default async function Home() {
-  // Parallel data fetching - todas las requests se inician simultáneamente
-  const [userResult, sections, weddingDate, remindRestingDays] =
-    await Promise.all([
-      getCurrentUser(),
-      getSectionConfigurations(),
-      getWeddingDate(),
-      getRemindRestingDays(),
-    ]);
+  // Primero obtener el usuario para saber el eventId
+  const userResult = await getCurrentUser();
 
   // Verificar autenticación
   if (!userResult.success || !userResult.user) {
@@ -25,6 +19,13 @@ export default async function Home() {
   }
 
   const user = userResult.user;
+
+  // Ahora obtener los datos del evento
+  const [sections, weddingDate, remindRestingDays] = await Promise.all([
+    getSectionConfigurations(user.eventId),
+    getWeddingDate(),
+    getRemindRestingDays(),
+  ]);
 
   // Actualizar métricas de acceso (non-blocking)
   if (user.tokenId && typeof user.tokenId === "string") {

@@ -15,7 +15,6 @@ import { Input } from "@heroui/input";
 const NumberInput = Input; // NumberInput is just an Input alias
 import { Form } from "@heroui/form";
 import InvitationStatusSelect from "./InvitationStatusSelect";
-import { useCSRF } from "@/hooks/useCSRF";
 import type { Invitation } from "@/types/invitation";
 
 interface EditInvitationModalProps {
@@ -39,8 +38,6 @@ export default function EditInvitationModal({
   });
   const [invitationStatus, setInvitationStatus] = useState("pending");
   const [guestCount, setGuestCount] = useState(1);
-  const { csrfData } = useCSRF();
-
   // Ref para evitar llamar onSuccess/onClose múltiples veces
   const isProcessingRef = useRef(false);
 
@@ -51,8 +48,6 @@ export default function EditInvitationModal({
 
       isProcessingRef.current = true;
       try {
-        // Agregar CSRF al formData
-        formData.append("csrfToken", csrfData?.token || "");
         const result = await updateInvitation(invitation.id, formData);
 
         if (result.success) {

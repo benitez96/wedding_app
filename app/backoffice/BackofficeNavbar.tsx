@@ -2,13 +2,26 @@ import { Navbar, NavbarBrand, NavbarContent } from "@heroui/navbar";
 import { Heart } from "lucide-react";
 import Link from "next/link";
 import BackofficeMenu from "./BackofficeMenu";
+import type { SubscriptionTier } from "@/types/subscription";
+
+interface EventOption {
+  id: string;
+  name: string;
+  isOwner: boolean;
+}
 
 interface BackofficeNavbarProps {
   showMenu?: boolean;
+  tier?: SubscriptionTier;
+  events?: EventOption[];
+  activeEventId?: string;
 }
 
 export default function BackofficeNavbar({
   showMenu = false,
+  tier,
+  events,
+  activeEventId,
 }: BackofficeNavbarProps) {
   return (
     <Navbar className="bg-white shadow-sm border-b" maxWidth="2xl">
@@ -19,7 +32,13 @@ export default function BackofficeNavbar({
         </Link>
       </NavbarBrand>
       <NavbarContent justify="end">
-        {showMenu ? <BackofficeMenu /> : null}
+        {showMenu ? (
+          <BackofficeMenu
+            tier={tier}
+            events={events}
+            activeEventId={activeEventId}
+          />
+        ) : null}
       </NavbarContent>
     </Navbar>
   );

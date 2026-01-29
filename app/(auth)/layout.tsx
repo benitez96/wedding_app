@@ -1,0 +1,23 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+
+interface AuthLayoutProps {
+  children: React.ReactNode;
+}
+
+export default async function AuthLayout({ children }: AuthLayoutProps) {
+  // Verificar si el usuario ya está autenticado
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // Si ya está autenticado, redirigir al backoffice
+  if (session) {
+    redirect("/backoffice");
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">{children}</div>
+  );
+}

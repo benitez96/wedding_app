@@ -1,116 +1,58 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import * as jose from "jose";
-import { JWT_SECRET, SECURITY_CONFIG } from "@/lib/config";
-import { logError } from "@/lib/logger";
 
+/**
+ * Middleware de Next.js para proteger rutas
+ *
+ * Better Auth maneja la autenticación automáticamente,
+ * solo necesitamos verificar qué rutas requieren auth
+ */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Rutas que no necesitan autenticación
+  // ============================================
+  // RUTAS PÚBLICAS (no requieren autenticación)
+  // ============================================
   const publicRoutes = [
-    "/backoffice/login",
-    "/error",
+    "/", // Landing page
+    "/error", // Página de error
+    "/api/auth", // Endpoints de Better Auth
+    "/api/health", // Health check
     "/favicon.ico",
     "/logo.png",
-    "/r/", // Rutas de procesamiento de tokens
-    "/", // Sitio principal (se verifica autenticación en el componente)
-    "/api/health", // Health check para monitoring
-    "/api/csrf-token", // CSRF token público
+    "/r/", // Rutas de tokens de invitación (se validan internamente)
   ];
 
-  // Verificar si es una ruta pública
   if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
-  // Rutas del backoffice (necesitan autenticación de admin)
-  if (pathname.startsWith("/backoffice")) {
-    const adminSession = request.cookies.get("admin-session");
+  // ============================================
+  // RUTAS PROTEGIDAS (requieren autenticación)
+  // ============================================
 
-    if (!adminSession) {
-      // No hay sesión de admin, redirigir a login
-      return NextResponse.redirect(new URL("/backoffice/login", request.url));
-    }
+  // Verificar sesión leyendo la cookie de sesión
+  // Usar Better Auth solo en server actions/route handlers, no en middleware
+  const sessionCookie = request.cookies.get("auth.session_token")?.value;
 
-    try {
-      // Verificar el JWT de admin
-      const secret = new TextEncoder().encode(JWT_SECRET);
-      const { payload } = await jose.jwtVerify(adminSession.value, secret, {
-        issuer: SECURITY_CONFIG.JWT_ISSUER,
-        audience: SECURITY_CONFIG.JWT_ADMIN_AUDIENCE,
-        algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
-      });
-
-      // Verificar claims adicionales de seguridad
-      if (
-        payload.iss !== SECURITY_CONFIG.JWT_ISSUER ||
-        payload.aud !== SECURITY_CONFIG.JWT_ADMIN_AUDIENCE
-      ) {
-        throw new Error("Invalid JWT claims");
-      }
-
-      // Verificar que sea una sesión de admin
-      if (payload.sessionType !== "admin") {
-        throw new Error("Invalid session type");
-      }
-
-      // Sesión válida, continuar
-      return NextResponse.next();
-    } catch (error) {
-      logError("Error verificando sesión de admin", error);
-      // Sesión inválida, redirigir a login
-      const response = NextResponse.redirect(
-        new URL("/backoffice/login", request.url),
-      );
-      response.cookies.delete("admin-session");
-      return response;
-    }
-  }
-
-  // Rutas públicas (necesitan autenticación de invitación)
-  const invitationSession = request.cookies.get("session");
-
-  if (!invitationSession) {
-    // No hay sesión de invitación, redirigir a error
-    return NextResponse.redirect(
-      new URL("/error?message=necesita-invitacion", request.url),
-    );
-  }
-
-  try {
-    // Verificar el JWT de invitación
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jose.jwtVerify(invitationSession.value, secret, {
-      issuer: SECURITY_CONFIG.JWT_ISSUER,
-      audience: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
-      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
-    });
-
-    // Verificar claims adicionales de seguridad
+  // Si no hay cookie de sesión, redirigir a login
+  if (!sessionCookie) {
+    // Si es una ruta del dashboard/backoffice, redirigir a login
     if (
-      payload.iss !== SECURITY_CONFIG.JWT_ISSUER ||
-      payload.aud !== SECURITY_CONFIG.JWT_INVITATION_AUDIENCE
+      pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/backoffice")
     ) {
-      throw new Error("Invalid JWT claims");
+      return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    // Verificar que sea una sesión de invitación (no admin)
-    if (payload.sessionType === "admin") {
-      throw new Error("Invalid session type for public routes");
-    }
-
-    // Sesión válida, continuar
-    return NextResponse.next();
-  } catch (error) {
-    logError("Error verificando sesión de invitación", error);
-    // Sesión inválida, redirigir a error
-    const response = NextResponse.redirect(
-      new URL("/error?message=necesita-invitacion", request.url),
+    // Para otras rutas protegidas, mostrar error
+    return NextResponse.redirect(
+      new URL("/error?message=authentication-required", request.url),
     );
-    response.cookies.delete("session");
-    return response;
   }
+
+  // Usuario autenticado, permitir acceso
+  return NextResponse.next();
 }
 
 export const config = {
@@ -119,7 +61,8 @@ export const config = {
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
      * - _next/image (image optimization files)
+     * - api/auth (Better Auth endpoints)
      */
-    "/((?!_next/static|_next/image).*)",
+    "/((?!_next/static|_next/image|api/auth).*)",
   ],
 };

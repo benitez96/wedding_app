@@ -3,7 +3,7 @@ import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
 import { fileTypeFromBuffer } from "file-type";
-import { verifyAdminAuth } from "@/lib/admin-auth";
+import { verifyUserAuth } from "@/lib/server-auth";
 
 // Forzar renderizado dinámico (no estático)
 export const dynamic = "force-dynamic";
@@ -24,8 +24,8 @@ const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "mp4", "webm", "mov"];
 
 export async function POST(request: NextRequest) {
   try {
-    // ✅ SEGURIDAD: Verificar autenticación de admin
-    const authResult = await verifyAdminAuth();
+    // ✅ SEGURIDAD: Verificar autenticación
+    const authResult = await verifyUserAuth();
 
     if (!authResult.success || !authResult.user) {
       return NextResponse.json(

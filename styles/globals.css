@@ -3,22 +3,28 @@
 @config "../tailwind.config.js";
 
 /* ============================================
-   THEME CSS VARIABLES
-   Valores iniciales (Classic theme - blanco/negro/grises)
-   Se sobrescriben dinámicamente con ThemeProvider
+   THEMES
+   Los colores están definidos en tailwind.config.js
+   Se aplican mediante data-theme attribute
+   CSS variables para uso en decoraciones
    ============================================ */
-:root {
-  /* Classic Theme (default) - Blanco/Negro/Grises */
-  --color-primary: #000000;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #2c2c2c;
-  --color-secondary-foreground: #ffffff;
-  --color-accent: #4a4a4a;
-  --color-accent-foreground: #ffffff;
-  --color-warm: #6b6b6b;
-  --color-warm-foreground: #ffffff;
+
+/* Classic theme */
+.classic {
   --color-background: #ffffff;
-  --color-foreground: #000000;
+  --color-secondary: #2c2c2c;
+}
+
+/* Warm theme */
+.warm {
+  --color-background: #ffffff;
+  --color-secondary: #b89a7a;
+}
+
+/* Pastel Green theme */
+.pastel-green {
+  --color-background: #f1faee;
+  --color-secondary: #a8dadc;
 }
 
 /* Animaciones para botón con ondas concéntricas */

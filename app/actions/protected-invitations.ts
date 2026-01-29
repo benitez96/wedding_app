@@ -3,7 +3,6 @@
 import { withInvitationAuth, InvitationUser } from "@/lib/invitation-auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { validateCSRFToken } from "@/lib/csrf";
 
 // Action protegido para actualizar respuesta de invitación
 export const updateInvitationResponse = withInvitationAuth(
@@ -13,19 +12,9 @@ export const updateInvitationResponse = withInvitationAuth(
       isAttending: boolean;
       guestCount?: number | null;
       message?: string | null;
-      csrfToken?: string;
-      csrfHash?: string;
     },
   ) => {
     try {
-      // Validar CSRF token
-      if (
-        data.csrfToken &&
-        !(await validateCSRFToken(data.csrfToken, data.csrfHash))
-      ) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
-
       // Validar guestCount si isAttending es true
       if (
         data.isAttending &&
@@ -69,14 +58,10 @@ export async function updateInvitationResponseAction(
   const guestCount = formData.get("guestCount")
     ? parseInt(formData.get("guestCount") as string)
     : null;
-  const csrfToken = formData.get("_csrf") as string;
-  const csrfHash = formData.get("_csrf_hash") as string;
 
   const result = await updateInvitationResponse({
     isAttending,
     guestCount,
-    csrfToken,
-    csrfHash,
   });
 
   return result;
@@ -86,13 +71,6 @@ export async function updateInvitationResponseAction(
 export const uploadPhoto = withInvitationAuth(
   async (user: InvitationUser, formData: FormData) => {
     try {
-      // Validar CSRF token
-      const csrfToken = formData.get("_csrf") as string;
-      const csrfHash = formData.get("_csrf_hash") as string;
-      if (csrfToken && !(await validateCSRFToken(csrfToken, csrfHash))) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
-
       // TODO: Implementar lógica de subida de fotos
       // Por ahora solo retornamos un placeholder
 
@@ -115,19 +93,9 @@ export const sendMessage = withInvitationAuth(
     data: {
       message: string;
       type?: "wish" | "memory" | "advice";
-      csrfToken?: string;
-      csrfHash?: string;
     },
   ) => {
     try {
-      // Validar CSRF token
-      if (
-        data.csrfToken &&
-        !(await validateCSRFToken(data.csrfToken, data.csrfHash))
-      ) {
-        return { success: false, error: "Token CSRF inválido" };
-      }
-
       // TODO: Implementar lógica de envío de mensajes
       // Por ahora solo retornamos un placeholder
 

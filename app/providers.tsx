@@ -6,13 +6,11 @@ import type { ReactNode } from "react";
 import { HeroUIProvider } from "@heroui/system";
 import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import type { ThemeId } from "@/types/theme";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 
 export interface ProvidersProps {
   children: ReactNode;
   themeProps?: ThemeProviderProps;
-  activeThemeId?: ThemeId;
 }
 
 declare module "@react-types/shared" {
@@ -23,18 +21,14 @@ declare module "@react-types/shared" {
   }
 }
 
-export function Providers({
-  children,
-  themeProps,
-  activeThemeId = "classic",
-}: ProvidersProps) {
+export function Providers({ children, themeProps }: ProvidersProps) {
   const router = useRouter();
 
   return (
-    <HeroUIProvider navigate={router.push}>
-      <NextThemesProvider {...themeProps}>
-        <ThemeProvider themeId={activeThemeId}>{children}</ThemeProvider>
-      </NextThemesProvider>
-    </HeroUIProvider>
+    <SessionProvider>
+      <HeroUIProvider navigate={router.push}>
+        <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
+      </HeroUIProvider>
+    </SessionProvider>
   );
 }
