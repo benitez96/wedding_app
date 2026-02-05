@@ -6,7 +6,7 @@ import { siteConfig } from "@/config/site";
 import { auth } from "@/lib/auth";
 import { getUserEventContext } from "@/lib/event-context";
 import { getEventTheme } from "@/app/actions/theme";
-import { THEME_IDS } from "@/types/theme";
+import { THEME_IDS, type ThemeId } from "@/types/theme";
 import { ThemeSync } from "@/components/providers/ThemeSync";
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export default async function BackofficeLayout({
   children: ReactNode;
 }) {
   // Obtener theme del evento activo del usuario (Better Auth)
-  let themeId = THEME_IDS.CLASSIC;
+  let themeId: ThemeId = THEME_IDS.CLASSIC;
 
   try {
     const session = await auth.api.getSession({
@@ -44,11 +44,10 @@ export default async function BackofficeLayout({
       const eventContext = await getUserEventContext(session.user.id);
       if (eventContext?.eventId) {
         themeId = await getEventTheme(eventContext.eventId);
-        console.log("[Theme - Backoffice] EventId:", eventContext.eventId, "Theme:", themeId);
       }
     }
-  } catch (error) {
-    console.error("[Theme - Backoffice] Error:", error);
+  } catch {
+    // Theme fetch failed, using default
   }
 
   return (

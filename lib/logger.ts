@@ -58,8 +58,7 @@ export function logError(
       }
     }
 
-    // TODO: Integrar con servicio externo (Sentry, LogRocket, etc.)
-    // await sendToMonitoringService(context, error, metadata)
+    // Production monitoring could be added here (Sentry, LogRocket, etc.)
   }
 }
 

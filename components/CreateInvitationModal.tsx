@@ -69,8 +69,8 @@ export default function CreateInvitationModal({
         if (usageResult.success && usageResult.data) {
           setUsage(usageResult.data);
         }
-      } catch (error) {
-        console.error("Error loading data:", error);
+      } catch {
+        // Silently fail - UI shows appropriate error state
       } finally {
         setLoadingEventId(false);
       }
@@ -80,9 +80,7 @@ export default function CreateInvitationModal({
   }, [isOpen]);
 
   const limitReached =
-    usage !== null &&
-    usage.limit !== null &&
-    usage.current >= usage.limit;
+    usage !== null && usage.limit !== null && usage.current >= usage.limit;
 
   // useActionState para manejar el estado del formulario
   const [state, formAction, isPending] = useActionState(
@@ -115,14 +113,24 @@ export default function CreateInvitationModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md" placement="center">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      size="md"
+      placement="center"
+      scrollBehavior="inside"
+      classNames={{
+        base: "mx-4 sm:mx-0 max-h-[90vh] sm:max-h-none",
+        wrapper: "items-end sm:items-center",
+      }}
+    >
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
           <h2 className="text-xl font-bold">Crear Nueva Invitación</h2>
         </ModalHeader>
 
         <Form action={formAction} className="flex flex-col gap-4">
-          <ModalBody className="w-full">
+          <ModalBody className="w-full overflow-y-auto max-h-[60vh] sm:max-h-none">
             {loadingEventId && (
               <div className="flex items-center justify-center p-4">
                 <Spinner size="sm" />
@@ -142,9 +150,7 @@ export default function CreateInvitationModal({
             {!loadingEventId && usage && usage.limit !== null && (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-default-600">
-                    Invitaciones usadas
-                  </span>
+                  <span className="text-default-600">Invitaciones usadas</span>
                   <span className="font-medium">
                     {usage.current}/{usage.limit}
                   </span>
@@ -157,8 +163,8 @@ export default function CreateInvitationModal({
                 {limitReached && (
                   <div className="p-3 bg-warning-50 border border-warning-200 text-warning-700 rounded-lg text-sm">
                     Has alcanzado el límite de invitaciones de tu plan{" "}
-                    <span className="font-medium">{usage.tier}</span>.
-                    Actualiza tu plan para crear más invitaciones.
+                    <span className="font-medium">{usage.tier}</span>. Actualiza
+                    tu plan para crear más invitaciones.
                   </div>
                 )}
               </div>

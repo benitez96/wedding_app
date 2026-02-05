@@ -22,6 +22,14 @@ export default function TokenProcessor({ token }: TokenProcessorProps) {
 
         if (!isActive) return;
 
+        // Si no fue exitoso, siempre es error
+        if (!result.success) {
+          router.replace(
+            `/error?message=${result.error || "error-desconocido"}`,
+          );
+          return;
+        }
+
         // Manejar los diferentes casos según el resultado
         switch (result.action) {
           case "redirect":

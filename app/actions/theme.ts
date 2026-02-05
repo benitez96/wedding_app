@@ -101,10 +101,8 @@ export async function getEventTheme(eventId: string): Promise<ThemeId> {
       select: { activeTheme: true },
     });
 
-    console.log("[getEventTheme] EventId:", eventId, "Result:", event?.activeTheme);
     return (event?.activeTheme ?? THEME_IDS.CLASSIC) as ThemeId;
-  } catch (error) {
-    console.log("[getEventTheme] Error:", error);
+  } catch {
     return THEME_IDS.CLASSIC;
   }
 }

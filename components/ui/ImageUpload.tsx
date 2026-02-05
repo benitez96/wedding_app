@@ -111,10 +111,12 @@ export function ImageUpload({
             <div className="space-y-3">
               <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100">
                 {mediaType === "video" ? (
+                  // eslint-disable-next-line jsx-a11y/media-has-caption
                   <video
                     src={previewUrl}
                     controls
                     className="w-full h-full object-cover"
+                    aria-label="Preview del video"
                   >
                     Tu navegador no soporta videos
                   </video>

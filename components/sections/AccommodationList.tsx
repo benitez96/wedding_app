@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Bed, Phone, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@heroui/button";
-import AnimatedDivider from "@/components/AnimatedDivider";
+import AnimatedDividerCSS from "@/components/AnimatedDividerCSS";
 
 interface Accommodation {
   name: string;
@@ -68,7 +68,7 @@ export default function AccommodationList({
               </Button>
 
               {index < accommodations.length - 1 && (
-                <AnimatedDivider
+                <AnimatedDividerCSS
                   variant="simple"
                   delay={0.1}
                   className="mt-2"

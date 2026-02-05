@@ -1,35 +1,45 @@
-import { Card, CardBody, CardHeader } from '@heroui/card'
-import { Users, Mail, CheckCircle, XCircle, UserCheck } from 'lucide-react'
-import Link from 'next/link'
-import prisma from '@/lib/prisma'
-import ExportConfirmedGuestsButton from '@/components/ExportConfirmedGuestsButton'
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Users, Mail, CheckCircle, XCircle, UserCheck } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
+import ExportConfirmedGuestsButton from "@/components/ExportConfirmedGuestsButton";
+import { verifyUserAuth } from "@/lib/server-auth";
+import { getUserEventContext } from "@/lib/event-context";
 
 // Forzar renderizado dinámico
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-async function getDashboardStats() {
+async function getDashboardStats(eventId: string) {
   try {
+    const eventFilter = { eventId };
+
     const [
       totalInvitations,
       respondedInvitations,
       attendingInvitations,
       notAttendingInvitations,
       totalMaxGuests,
-      totalConfirmedGuests
+      totalConfirmedGuests,
     ] = await Promise.all([
-      prisma.invitation.count(),
-      prisma.invitation.count({ where: { hasResponded: true } }),
-      prisma.invitation.count({ where: { isAttending: true } }),
-      prisma.invitation.count({ where: { isAttending: false } }),
-      prisma.invitation.aggregate({
-        _sum: { maxGuests: true }
+      prisma.invitation.count({ where: eventFilter }),
+      prisma.invitation.count({
+        where: { ...eventFilter, hasResponded: true },
+      }),
+      prisma.invitation.count({ where: { ...eventFilter, isAttending: true } }),
+      prisma.invitation.count({
+        where: { ...eventFilter, isAttending: false },
       }),
       prisma.invitation.aggregate({
-        where: { isAttending: true },
-        _sum: { guestCount: true }
-      })
-    ])
+        where: eventFilter,
+        _sum: { maxGuests: true },
+      }),
+      prisma.invitation.aggregate({
+        where: { ...eventFilter, isAttending: true },
+        _sum: { guestCount: true },
+      }),
+    ]);
 
     return {
       totalInvitations,
@@ -38,10 +48,13 @@ async function getDashboardStats() {
       notAttendingInvitations,
       totalMaxGuests: totalMaxGuests._sum.maxGuests || 0,
       totalConfirmedGuests: totalConfirmedGuests._sum.guestCount || 0,
-      responseRate: totalInvitations > 0 ? Math.round((respondedInvitations / totalInvitations) * 100) : 0
-    }
+      responseRate:
+        totalInvitations > 0
+          ? Math.round((respondedInvitations / totalInvitations) * 100)
+          : 0,
+    };
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error)
+    console.error("Error fetching dashboard stats:", error);
     // Return default values if database is not available
     return {
       totalInvitations: 0,
@@ -50,19 +63,33 @@ async function getDashboardStats() {
       notAttendingInvitations: 0,
       totalMaxGuests: 0,
       totalConfirmedGuests: 0,
-      responseRate: 0
-    }
+      responseRate: 0,
+    };
   }
 }
 
 export default async function Backoffice() {
-  const stats = await getDashboardStats()
+  // Verificar autenticación
+  const authResult = await verifyUserAuth();
+  if (!authResult.success || !authResult.user) {
+    redirect("/login");
+  }
+
+  // Obtener contexto de evento
+  const eventContext = await getUserEventContext(authResult.user.id);
+  if (!eventContext) {
+    redirect("/backoffice/events/new");
+  }
+
+  const stats = await getDashboardStats(eventContext.eventId);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Resumen de invitaciones y respuestas</p>
+        <p className="text-gray-600 mt-2">
+          Resumen de invitaciones y respuestas
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -71,8 +98,12 @@ export default async function Backoffice() {
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Invitaciones</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalInvitations}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total Invitaciones
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.totalInvitations}
+                </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <Users className="w-6 h-6 text-blue-600" />
@@ -86,9 +117,15 @@ export default async function Backoffice() {
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Han Respondido</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.respondedInvitations}</p>
-                <p className="text-sm text-gray-500">{stats.responseRate}% de respuesta</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Han Respondido
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.respondedInvitations}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {stats.responseRate}% de respuesta
+                </p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <Mail className="w-6 h-6 text-green-600" />
@@ -102,9 +139,15 @@ export default async function Backoffice() {
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Invitados</p>
-                <p className="text-2xl font-bold text-green-600">{stats.totalConfirmedGuests}</p>
-                <p className="text-sm text-gray-500">de {stats.totalMaxGuests} máx.</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total Invitados
+                </p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.totalConfirmedGuests}
+                </p>
+                <p className="text-sm text-gray-500">
+                  de {stats.totalMaxGuests} máx.
+                </p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <UserCheck className="w-6 h-6 text-green-600" />
@@ -118,8 +161,12 @@ export default async function Backoffice() {
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">No Asistirán</p>
-                <p className="text-2xl font-bold text-red-600">{stats.notAttendingInvitations}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  No Asistirán
+                </p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.notAttendingInvitations}
+                </p>
               </div>
               <div className="p-3 bg-red-100 rounded-full">
                 <XCircle className="w-6 h-6 text-red-600" />
@@ -136,23 +183,30 @@ export default async function Backoffice() {
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Link 
-              href="/backoffice/invitations" 
+            <Link
+              href="/backoffice/invitations"
               className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <h4 className="font-medium text-gray-900">Gestionar Invitaciones</h4>
-              <p className="text-sm text-gray-600 mt-1">Ver y editar todas las invitaciones</p>
+              <h4 className="font-medium text-gray-900">
+                Gestionar Invitaciones
+              </h4>
+              <p className="text-sm text-gray-600 mt-1">
+                Ver y editar todas las invitaciones
+              </p>
             </Link>
 
-
             <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">Exportar Confirmados</h4>
-              <p className="text-sm text-gray-600 mb-3">Descargar Excel con invitados confirmados</p>
+              <h4 className="font-medium text-gray-900 mb-2">
+                Exportar Confirmados
+              </h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Descargar Excel con invitados confirmados
+              </p>
               <ExportConfirmedGuestsButton />
             </div>
           </div>
         </CardBody>
       </Card>
     </div>
-  )
+  );
 }

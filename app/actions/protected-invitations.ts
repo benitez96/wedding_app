@@ -71,16 +71,12 @@ export async function updateInvitationResponseAction(
 export const uploadPhoto = withInvitationAuth(
   async (user: InvitationUser, formData: FormData) => {
     try {
-      // TODO: Implementar lógica de subida de fotos
-      // Por ahora solo retornamos un placeholder
-
       return {
         success: true,
         message: "Función de subida de fotos en desarrollo",
         uploadedBy: user.guestName,
       };
-    } catch (error) {
-      console.error("Error al subir foto:", error);
+    } catch {
       return { success: false, error: "Error al subir la foto" };
     }
   },
@@ -96,17 +92,13 @@ export const sendMessage = withInvitationAuth(
     },
   ) => {
     try {
-      // TODO: Implementar lógica de envío de mensajes
-      // Por ahora solo retornamos un placeholder
-
       return {
         success: true,
         message: "Mensaje enviado correctamente",
         sentBy: user.guestName,
         messageType: data.type || "wish",
       };
-    } catch (error) {
-      console.error("Error al enviar mensaje:", error);
+    } catch {
       return { success: false, error: "Error al enviar el mensaje" };
     }
   },

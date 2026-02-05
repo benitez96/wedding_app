@@ -11,6 +11,8 @@ interface TokenActionsCellProps {
   onReactivate: (tokenId: string) => void;
   onDelete: (tokenId: string) => void;
   onOpen: (tokenId: string) => void;
+  isLoading?: boolean;
+  loadingAction?: "revoke" | "reactivate" | "delete" | null;
 }
 
 export default function TokenActionsCell({
@@ -19,6 +21,8 @@ export default function TokenActionsCell({
   onReactivate,
   onDelete,
   onOpen,
+  isLoading = false,
+  loadingAction,
 }: TokenActionsCellProps) {
   return (
     <div className="flex items-center gap-1">
@@ -43,6 +47,8 @@ export default function TokenActionsCell({
             color="warning"
             isIconOnly
             onPress={() => onRevoke(token.id)}
+            isLoading={isLoading && loadingAction === "revoke"}
+            isDisabled={isLoading}
           >
             <Ban size={14} />
           </Button>
@@ -55,6 +61,8 @@ export default function TokenActionsCell({
             color="success"
             isIconOnly
             onPress={() => onReactivate(token.id)}
+            isLoading={isLoading && loadingAction === "reactivate"}
+            isDisabled={isLoading}
           >
             <RotateCcw size={14} />
           </Button>
@@ -68,6 +76,8 @@ export default function TokenActionsCell({
           color="danger"
           isIconOnly
           onPress={() => onDelete(token.id)}
+          isLoading={isLoading && loadingAction === "delete"}
+          isDisabled={isLoading}
         >
           <Trash2 size={14} />
         </Button>

@@ -42,13 +42,12 @@ export async function getClientIP(): Promise<string> {
   return ip.split(",")[0].trim();
 }
 
-// Función para verificar si una IP está bloqueada
+// Función para verificar si una IP está bloqueada (devuelve el bloqueo para evitar query duplicada)
 export async function isIPBlocked(
   ip: string,
   actionType: keyof typeof RATE_LIMIT_CONFIGS,
-): Promise<boolean> {
+): Promise<{ blocked: boolean; block?: { blockedUntil: Date } | null }> {
   const now = new Date();
-  const config = RATE_LIMIT_CONFIGS[actionType];
 
   // Buscar bloqueos activos para esta IP y acción
   const activeBlock = await prisma.rateLimitBlock.findFirst({
@@ -59,9 +58,12 @@ export async function isIPBlocked(
         gt: now,
       },
     },
+    select: {
+      blockedUntil: true,
+    },
   });
 
-  return !!activeBlock;
+  return { blocked: !!activeBlock, block: activeBlock };
 }
 
 // Función para registrar un intento
@@ -77,18 +79,9 @@ export async function recordAttempt(
   const now = new Date();
   const config = RATE_LIMIT_CONFIGS[actionType];
 
-  // Verificar si ya está bloqueado
-  if (await isIPBlocked(ip, actionType)) {
-    const block = await prisma.rateLimitBlock.findFirst({
-      where: {
-        ip,
-        actionType,
-        blockedUntil: {
-          gt: now,
-        },
-      },
-    });
-
+  // Verificar si ya está bloqueado (una sola query)
+  const { blocked, block } = await isIPBlocked(ip, actionType);
+  if (blocked) {
     return {
       allowed: false,
       remainingAttempts: 0,
@@ -172,18 +165,9 @@ export async function checkRateLimit(
   const now = new Date();
   const config = RATE_LIMIT_CONFIGS[actionType];
 
-  // Verificar si está bloqueado
-  if (await isIPBlocked(ip, actionType)) {
-    const block = await prisma.rateLimitBlock.findFirst({
-      where: {
-        ip,
-        actionType,
-        blockedUntil: {
-          gt: now,
-        },
-      },
-    });
-
+  // Verificar si está bloqueado (una sola query)
+  const { blocked, block } = await isIPBlocked(ip, actionType);
+  if (blocked) {
     return {
       allowed: false,
       remainingAttempts: 0,

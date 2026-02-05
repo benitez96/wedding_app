@@ -18,6 +18,7 @@ export interface InvitationToken {
   id: string;
   createdAt: Date;
   updatedAt: Date;
+  token: string;
   isActive: boolean;
   isUsed: boolean;
   firstAccessAt: Date | null;

@@ -82,27 +82,31 @@ export const updateSectionsOrder = withEventAuth(
     sections: { id: string; order: number; isEnabled: boolean }[],
   ): Promise<ActionState> => {
     try {
-      // Estrategia: primero setear todos los order a valores negativos temporales
-      // para evitar conflictos de unique constraint, luego actualizar a los valores finales
+      // Estrategia: Usar Promise.all para updates en paralelo (evita N+1)
+      // Primero setear valores temporales negativos, luego los finales
       await prisma.$transaction(async (tx) => {
-        // Paso 1: Setear todos los order a valores temporales negativos
-        for (let i = 0; i < sections.length; i++) {
-          await tx.sectionConfiguration.update({
-            where: { id: sections[i].id },
-            data: { order: -1000 - i }, // -1000, -1001, -1002, etc
-          });
-        }
+        // Paso 1: Setear todos los order a valores temporales negativos (en paralelo)
+        await Promise.all(
+          sections.map((section, i) =>
+            tx.sectionConfiguration.update({
+              where: { id: section.id },
+              data: { order: -1000 - i }, // -1000, -1001, -1002, etc
+            }),
+          ),
+        );
 
-        // Paso 2: Actualizar con los valores finales (order + isEnabled)
-        for (const section of sections) {
-          await tx.sectionConfiguration.update({
-            where: { id: section.id },
-            data: {
-              order: section.order,
-              isEnabled: section.isEnabled,
-            },
-          });
-        }
+        // Paso 2: Actualizar con los valores finales (order + isEnabled) (en paralelo)
+        await Promise.all(
+          sections.map((section) =>
+            tx.sectionConfiguration.update({
+              where: { id: section.id },
+              data: {
+                order: section.order,
+                isEnabled: section.isEnabled,
+              },
+            }),
+          ),
+        );
       });
 
       // Revalidar cache y páginas

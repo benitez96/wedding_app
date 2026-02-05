@@ -56,7 +56,13 @@ export default function TokensTable({
 }: TokensTableProps) {
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [isCreatingToken, setIsCreatingToken] = useState(false);
+  const [loadingTokenId, setLoadingTokenId] = useState<string | null>(null);
+  const [loadingAction, setLoadingAction] = useState<
+    "revoke" | "reactivate" | "delete" | null
+  >(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -64,8 +70,21 @@ export default function TokensTable({
       if (copyTimeoutRef.current) {
         clearTimeout(copyTimeoutRef.current);
       }
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
     };
   }, []);
+
+  const clearErrorAfterDelay = () => {
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
+    errorTimeoutRef.current = setTimeout(() => {
+      setActionError(null);
+      errorTimeoutRef.current = null;
+    }, 5000);
+  };
 
   const copyToClipboard = async (tokenId: string) => {
     try {
@@ -79,63 +98,91 @@ export default function TokensTable({
         setCopiedToken(null);
         copyTimeoutRef.current = null;
       }, 2000);
-    } catch (error) {
-      console.error("Error al copiar al portapapeles:", error);
+    } catch {
+      setActionError("No se pudo copiar al portapapeles");
+      clearErrorAfterDelay();
     }
   };
 
   const handleCreateToken = async () => {
     setIsCreatingToken(true);
+    setActionError(null);
     try {
       const result = await createInvitationToken(invitationId);
       if (result.success) {
         router.refresh();
       } else {
-        console.error("Error al crear token:", result.error);
+        setActionError(result.error || "Error al crear token");
+        clearErrorAfterDelay();
       }
-    } catch (error) {
-      console.error("Error al crear token:", error);
+    } catch {
+      setActionError("Error al crear token");
+      clearErrorAfterDelay();
     } finally {
       setIsCreatingToken(false);
     }
   };
 
   const handleRevokeToken = async (tokenId: string) => {
+    setLoadingTokenId(tokenId);
+    setLoadingAction("revoke");
+    setActionError(null);
     try {
       const result = await revokeInvitationToken(tokenId);
       if (result.success) {
         router.refresh();
       } else {
-        console.error("Error al revocar token:", result.error);
+        setActionError(result.error || "Error al revocar token");
+        clearErrorAfterDelay();
       }
-    } catch (error) {
-      console.error("Error al revocar token:", error);
+    } catch {
+      setActionError("Error al revocar token");
+      clearErrorAfterDelay();
+    } finally {
+      setLoadingTokenId(null);
+      setLoadingAction(null);
     }
   };
 
   const handleReactivateToken = async (tokenId: string) => {
+    setLoadingTokenId(tokenId);
+    setLoadingAction("reactivate");
+    setActionError(null);
     try {
       const result = await reactivateInvitationToken(tokenId);
       if (result.success) {
         router.refresh();
       } else {
-        console.error("Error al reactivar token:", result.error);
+        setActionError(result.error || "Error al reactivar token");
+        clearErrorAfterDelay();
       }
-    } catch (error) {
-      console.error("Error al reactivar token:", error);
+    } catch {
+      setActionError("Error al reactivar token");
+      clearErrorAfterDelay();
+    } finally {
+      setLoadingTokenId(null);
+      setLoadingAction(null);
     }
   };
 
   const handleDeleteToken = async (tokenId: string) => {
+    setLoadingTokenId(tokenId);
+    setLoadingAction("delete");
+    setActionError(null);
     try {
       const result = await deleteInvitationToken(tokenId);
       if (result.success) {
         router.refresh();
       } else {
-        console.error("Error al eliminar token:", result.error);
+        setActionError(result.error || "Error al eliminar token");
+        clearErrorAfterDelay();
       }
-    } catch (error) {
-      console.error("Error al eliminar token:", error);
+    } catch {
+      setActionError("Error al eliminar token");
+      clearErrorAfterDelay();
+    } finally {
+      setLoadingTokenId(null);
+      setLoadingAction(null);
     }
   };
 
@@ -146,126 +193,98 @@ export default function TokensTable({
 
   return (
     <Card>
-      <CardBody>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Tokens de Acceso</h3>
-          <div className="flex items-center gap-2">
-            <Chip color="primary" variant="flat" size="sm">
-              {tokens.length} token{tokens.length !== 1 ? "s" : ""}
-            </Chip>
-            <Tooltip content="Crear nuevo token de acceso">
-              <Button
-                size="sm"
-                color="primary"
-                variant="flat"
-                startContent={<Plus size={16} />}
-                onPress={handleCreateToken}
-                isLoading={isCreatingToken}
-                isDisabled={isCreatingToken}
-              >
-                Generar Token
-              </Button>
-            </Tooltip>
+      <CardBody className="gap-4">
+        {actionError && (
+          <div className="p-3 bg-danger-50 border border-danger-200 text-danger-700 rounded-lg text-sm">
+            {actionError}
           </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Tokens de Invitación</h3>
+          <Button
+            color="primary"
+            size="sm"
+            startContent={<Plus className="w-4 h-4" />}
+            onPress={handleCreateToken}
+            isLoading={isCreatingToken}
+            isDisabled={isCreatingToken}
+          >
+            Crear Token
+          </Button>
         </div>
 
-        <Table
-          aria-label="Tabla de tokens"
-          className="min-h-[200px]"
-          selectionMode="none"
-        >
-          <TableHeader>
-            <TableColumn>TOKEN</TableColumn>
-            <TableColumn>ESTADO</TableColumn>
-            <TableColumn>ACCESOS</TableColumn>
-            <TableColumn>DISPOSITIVO</TableColumn>
-            <TableColumn>FINGERPRINT</TableColumn>
-            <TableColumn>PRIMER ACCESO</TableColumn>
-            <TableColumn>ÚLTIMO ACCESO</TableColumn>
-            <TableColumn>ACCIONES</TableColumn>
-          </TableHeader>
-          <TableBody emptyContent="No hay tokens generados para esta invitación">
-            {tokens.map((token) => (
-              <TableRow key={token.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <code className="text-xs bg-default-100 px-2 py-1 rounded font-mono">
-                      {token.id.substring(0, 8)}...
-                    </code>
-                    <Tooltip content="Copiar invitación">
-                      <Button
-                        size="sm"
-                        variant="light"
-                        isIconOnly
-                        onPress={() => copyToClipboard(token.id)}
-                      >
-                        {copiedToken === token.id ? (
-                          <Check size={14} className="text-success" />
-                        ) : (
-                          <Copy size={14} />
-                        )}
-                      </Button>
-                    </Tooltip>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Tooltip
-                    content={
-                      token.isUsed && token.deviceId
-                        ? "Token vinculado a un dispositivo específico. No se puede usar desde otros dispositivos."
-                        : undefined
-                    }
-                  >
-                    <div>
-                      <TokenStatusChip token={token} />
-                    </div>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>{token.accessCount}</TableCell>
-                <TableCell>
-                  {token.userAgent ? (
-                    <div className="text-xs">
-                      <div className="font-medium text-primary">
-                        {getDeviceInfo(token.userAgent)}
-                      </div>
-                      <div className="text-default-500 max-w-[200px] overflow-x-auto whitespace-nowrap">
-                        {token.userAgent}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-xs text-default-400 italic">
-                      No usado aún
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {token.deviceId ? (
-                    <div className="text-xs">
-                      <code className="bg-default-100 px-2 py-1 rounded font-mono">
-                        {token.deviceId}
+        {tokens.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>No hay tokens creados para esta invitación.</p>
+            <p className="text-sm mt-1">
+              Crea un token para generar el link de invitación.
+            </p>
+          </div>
+        ) : (
+          <Table aria-label="Tabla de tokens de invitación">
+            <TableHeader>
+              <TableColumn>TOKEN</TableColumn>
+              <TableColumn>ESTADO</TableColumn>
+              <TableColumn>CREADO</TableColumn>
+              <TableColumn>DISPOSITIVO</TableColumn>
+              <TableColumn>ACCESOS</TableColumn>
+              <TableColumn>ACCIONES</TableColumn>
+            </TableHeader>
+            <TableBody>
+              {tokens.map((token) => (
+                <TableRow key={token.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <code className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">
+                        {token.token.substring(0, 12)}...
                       </code>
+                      <Tooltip content="Copiar link">
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          onPress={() => copyToClipboard(token.token)}
+                        >
+                          {copiedToken === token.token ? (
+                            <Check className="w-4 h-4 text-success" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </Tooltip>
                     </div>
-                  ) : (
-                    <div className="text-xs text-default-400 italic">
-                      No generado
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>{formatDateTime(token.firstAccessAt)}</TableCell>
-                <TableCell>{formatDateTime(token.lastAccessAt)}</TableCell>
-                <TableCell>
-                  <TokenActionsCell
-                    token={token}
-                    onRevoke={handleRevokeToken}
-                    onReactivate={handleReactivateToken}
-                    onDelete={handleDeleteToken}
-                    onOpen={openInvitationLink}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  </TableCell>
+                  <TableCell>
+                    <TokenStatusChip token={token} />
+                  </TableCell>
+                  <TableCell>{formatDateTime(token.createdAt)}</TableCell>
+                  <TableCell>
+                    <Chip size="sm" variant="flat">
+                      {getDeviceInfo(token.userAgent)}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{token.accessCount || 0}</span>
+                  </TableCell>
+                  <TableCell>
+                    <TokenActionsCell
+                      token={token}
+                      onOpen={() => openInvitationLink(token.token)}
+                      onRevoke={() => handleRevokeToken(token.id)}
+                      onReactivate={() => handleReactivateToken(token.id)}
+                      onDelete={() => handleDeleteToken(token.id)}
+                      isLoading={
+                        loadingTokenId === token.id && loadingAction !== null
+                      }
+                      loadingAction={loadingAction}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardBody>
     </Card>
   );

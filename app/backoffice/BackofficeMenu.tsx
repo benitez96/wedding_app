@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -94,6 +94,8 @@ export default function BackofficeMenu({
   const pathname = usePathname();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const menuItemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -120,6 +122,59 @@ export default function BackofficeMenu({
   });
 
   const isCompany = tier === "COMPANY";
+
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      const itemCount = visibleItems.length;
+
+      switch (event.key) {
+        case "ArrowDown":
+          event.preventDefault();
+          setActiveIndex((prev) => {
+            const next = prev < itemCount - 1 ? prev + 1 : 0;
+            menuItemRefs.current[next]?.focus();
+            return next;
+          });
+          break;
+        case "ArrowUp":
+          event.preventDefault();
+          setActiveIndex((prev) => {
+            const next = prev > 0 ? prev - 1 : itemCount - 1;
+            menuItemRefs.current[next]?.focus();
+            return next;
+          });
+          break;
+        case "Home":
+          event.preventDefault();
+          setActiveIndex(0);
+          menuItemRefs.current[0]?.focus();
+          break;
+        case "End":
+          event.preventDefault();
+          setActiveIndex(itemCount - 1);
+          menuItemRefs.current[itemCount - 1]?.focus();
+          break;
+        case "Escape":
+          event.preventDefault();
+          onClose();
+          break;
+      }
+    },
+    [visibleItems.length, onClose],
+  );
+
+  // Focus first item when drawer opens
+  useEffect(() => {
+    if (isOpen && visibleItems.length > 0) {
+      // Small delay to ensure drawer is fully rendered
+      const timer = setTimeout(() => {
+        setActiveIndex(0);
+        menuItemRefs.current[0]?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, visibleItems.length]);
 
   return (
     <>
@@ -166,27 +221,45 @@ export default function BackofficeMenu({
                 </>
               )}
 
-              <nav className="flex flex-col gap-2">
-                {visibleItems.map((item) => {
+              <div
+                className="flex flex-col gap-2"
+                role="menu"
+                aria-label="Menú de navegación"
+                onKeyDown={handleKeyDown}
+              >
+                {visibleItems.map((item, index) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       onClick={onClose}
+                      ref={(el) => {
+                        menuItemRefs.current[index] = el;
+                      }}
+                      role="menuitem"
+                      tabIndex={index === activeIndex ? 0 : -1}
+                      aria-current={isActive ? "page" : undefined}
                       className={clsx(
-                        "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                        "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary",
                         isActive
                           ? "bg-primary text-primary-foreground font-medium"
                           : "text-gray-700 hover:bg-gray-100",
                       )}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onClose();
+                          router.push(item.href);
+                        }
+                      }}
                     >
                       {item.icon}
                       <span>{item.label}</span>
                     </Link>
                   );
                 })}
-              </nav>
+              </div>
             </div>
           </DrawerBody>
           <DrawerFooter className="flex flex-col gap-2">

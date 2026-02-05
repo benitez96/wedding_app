@@ -223,23 +223,20 @@ export async function createInvitationAction(
 }
 
 // Action protegido para eliminar invitación (scoped por evento)
-export const deleteInvitation = withEventAuth(
-  async (ctx, id: string) => {
-    try {
-      // Verificar que la invitación pertenece al evento activo
-      await prisma.invitation.delete({
-        where: { id, eventId: ctx.event.eventId },
-      });
+export const deleteInvitation = withEventAuth(async (ctx, id: string) => {
+  try {
+    // Verificar que la invitación pertenece al evento activo
+    await prisma.invitation.delete({
+      where: { id, eventId: ctx.event.eventId },
+    });
 
-      revalidatePath("/backoffice/invitations");
-      return { success: true };
-    } catch (error) {
-      console.error("Error al eliminar invitación:", error);
-      return { success: false, error: "Error al eliminar la invitación" };
-    }
-  },
-  PERMISSIONS.GUESTS_DELETE,
-);
+    revalidatePath("/backoffice/invitations");
+    return { success: true };
+  } catch (error) {
+    console.error("Error al eliminar invitación:", error);
+    return { success: false, error: "Error al eliminar la invitación" };
+  }
+}, PERMISSIONS.GUESTS_DELETE);
 
 // Action protegido para obtener invitación con tokens (scoped por evento)
 export const getInvitationWithTokens = withEventAuth(
@@ -270,62 +267,59 @@ export const getInvitationWithTokens = withEventAuth(
 );
 
 // Action protegido para obtener estadísticas de invitaciones (scoped por evento)
-export const getInvitationsStats = withEventAuth(
-  async (ctx) => {
-    try {
-      const eventId = ctx.event.eventId;
+export const getInvitationsStats = withEventAuth(async (ctx) => {
+  try {
+    const eventId = ctx.event.eventId;
 
-      const [total, pending, declined, confirmedGuests] = await Promise.all([
-        prisma.invitation.count({
-          where: { eventId },
-        }),
+    const [total, pending, declined, confirmedGuests] = await Promise.all([
+      prisma.invitation.count({
+        where: { eventId },
+      }),
 
-        prisma.invitation.count({
-          where: {
-            eventId,
-            hasResponded: false,
-          },
-        }),
-
-        prisma.invitation.count({
-          where: {
-            eventId,
-            hasResponded: true,
-            isAttending: false,
-          },
-        }),
-
-        prisma.invitation.aggregate({
-          where: {
-            eventId,
-            hasResponded: true,
-            isAttending: true,
-            guestCount: {
-              not: null,
-            },
-          },
-          _sum: {
-            guestCount: true,
-          },
-        }),
-      ]);
-
-      return {
-        success: true,
-        data: {
-          total,
-          pending,
-          confirmed: confirmedGuests._sum.guestCount || 0,
-          declined,
+      prisma.invitation.count({
+        where: {
+          eventId,
+          hasResponded: false,
         },
-      };
-    } catch (error) {
-      console.error("Error al obtener estadísticas de invitaciones:", error);
-      return { success: false, error: "Error al cargar las estadísticas" };
-    }
-  },
-  PERMISSIONS.GUESTS_VIEW,
-);
+      }),
+
+      prisma.invitation.count({
+        where: {
+          eventId,
+          hasResponded: true,
+          isAttending: false,
+        },
+      }),
+
+      prisma.invitation.aggregate({
+        where: {
+          eventId,
+          hasResponded: true,
+          isAttending: true,
+          guestCount: {
+            not: null,
+          },
+        },
+        _sum: {
+          guestCount: true,
+        },
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        total,
+        pending,
+        confirmed: confirmedGuests._sum.guestCount || 0,
+        declined,
+      },
+    };
+  } catch (error) {
+    console.error("Error al obtener estadísticas de invitaciones:", error);
+    return { success: false, error: "Error al cargar las estadísticas" };
+  }
+}, PERMISSIONS.GUESTS_VIEW);
 
 // Action para obtener el uso de invitados (limites de tier)
 export const getInvitationUsage = withEventAuth(async (ctx) => {
@@ -373,6 +367,24 @@ export const createInvitationToken = withEventAuth(
 export const revokeInvitationToken = withEventAuth(
   async (ctx, tokenId: string) => {
     try {
+      // Verificar que el token pertenezca al evento del usuario
+      const tokenWithEvent = await prisma.invitationToken.findUnique({
+        where: { id: tokenId },
+        include: {
+          invitation: {
+            select: { eventId: true },
+          },
+        },
+      });
+
+      if (!tokenWithEvent || !tokenWithEvent.invitation) {
+        return { success: false, error: "Token no encontrado" };
+      }
+
+      if (tokenWithEvent.invitation.eventId !== ctx.event.eventId) {
+        return { success: false, error: "No autorizado para este token" };
+      }
+
       const token = await prisma.invitationToken.update({
         where: { id: tokenId },
         data: { isActive: false },
@@ -392,6 +404,24 @@ export const revokeInvitationToken = withEventAuth(
 export const reactivateInvitationToken = withEventAuth(
   async (ctx, tokenId: string) => {
     try {
+      // Verificar que el token pertenezca al evento del usuario
+      const tokenWithEvent = await prisma.invitationToken.findUnique({
+        where: { id: tokenId },
+        include: {
+          invitation: {
+            select: { eventId: true },
+          },
+        },
+      });
+
+      if (!tokenWithEvent || !tokenWithEvent.invitation) {
+        return { success: false, error: "Token no encontrado" };
+      }
+
+      if (tokenWithEvent.invitation.eventId !== ctx.event.eventId) {
+        return { success: false, error: "No autorizado para este token" };
+      }
+
       const token = await prisma.invitationToken.update({
         where: { id: tokenId },
         data: { isActive: true },
@@ -411,6 +441,24 @@ export const reactivateInvitationToken = withEventAuth(
 export const deleteInvitationToken = withEventAuth(
   async (ctx, tokenId: string) => {
     try {
+      // Verificar que el token pertenezca al evento del usuario
+      const tokenWithEvent = await prisma.invitationToken.findUnique({
+        where: { id: tokenId },
+        include: {
+          invitation: {
+            select: { eventId: true },
+          },
+        },
+      });
+
+      if (!tokenWithEvent || !tokenWithEvent.invitation) {
+        return { success: false, error: "Token no encontrado" };
+      }
+
+      if (tokenWithEvent.invitation.eventId !== ctx.event.eventId) {
+        return { success: false, error: "No autorizado para este token" };
+      }
+
       await prisma.invitationToken.delete({
         where: { id: tokenId },
       });

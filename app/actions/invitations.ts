@@ -92,8 +92,7 @@ export async function processInvitationToken(token: string) {
     }
 
     // Lookup token in database
-    const validatedToken = (tokenValidation as { success: true; data: string })
-      .data;
+    const validatedToken = tokenValidation.data;
     const invitationToken = await prisma.invitationToken.findUnique({
       where: { id: validatedToken },
       include: { invitation: true },
@@ -123,15 +122,15 @@ export async function processInvitationToken(token: string) {
     const sessionToken = await new jose.SignJWT({
       tokenId: validatedToken,
       invitationId: invitationToken.invitation.id,
-      iss: SECURITY_CONFIG.JWT_ISSUER,
-      aud: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
-      sub: invitationToken.invitation.id,
       createdAt: Date.now(),
     })
       .setProtectedHeader({
         alg: SECURITY_CONFIG.JWT_ALGORITHM,
         typ: "JWT",
       })
+      .setSubject(invitationToken.invitation.id)
+      .setIssuer(SECURITY_CONFIG.JWT_ISSUER)
+      .setAudience(SECURITY_CONFIG.JWT_INVITATION_AUDIENCE)
       .setIssuedAt()
       .setNotBefore(new Date())
       .setExpirationTime(`${SECURITY_CONFIG.INVITATION_SESSION_DURATION}s`)
