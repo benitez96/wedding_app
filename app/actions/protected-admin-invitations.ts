@@ -4,6 +4,7 @@ import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/app/generated/prisma";
+import { z } from "zod";
 import {
   invitationSchema,
   searchSchema,
@@ -12,6 +13,7 @@ import {
 } from "@/utils/validation";
 import { enforceGuestLimit, getGuestUsage } from "@/lib/tier-enforcement";
 import { PERMISSIONS } from "@/lib/permissions";
+import { logError } from "@/lib/logger";
 
 // Action protegido para obtener invitaciones (scoped por evento)
 export const getInvitations = withEventAuth(
@@ -68,7 +70,7 @@ export const getInvitations = withEventAuth(
       });
       return { success: true, data: invitations };
     } catch (error) {
-      console.error("Error al obtener invitaciones:", error);
+      logError("Error al obtener invitaciones", error);
       return { success: false, error: "Error al cargar las invitaciones" };
     }
   },
@@ -116,7 +118,10 @@ export const createInvitation = withEventAuth(
         return { success: false, error: validation.error };
       }
 
-      const { data } = validation as { success: true; data: any };
+      const { data } = validation as {
+        success: true;
+        data: z.infer<typeof invitationSchema>;
+      };
 
       const invitation = await prisma.invitation.create({
         data: {
@@ -136,7 +141,7 @@ export const createInvitation = withEventAuth(
       revalidatePath("/backoffice/invitations");
       return { success: true, data: invitation };
     } catch (error) {
-      console.error("Error al crear invitación:", error);
+      logError("Error al crear invitación", error);
       return { success: false, error: "Error al crear la invitación" };
     }
   },
@@ -159,17 +164,31 @@ export const updateInvitation = withEventAuth(
         ? parseInt(formData.get("guestCount") as string)
         : null;
 
-      if (!guestName || !maxGuests) {
-        return {
-          success: false,
-          error: "Nombre del invitado y máximo de invitados son requeridos",
-        };
+      // Validate and sanitize with Zod (same schema as createInvitation)
+      const validation = validateAndSanitize(invitationSchema, {
+        guestName,
+        guestNickname,
+        guestPhone,
+        maxGuests,
+        hasResponded,
+        isAttending,
+        guestCount,
+      });
+
+      if (!validation.success) {
+        return { success: false, error: validation.error };
       }
+
+      const validatedData = (
+        validation as { success: true; data: z.infer<typeof invitationSchema> }
+      ).data;
 
       // Validar guestCount si isAttending es true
       if (
-        isAttending &&
-        (!guestCount || guestCount < 1 || guestCount > maxGuests)
+        validatedData.isAttending &&
+        (!validatedData.guestCount ||
+          validatedData.guestCount < 1 ||
+          validatedData.guestCount > validatedData.maxGuests)
       ) {
         return {
           success: false,
@@ -182,21 +201,26 @@ export const updateInvitation = withEventAuth(
       const invitation = await prisma.invitation.update({
         where: { id, eventId: event.eventId },
         data: {
-          guestName,
-          guestNickname: guestNickname || null,
-          guestPhone: guestPhone || null,
-          maxGuests,
-          hasResponded,
-          isAttending: hasResponded ? isAttending : null,
-          guestCount: hasResponded && isAttending ? guestCount : null,
-          respondedAt: hasResponded ? new Date() : null,
+          guestName: validatedData.guestName,
+          guestNickname: validatedData.guestNickname || null,
+          guestPhone: validatedData.guestPhone || null,
+          maxGuests: validatedData.maxGuests,
+          hasResponded: validatedData.hasResponded,
+          isAttending: validatedData.hasResponded
+            ? validatedData.isAttending
+            : null,
+          guestCount:
+            validatedData.hasResponded && validatedData.isAttending
+              ? validatedData.guestCount
+              : null,
+          respondedAt: validatedData.hasResponded ? new Date() : null,
         },
       });
 
       revalidatePath("/backoffice/invitations");
       return { success: true, data: invitation };
     } catch (error) {
-      console.error("Error al actualizar invitación:", error);
+      logError("Error al actualizar invitación", error);
       return { success: false, error: "Error al actualizar la invitación" };
     }
   },
@@ -233,7 +257,7 @@ export const deleteInvitation = withEventAuth(async (ctx, id: string) => {
     revalidatePath("/backoffice/invitations");
     return { success: true };
   } catch (error) {
-    console.error("Error al eliminar invitación:", error);
+    logError("Error al eliminar invitación", error);
     return { success: false, error: "Error al eliminar la invitación" };
   }
 }, PERMISSIONS.GUESTS_DELETE);
@@ -259,7 +283,7 @@ export const getInvitationWithTokens = withEventAuth(
 
       return { success: true, data: invitation };
     } catch (error) {
-      console.error("Error al obtener invitación con tokens:", error);
+      logError("Error al obtener invitación con tokens", error);
       return { success: false, error: "Error al cargar la invitación" };
     }
   },
@@ -316,7 +340,7 @@ export const getInvitationsStats = withEventAuth(async (ctx) => {
       },
     };
   } catch (error) {
-    console.error("Error al obtener estadísticas de invitaciones:", error);
+    logError("Error al obtener estadísticas de invitaciones", error);
     return { success: false, error: "Error al cargar las estadísticas" };
   }
 }, PERMISSIONS.GUESTS_VIEW);
@@ -327,7 +351,7 @@ export const getInvitationUsage = withEventAuth(async (ctx) => {
     const usage = await getGuestUsage(ctx.user.id, ctx.event.eventId);
     return { success: true, data: usage };
   } catch (error) {
-    console.error("Error al obtener uso de invitaciones:", error);
+    logError("Error al obtener uso de invitaciones", error);
     return { success: false, error: "Error al obtener el uso" };
   }
 });
@@ -346,17 +370,26 @@ export const createInvitationToken = withEventAuth(
       }
 
       const crypto = await import("crypto");
+      // Generate a crypto-secure short ID (21 chars, base64url, ~126 bits of entropy)
+      // This ID is used directly in invitation URLs: /r/{id}
+      const id = crypto.randomBytes(16).toString("base64url").slice(0, 21);
+
+      // Default expiration: 1 year from now (can be revoked from backoffice)
+      const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+      const expiresAt = new Date(Date.now() + ONE_YEAR_MS);
+
       const invitationToken = await prisma.invitationToken.create({
         data: {
+          id,
           invitationId,
-          token: crypto.randomBytes(32).toString("hex"),
+          expiresAt,
         },
       });
 
       revalidatePath("/backoffice/invitations");
       return { success: true, data: invitationToken };
     } catch (error) {
-      console.error("Error al crear token de invitación:", error);
+      logError("Error al crear token de invitación", error);
       return { success: false, error: "Error al crear el token de invitación" };
     }
   },
@@ -393,7 +426,7 @@ export const revokeInvitationToken = withEventAuth(
       revalidatePath("/backoffice/invitations");
       return { success: true, data: token };
     } catch (error) {
-      console.error("Error al revocar token:", error);
+      logError("Error al revocar token", error);
       return { success: false, error: "Error al revocar el token" };
     }
   },
@@ -430,7 +463,7 @@ export const reactivateInvitationToken = withEventAuth(
       revalidatePath("/backoffice/invitations");
       return { success: true, data: token };
     } catch (error) {
-      console.error("Error al reactivar token:", error);
+      logError("Error al reactivar token", error);
       return { success: false, error: "Error al reactivar el token" };
     }
   },
@@ -466,7 +499,7 @@ export const deleteInvitationToken = withEventAuth(
       revalidatePath("/backoffice/invitations");
       return { success: true };
     } catch (error) {
-      console.error("Error al eliminar token:", error);
+      logError("Error al eliminar token", error);
       return { success: false, error: "Error al eliminar el token" };
     }
   },

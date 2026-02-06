@@ -84,7 +84,10 @@ export default function CreateInvitationModal({
 
   // useActionState para manejar el estado del formulario
   const [state, formAction, isPending] = useActionState(
-    async (prevState: any, formData: FormData) => {
+    async (
+      prevState: { success: boolean; error?: string } | null,
+      formData: FormData,
+    ) => {
       if (isProcessingRef.current) return prevState;
       if (!eventId) return { success: false, error: "No event selected" };
 

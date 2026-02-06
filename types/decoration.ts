@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 /**
  * Types compartidos para el sistema de decoraciones florales
  */
@@ -42,7 +44,7 @@ export interface DecorationLayerProps {
   opacity?: number; // 0-100
   size?: number; // px
   hasAlternateBg?: boolean; // Determina el color de las decoraciones
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 // Configuración de posición de un elemento decorativo

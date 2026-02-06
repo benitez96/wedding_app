@@ -17,12 +17,11 @@
         X-Frame-Options "DENY"
         # Prevenir MIME sniffing
         X-Content-Type-Options "nosniff"
-        # Protección XSS
-        X-XSS-Protection "1; mode=block"
+        # X-XSS-Protection intentionally omitted - deprecated in modern browsers
         # Política de referrer
         Referrer-Policy "strict-origin-when-cross-origin"
-        # Content Security Policy
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+        # Content Security Policy (unsafe-eval removed for security)
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
         # Permissions Policy
         Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()"
         # HSTS
@@ -36,7 +35,10 @@
 
     # Reverse proxy a la app (rate limiting se maneja en la aplicación)
     reverse_proxy wedding-app:3000 {
+        # SECURITY: Set trusted IP headers from actual client connection
+        # This prevents IP spoofing via client-provided headers for rate limiting
         header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
         header_up Host {host}
         health_uri /api/health
         health_interval 30s
@@ -88,7 +90,6 @@ grafana.{$DOMAIN} {
     header {
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
-        X-XSS-Protection "1; mode=block"
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         -Server
         -X-Powered-By
@@ -116,7 +117,6 @@ logs.{$DOMAIN} {
     header {
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
-        X-XSS-Protection "1; mode=block"
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         -Server
         -X-Powered-By
@@ -144,7 +144,6 @@ metrics.{$DOMAIN} {
     header {
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
-        X-XSS-Protection "1; mode=block"
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         -Server
         -X-Powered-By

@@ -31,7 +31,7 @@ export async function verifyInvitationAuth(): Promise<{
 }> {
   try {
     const cookieStore = await cookies();
-    const session = cookieStore.get("session");
+    const session = cookieStore.get("invitation_session");
 
     if (!session) {
       return { success: false, error: "no-session" };
@@ -74,7 +74,10 @@ export async function verifyInvitationAuth(): Promise<{
       },
     };
   } catch (error) {
-    console.error("Error verifying invitation auth:", error);
+    // Error during invitation auth verification
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error verifying invitation auth:", error);
+    }
     return { success: false, error: "verification-error" };
   }
 }
@@ -93,12 +96,19 @@ async function validateToken(tokenId: string) {
       return { valid: false };
     }
 
+    // Check expiration
+    if (invitationToken.expiresAt && new Date() > invitationToken.expiresAt) {
+      return { valid: false };
+    }
+
     return {
       valid: true,
       invitation: invitationToken.invitation,
     };
   } catch (error) {
-    console.error("Error validating token:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error validating token:", error);
+    }
     return { valid: false };
   }
 }

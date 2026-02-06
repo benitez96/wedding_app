@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import { useEffect } from "react";
 
 // Interfaz base que TODOS los formularios de settings deben implementar
@@ -9,7 +10,7 @@ export interface SectionSettingsFormProps<T = Record<string, unknown>> {
 
 // Helper para crear la función updateSettings en los forms
 export function createSettingsUpdater<T>(
-  setSettings: React.Dispatch<React.SetStateAction<Partial<T>>>,
+  setSettings: Dispatch<SetStateAction<Partial<T>>>,
   onSettingsChange?: (settings: T) => void,
 ) {
   return (updater: (prev: Partial<T>) => Partial<T>): void => {
@@ -37,6 +38,5 @@ export function useInitialSettingsSync<T>(
       onSettingsChange(settings as T);
     }
     // Solo ejecutar en mount
-     
   }, []);
 }

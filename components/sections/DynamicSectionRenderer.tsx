@@ -54,7 +54,6 @@ export default function DynamicSectionRenderer({
           | undefined;
 
         if (!Component) {
-          console.warn(`Section component not found for key: ${section.key}`);
           return null;
         }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -15,15 +16,27 @@ interface SignUpFormProps {
   showLoginLink?: boolean;
 }
 
+/**
+ * SECURITY: Validate redirect URL is a safe relative path.
+ * Prevents open redirect attacks via protocol-relative or absolute URLs.
+ */
+function getSafeRedirectUrl(url: string): string {
+  if (url.startsWith("/") && !url.startsWith("//") && !url.includes("://")) {
+    return url;
+  }
+  return "/backoffice";
+}
+
 export function SignUpForm({
   redirectTo = "/backoffice",
   showLoginLink = true,
 }: SignUpFormProps) {
+  const safeRedirectTo = getSafeRedirectUrl(redirectTo);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string>();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsPending(true);
     setError(undefined);
@@ -42,8 +55,21 @@ export function SignUpForm({
     }
 
     // Validar longitud mínima de contraseña
-    if (password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres");
+    if (password.length < 10) {
+      setError("La contraseña debe tener al menos 10 caracteres");
+      setIsPending(false);
+      return;
+    }
+
+    // Validar complejidad
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+      setError(
+        "La contraseña debe incluir mayúsculas, minúsculas, números y caracteres especiales",
+      );
       setIsPending(false);
       return;
     }
@@ -63,7 +89,7 @@ export function SignUpForm({
     }
 
     // Redirigir al backoffice
-    router.push(redirectTo);
+    router.push(safeRedirectTo);
     router.refresh();
   };
 
@@ -86,7 +112,12 @@ export function SignUpForm({
             </h3>
           </CardHeader>
           <CardBody>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+              onSubmit={handleSubmit}
+              method="post"
+              action=""
+              className="space-y-6"
+            >
               <Input
                 type="text"
                 name="name"
@@ -114,7 +145,7 @@ export function SignUpForm({
               <PasswordInput
                 name="password"
                 label="Contraseña"
-                description="Mínimo 8 caracteres"
+                description="Mínimo 10 caracteres, con mayúsculas, minúsculas, números y especiales"
                 isRequired
                 isDisabled={isPending}
                 autoComplete="new-password"
@@ -167,7 +198,7 @@ export function SignUpForm({
                   try {
                     await authClient.signIn.social({
                       provider: "google",
-                      callbackURL: redirectTo,
+                      callbackURL: safeRedirectTo,
                     });
                   } catch (err) {
                     setError("Error al registrarse con Google");

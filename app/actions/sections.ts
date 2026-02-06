@@ -1,13 +1,13 @@
 "use server";
 
-import { cache } from "react";
-import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { SectionConfiguration } from "@/types/sections";
 import { getSectionSettingsSchema } from "@/types/section-settings";
 import { isSectionKey } from "@/components/sections/metadata";
+import { logError } from "@/lib/logger";
 
 interface ActionState {
   success: boolean;
@@ -28,11 +28,6 @@ const removeSectionSchema = z.object({
   id: z.string().cuid({ message: "Invalid ID format" }),
 });
 
-const toggleSectionSchema = z.object({
-  id: z.string().cuid({ message: "Invalid ID format" }),
-  isEnabled: z.boolean(),
-});
-
 const updateSectionSettingsSchema = z.object({
   id: z.string().cuid({ message: "Invalid ID format" }),
   key: z.string().refine((key) => isSectionKey(key), {
@@ -40,14 +35,20 @@ const updateSectionSettingsSchema = z.object({
   }),
 });
 
+const updateSectionsOrderSchema = z
+  .array(
+    z.object({
+      id: z.string().cuid({ message: "Invalid ID format" }),
+      order: z.number().int().min(0),
+      isEnabled: z.boolean(),
+    }),
+  )
+  .min(1)
+  .max(50);
+
 // ============================================
 // OBTENER TODAS LAS SECCIONES (ordenadas)
 // ============================================
-// Cache strategy:
-// 1. unstable_cache() - Cachea entre requests (persistente)
-// 2. React.cache() - Deduplica en la misma renderización
-// 3. revalidateTag() - Invalida cuando se actualizan settings
-
 // Ahora las secciones están por evento, necesitamos el eventId
 export async function getSectionConfigurations(
   eventId: string,
@@ -66,9 +67,7 @@ export async function getSectionConfigurations(
       settings: section.settings as Record<string, unknown> | undefined,
     }));
   } catch (error) {
-    console.error("Error obteniendo secciones:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    logError("Error obteniendo secciones", error);
     return [];
   }
 }
@@ -82,12 +81,32 @@ export const updateSectionsOrder = withEventAuth(
     sections: { id: string; order: number; isEnabled: boolean }[],
   ): Promise<ActionState> => {
     try {
+      // Validate input with Zod
+      const validated = updateSectionsOrderSchema.safeParse(sections);
+      if (!validated.success) {
+        return { success: false, error: "Datos de secciones inválidos" };
+      }
+
+      // SECURITY: Verify ALL section IDs belong to the user's event
+      const sectionIds = validated.data.map((s) => s.id);
+      const ownedSections = await prisma.sectionConfiguration.count({
+        where: { id: { in: sectionIds }, eventId: ctx.event.eventId },
+      });
+
+      if (ownedSections !== sectionIds.length) {
+        return {
+          success: false,
+          error: "Una o más secciones no pertenecen a tu evento",
+        };
+      }
+
       // Estrategia: Usar Promise.all para updates en paralelo (evita N+1)
       // Primero setear valores temporales negativos, luego los finales
+      const validatedSections = validated.data;
       await prisma.$transaction(async (tx) => {
         // Paso 1: Setear todos los order a valores temporales negativos (en paralelo)
         await Promise.all(
-          sections.map((section, i) =>
+          validatedSections.map((section, i) =>
             tx.sectionConfiguration.update({
               where: { id: section.id },
               data: { order: -1000 - i }, // -1000, -1001, -1002, etc
@@ -97,7 +116,7 @@ export const updateSectionsOrder = withEventAuth(
 
         // Paso 2: Actualizar con los valores finales (order + isEnabled) (en paralelo)
         await Promise.all(
-          sections.map((section) =>
+          validatedSections.map((section) =>
             tx.sectionConfiguration.update({
               where: { id: section.id },
               data: {
@@ -119,53 +138,10 @@ export const updateSectionsOrder = withEventAuth(
         message: "Cambios guardados correctamente",
       };
     } catch (error) {
-      console.error("Error actualizando secciones:", {
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+      logError("Error actualizando secciones", error);
       return {
         success: false,
         error: "Error al guardar los cambios. Intenta nuevamente.",
-      };
-    }
-  },
-);
-
-// ============================================
-// TOGGLE ENABLED/DISABLED
-// ============================================
-export const toggleSectionEnabled = withEventAuth(
-  async (ctx, id: string, isEnabled: boolean): Promise<ActionState> => {
-    try {
-      // Validar input con Zod
-      const validated = toggleSectionSchema.safeParse({ id, isEnabled });
-      if (!validated.success) {
-        return {
-          success: false,
-          error: "Datos inválidos",
-        };
-      }
-
-      await prisma.sectionConfiguration.update({
-        where: { id: validated.data.id },
-        data: { isEnabled: validated.data.isEnabled },
-      });
-
-      // Revalidar cache y páginas
-      revalidateTag("sections"); // Invalida el cache de secciones
-      revalidatePath("/backoffice/estructura");
-      revalidatePath("/", "layout");
-
-      return {
-        success: true,
-        message: `Sección ${isEnabled ? "habilitada" : "deshabilitada"}`,
-      };
-    } catch (error) {
-      console.error("Error toggle sección:", {
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
-      return {
-        success: false,
-        error: "Error al actualizar la sección. Intenta nuevamente.",
       };
     }
   },
@@ -191,6 +167,16 @@ export const updateSectionSettings = withEventAuth(
         };
       }
 
+      // SECURITY: Verify section belongs to user's event before updating
+      const section = await prisma.sectionConfiguration.findFirst({
+        where: { id: validated.data.id, eventId: ctx.event.eventId },
+        select: { id: true },
+      });
+
+      if (!section) {
+        return { success: false, error: "Sección no encontrada" };
+      }
+
       // Validar settings con Zod según el key
       const schema = getSectionSettingsSchema(validated.data.key);
       const validatedSettings = schema.parse(settings);
@@ -210,9 +196,7 @@ export const updateSectionSettings = withEventAuth(
         message: "Configuración actualizada correctamente",
       };
     } catch (error) {
-      console.error("Error actualizando settings de sección:", {
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+      logError("Error actualizando settings de sección", error);
       return {
         success: false,
         error: "Error al actualizar la configuración. Intenta nuevamente.",
@@ -283,9 +267,7 @@ export const addSection = withEventAuth(
         message: "Sección agregada correctamente",
       };
     } catch (error) {
-      console.error("Error agregando sección:", {
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+      logError("Error agregando sección", error);
       return {
         success: false,
         error: "Error al agregar la sección. Intenta nuevamente.",
@@ -370,9 +352,7 @@ export const removeSection = withEventAuth(
         message: "Sección eliminada correctamente",
       };
     } catch (error) {
-      console.error("Error eliminando sección:", {
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+      logError("Error eliminando sección", error);
       return {
         success: false,
         error: "Error al eliminar la sección. Intenta nuevamente.",

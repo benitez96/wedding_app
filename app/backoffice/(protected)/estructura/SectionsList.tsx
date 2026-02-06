@@ -62,18 +62,28 @@ function SortableSection({
 
   if (!metadata) {
     return (
-      <div ref={setNodeRef} style={style} className={clsx("mb-3", isDragging && "opacity-50 z-50")}>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={clsx("mb-3", isDragging && "opacity-50 z-50")}
+      >
         <Card className="transition-shadow hover:shadow-md opacity-60">
           <CardBody className="p-4">
             <div className="flex items-center gap-3">
-              <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+              <div
+                {...attributes}
+                {...listeners}
+                className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+              >
                 <GripVertical className="w-5 h-5" />
               </div>
               <div className="flex items-center gap-3 flex-1">
                 <div className="text-2xl">📄</div>
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">{section.key}</h4>
-                  <p className="text-sm text-gray-400">Sección sin metadata registrada</p>
+                  <p className="text-sm text-gray-400">
+                    Sección sin metadata registrada
+                  </p>
                 </div>
               </div>
               <Button
@@ -269,18 +279,11 @@ export default function SectionsList({ initialSections }: SectionsListProps) {
 
   function handleRemove(id: string) {
     startTransition(async () => {
-      // Debug: verificar el ID antes de enviar
-      console.log("Removing section with ID:", id, "Type:", typeof id);
-
       // ✨ Update optimista
       addOptimisticUpdate({ type: "remove", id });
 
       // Guardar en background
-      const result = await removeSection(id);
-
-      if (!result.success) {
-        console.error("Failed to remove section:", result.error);
-      }
+      await removeSection(id);
       // ✅ La revalidación automática actualiza initialSections
     });
   }

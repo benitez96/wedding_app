@@ -5,6 +5,7 @@ import { z } from "zod";
 import { THEME_IDS, type ThemeId, getThemeById } from "@/types/theme";
 import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logError } from "@/lib/logger";
 
 // Schema de validación para theme ID
 const themeIdSchema = z.enum([
@@ -37,7 +38,7 @@ export const getActiveTheme = withEventAuth(
         data: themeId,
       };
     } catch (error) {
-      console.error("[getActiveTheme] Error:", error);
+      logError("getActiveTheme", error);
       return {
         success: true,
         data: THEME_IDS.CLASSIC,
@@ -82,7 +83,7 @@ export const updateActiveTheme = withEventAuth(
 
       return { success: true };
     } catch (error) {
-      console.error("[updateActiveTheme] Error:", error);
+      logError("updateActiveTheme", error);
       return {
         success: false,
         error: "Error al actualizar el theme",

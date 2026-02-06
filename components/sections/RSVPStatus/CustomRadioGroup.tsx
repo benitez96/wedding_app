@@ -10,7 +10,7 @@ interface CustomRadioGroupProps {
 }
 
 // Componente personalizado para el radio con ícono de corazón
-function HeartRadio(props: any) {
+function HeartRadio(props: Parameters<typeof useRadio>[0]) {
   const { getInputProps, isSelected } = useRadio(props);
 
   return (
@@ -32,7 +32,7 @@ function HeartRadio(props: any) {
 }
 
 // Componente personalizado para el radio con ícono de corazón roto
-function BrokenHeartRadio(props: any) {
+function BrokenHeartRadio(props: Parameters<typeof useRadio>[0]) {
   const { getInputProps, isSelected } = useRadio(props);
 
   return (

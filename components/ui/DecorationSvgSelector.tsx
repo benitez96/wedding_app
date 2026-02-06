@@ -1,8 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { RadioGroup, useRadio } from "@heroui/radio";
 import { VisuallyHidden } from "@react-aria/visually-hidden";
-import { cn } from "@heroui/theme";
 import Image from "next/image";
 import { Ban } from "lucide-react";
 import { DecorationSvg } from "@/types/decoration";
@@ -11,7 +11,7 @@ interface DecorationSvgOption {
   value: DecorationSvg;
   label: string;
   svgPath?: string; // undefined para "none"
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 interface DecorationSvgSelectorProps {
@@ -62,13 +62,7 @@ function SvgRadioCard(props: DecorationSvgOption) {
   return (
     <Component
       {...getBaseProps()}
-      className={cn(
-        "group inline-flex items-center justify-center flex-col",
-        "tap-highlight-transparent cursor-pointer border-2 border-default-200",
-        "rounded-lg p-3 hover:bg-content2 transition-colors",
-        "data-[selected=true]:border-primary data-[selected=true]:bg-primary-50",
-        "w-24 h-24 flex-shrink-0",
-      )}
+      className="group inline-flex items-center justify-center flex-col tap-highlight-transparent cursor-pointer border-2 border-default-200 rounded-lg p-3 hover:bg-content2 transition-colors data-[selected=true]:border-primary data-[selected=true]:bg-primary-50 w-24 h-24 flex-shrink-0"
     >
       <VisuallyHidden>
         <input {...getInputProps()} />

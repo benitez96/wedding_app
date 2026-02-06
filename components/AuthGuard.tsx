@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getCurrentUser } from "@/app/actions/invitations";
@@ -7,7 +8,7 @@ import { updateTokenAccessMetrics } from "@/app/actions/metrics";
 import LoadingSpinner from "./LoadingSpinner";
 
 interface AuthGuardProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function AuthGuard({ children }: AuthGuardProps) {

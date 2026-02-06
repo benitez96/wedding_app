@@ -1,5 +1,6 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { Input, Textarea } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Switch } from "@heroui/switch";
@@ -45,7 +46,7 @@ export function GiftSectionSettingsForm({
 
   const updateSettings = createSettingsUpdater(setSettings, onSettingsChange);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     setMessage(null);
@@ -67,7 +68,11 @@ export function GiftSectionSettingsForm({
       {/* Mensaje de feedback */}
       {message && (
         <FeedbackMessage
-          type={message.includes("Error") ? MessageTypes.ERROR : MessageTypes.SUCCESS}
+          type={
+            message.includes("Error")
+              ? MessageTypes.ERROR
+              : MessageTypes.SUCCESS
+          }
           message={message}
         />
       )}

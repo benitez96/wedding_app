@@ -237,16 +237,16 @@ export default function TokensTable({
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <code className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">
-                        {token.token.substring(0, 12)}...
+                        {token.id}
                       </code>
                       <Tooltip content="Copiar link">
                         <Button
                           isIconOnly
                           size="sm"
                           variant="light"
-                          onPress={() => copyToClipboard(token.token)}
+                          onPress={() => copyToClipboard(token.id)}
                         >
-                          {copiedToken === token.token ? (
+                          {copiedToken === token.id ? (
                             <Check className="w-4 h-4 text-success" />
                           ) : (
                             <Copy className="w-4 h-4" />
@@ -270,7 +270,7 @@ export default function TokensTable({
                   <TableCell>
                     <TokenActionsCell
                       token={token}
-                      onOpen={() => openInvitationLink(token.token)}
+                      onOpen={() => openInvitationLink(token.id)}
                       onRevoke={() => handleRevokeToken(token.id)}
                       onReactivate={() => handleReactivateToken(token.id)}
                       onDelete={() => handleDeleteToken(token.id)}

@@ -1,14 +1,8 @@
 import { headers } from "next/headers";
 import { auth } from "./auth";
 import type { User } from "./auth";
-import {
-  getUserEventContext,
-  type EventContext,
-} from "./event-context";
-import {
-  getUserTierContext,
-  type UserTierContext,
-} from "./tier-enforcement";
+import { getUserEventContext, type EventContext } from "./event-context";
+import { getUserTierContext, type UserTierContext } from "./tier-enforcement";
 import { hasPermission } from "./permissions";
 
 /**
@@ -34,7 +28,10 @@ export async function verifyUserAuth(): Promise<{
       user: session.user,
     };
   } catch (error) {
-    console.error("Error verificando autenticación:", error);
+    // Error during auth verification - do not leak details
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error verificando autenticación:", error);
+    }
     return { success: false, error: "verification-error" };
   }
 }

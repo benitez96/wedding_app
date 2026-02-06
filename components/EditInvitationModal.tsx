@@ -43,7 +43,10 @@ export default function EditInvitationModal({
 
   // useActionState para manejar el estado del formulario
   const [state, formAction, isPending] = useActionState(
-    async (prevState: any, formData: FormData) => {
+    async (
+      prevState: { success: boolean; error?: string } | null,
+      formData: FormData,
+    ) => {
       if (!invitation || isProcessingRef.current) return prevState;
 
       isProcessingRef.current = true;
@@ -163,7 +166,7 @@ export default function EditInvitationModal({
                 variant="bordered"
                 isRequired
                 description="Número máximo de invitados permitidos"
-                value={formData.maxGuests}
+                value={String(formData.maxGuests)}
                 onValueChange={(value) => handleInputChange("maxGuests", value)}
                 isDisabled={isPending}
               />

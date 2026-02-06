@@ -14,13 +14,14 @@ export interface Invitation {
 }
 
 // Invitation Token interface
+// The `id` field IS the crypto-secure token used in URLs (/r/{id})
 export interface InvitationToken {
   id: string;
   createdAt: Date;
   updatedAt: Date;
-  token: string;
   isActive: boolean;
   isUsed: boolean;
+  expiresAt: Date;
   firstAccessAt: Date | null;
   lastAccessAt: Date | null;
   deviceId: string | null;

@@ -1,5 +1,6 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -15,15 +16,28 @@ interface LoginFormProps {
   showSignUpLink?: boolean;
 }
 
+/**
+ * SECURITY: Validate redirect URL is a safe relative path.
+ * Prevents open redirect attacks via protocol-relative or absolute URLs.
+ */
+function getSafeRedirectUrl(url: string): string {
+  // Must start with / and not contain // (prevents protocol-relative URLs)
+  if (url.startsWith("/") && !url.startsWith("//") && !url.includes("://")) {
+    return url;
+  }
+  return "/backoffice";
+}
+
 export function LoginForm({
   redirectTo = "/backoffice",
   showSignUpLink = true,
 }: LoginFormProps) {
+  const safeRedirectTo = getSafeRedirectUrl(redirectTo);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string>();
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsPending(true);
     setError(undefined);
@@ -46,7 +60,7 @@ export function LoginForm({
     }
 
     // Redirigir al backoffice
-    router.push(redirectTo);
+    router.push(safeRedirectTo);
     router.refresh();
   };
 
@@ -69,7 +83,12 @@ export function LoginForm({
             </h3>
           </CardHeader>
           <CardBody>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+              onSubmit={handleSubmit}
+              method="post"
+              action=""
+              className="space-y-6"
+            >
               <Input
                 type="email"
                 name="email"
@@ -129,7 +148,7 @@ export function LoginForm({
                   try {
                     await authClient.signIn.social({
                       provider: "google",
-                      callbackURL: redirectTo,
+                      callbackURL: safeRedirectTo,
                     });
                   } catch (err) {
                     setError("Error al iniciar sesión con Google");

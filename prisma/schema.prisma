@@ -182,10 +182,11 @@ model Event {
   ownerId     String
   owner       User                   @relation("EventOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   // Relaciones
-  invitations Invitation[]
-  sections    SectionConfiguration[]
-  members     EventMember[]
-  inviteLinks EventInviteLink[]
+  invitations    Invitation[]
+  sections       SectionConfiguration[]
+  members        EventMember[]
+  inviteLinks    EventInviteLink[]
+  configurations Configuration[]
 
   @@index([ownerId])
   @@index([slug])
@@ -276,16 +277,18 @@ model Invitation {
 // Tokens únicos para cada invitación
 
 model InvitationToken {
-  id            String    @id @default(cuid())
+  // Crypto-secure random ID (21 chars, base64url, ~126 bits of entropy)
+  // This IS the token used in invitation URLs: /r/{id}
+  // Generated via crypto.randomBytes in createInvitationToken action
+  id            String    @id
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
-  // Token único
-  token         String    @unique
   
   // Estado del token (se puede revocar sin eliminar)
   isActive      Boolean   @default(true)
   isUsed        Boolean   @default(false)
+  // Expiración (default 1 año desde creación, revocable desde backoffice)
+  expiresAt     DateTime
   // Información de uso del token
   firstAccessAt DateTime?
   lastAccessAt  DateTime?
@@ -306,7 +309,19 @@ model InvitationToken {
 // RATE LIMITING & SECURITY
 // ============================================
 
-// Rate limiting - Intentos de acceso
+// Better Auth rate limiting (persistent, survives restarts)
+// Used by Better Auth's built-in rate limiter with storage: "database"
+
+model RateLimit {
+  id          String   @id @default(cuid())
+  key         String
+  count       Int
+  lastRequest BigInt
+
+  @@map("rate_limit")
+}
+
+// App-level rate limiting - Intentos de acceso
 
 model RateLimitAttempt {
   id        String   @id @default(cuid())
@@ -361,10 +376,16 @@ model Configuration {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  key         String  @unique
+  key         String
   value       String
   description String?
 
+  // Scoped por evento
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, key]) // Cada key es única POR evento
+  @@index([eventId])
   @@map("configurations")
 }
 

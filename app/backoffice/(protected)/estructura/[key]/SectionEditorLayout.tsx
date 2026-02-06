@@ -1,11 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 
 interface SectionEditorLayoutProps {
-  form: React.ReactNode;
-  preview: React.ReactNode;
+  form: ReactNode;
+  preview: ReactNode;
 }
 
 export function SectionEditorLayout({

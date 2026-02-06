@@ -1,17 +1,20 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import clsx from "clsx";
 
-export enum MessageTypes {
-  SUCCESS = "success",
-  ERROR = "error",
-}
+export const MessageTypes = {
+  SUCCESS: "success",
+  ERROR: "error",
+} as const;
+
+export type MessageType = (typeof MessageTypes)[keyof typeof MessageTypes];
 
 export interface FeedbackMessageProps {
-  type: MessageTypes;
+  type: MessageType;
   message: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   className?: string;
 }
 

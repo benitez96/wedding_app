@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import type { ReactNode, KeyboardEvent } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -34,7 +35,7 @@ import CreateEventModal from "@/components/backoffice/CreateEventModal";
 interface MenuItem {
   label: string;
   href: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   tierRequired?: SubscriptionTier;
 }
 
@@ -124,45 +125,42 @@ export default function BackofficeMenu({
   const isCompany = tier === "COMPANY";
 
   // Keyboard navigation handler
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent) => {
-      const itemCount = visibleItems.length;
+  const handleKeyDown = (event: KeyboardEvent) => {
+    const itemCount = visibleItems.length;
 
-      switch (event.key) {
-        case "ArrowDown":
-          event.preventDefault();
-          setActiveIndex((prev) => {
-            const next = prev < itemCount - 1 ? prev + 1 : 0;
-            menuItemRefs.current[next]?.focus();
-            return next;
-          });
-          break;
-        case "ArrowUp":
-          event.preventDefault();
-          setActiveIndex((prev) => {
-            const next = prev > 0 ? prev - 1 : itemCount - 1;
-            menuItemRefs.current[next]?.focus();
-            return next;
-          });
-          break;
-        case "Home":
-          event.preventDefault();
-          setActiveIndex(0);
-          menuItemRefs.current[0]?.focus();
-          break;
-        case "End":
-          event.preventDefault();
-          setActiveIndex(itemCount - 1);
-          menuItemRefs.current[itemCount - 1]?.focus();
-          break;
-        case "Escape":
-          event.preventDefault();
-          onClose();
-          break;
-      }
-    },
-    [visibleItems.length, onClose],
-  );
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        setActiveIndex((prev) => {
+          const next = prev < itemCount - 1 ? prev + 1 : 0;
+          menuItemRefs.current[next]?.focus();
+          return next;
+        });
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        setActiveIndex((prev) => {
+          const next = prev > 0 ? prev - 1 : itemCount - 1;
+          menuItemRefs.current[next]?.focus();
+          return next;
+        });
+        break;
+      case "Home":
+        event.preventDefault();
+        setActiveIndex(0);
+        menuItemRefs.current[0]?.focus();
+        break;
+      case "End":
+        event.preventDefault();
+        setActiveIndex(itemCount - 1);
+        menuItemRefs.current[itemCount - 1]?.focus();
+        break;
+      case "Escape":
+        event.preventDefault();
+        onClose();
+        break;
+    }
+  };
 
   // Focus first item when drawer opens
   useEffect(() => {

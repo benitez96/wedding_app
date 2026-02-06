@@ -19,6 +19,18 @@ import CustomRadioGroup from "./sections/RSVPStatus/CustomRadioGroup";
 import GuestCountSelector from "./GuestCountSelector";
 import SimpleConfetti from "./SimpleConfetti";
 
+interface InvitationUserData {
+  invitationId: string;
+  tokenId: string;
+  guestName: string;
+  guestNickname: string | null;
+  maxGuests: number;
+  hasResponded: boolean;
+  isAttending: boolean | null;
+  guestCount: number | null;
+  respondedAt: Date | null;
+}
+
 interface RSVPModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -30,7 +42,7 @@ export default function RSVPModal({
   onClose,
   onSuccess,
 }: RSVPModalProps) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<InvitationUserData | null>(null);
   const [response, setResponse] = useState<"attending" | "declining" | null>(
     null,
   );
@@ -41,7 +53,7 @@ export default function RSVPModal({
 
   // useActionState para manejar el estado del formulario
   const [state, formAction, isPending] = useActionState(
-    async (prevState: any) => {
+    async (prevState: { success: boolean; error?: string } | null) => {
       if (!response || !user || isProcessingRef.current) return prevState;
 
       isProcessingRef.current = true;
@@ -156,7 +168,7 @@ export default function RSVPModal({
                   />
                 </div>
 
-                {response === "attending" && user?.maxGuests > 1 ? (
+                {response === "attending" && (user?.maxGuests ?? 0) > 1 ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-center gap-2">
                       <Users className="w-4 h-4 text-primary" />

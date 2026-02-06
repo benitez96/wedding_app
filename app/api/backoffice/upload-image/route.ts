@@ -116,6 +116,17 @@ export async function POST(request: NextRequest) {
     const fileName = `${prefix}_${timestamp}.${sanitizedExt}`;
     const filePath = join(uploadDir, fileName);
 
+    // SECURITY: Verify resolved path is within upload directory (path traversal defense)
+    const { resolve } = await import("path");
+    const resolvedPath = resolve(filePath);
+    const resolvedUploadDir = resolve(uploadDir);
+    if (!resolvedPath.startsWith(resolvedUploadDir)) {
+      return NextResponse.json(
+        { success: false, error: "Ruta de archivo inválida" },
+        { status: 400 },
+      );
+    }
+
     // Guardar archivo
     await writeFile(filePath, buffer);
 
@@ -129,7 +140,10 @@ export async function POST(request: NextRequest) {
       mediaType: isVideo ? "video" : "image",
     });
   } catch (error) {
-    console.error("Error al subir imagen:", error);
+    // Error logged server-side only - do not expose details to client
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error al subir imagen:", error);
+    }
     return NextResponse.json(
       { success: false, error: "Error al procesar la imagen" },
       { status: 500 },

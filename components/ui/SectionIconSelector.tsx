@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { RadioGroup, useRadio } from "@heroui/radio";
 import { VisuallyHidden } from "@react-aria/visually-hidden";
 import { cn } from "@heroui/theme";
@@ -18,9 +19,7 @@ interface SectionIconSelectorProps {
 }
 
 // Custom Radio Card
-function IconRadioCard(
-  props: SectionIconConfig & { children?: React.ReactNode },
-) {
+function IconRadioCard(props: SectionIconConfig & { children?: ReactNode }) {
   const { path, label, type, animationClass, ...radioProps } = props;
   const { Component, children, getBaseProps, getInputProps, getWrapperProps } =
     useRadio(radioProps);
@@ -31,13 +30,7 @@ function IconRadioCard(
   return (
     <Component
       {...getBaseProps()}
-      className={cn(
-        "group inline-flex items-center justify-center flex-col",
-        "tap-highlight-transparent cursor-pointer border-2 border-default-200",
-        "rounded-lg p-3 hover:bg-content2 transition-colors",
-        "data-[selected=true]:border-primary data-[selected=true]:bg-primary-50",
-        "w-24 h-24 flex-shrink-0",
-      )}
+      className="group inline-flex items-center justify-center flex-col tap-highlight-transparent cursor-pointer border-2 border-default-200 rounded-lg p-3 hover:bg-content2 transition-colors data-[selected=true]:border-primary data-[selected=true]:bg-primary-50 w-24 h-24 flex-shrink-0"
     >
       <VisuallyHidden>
         <input {...getInputProps()} />

@@ -140,6 +140,18 @@ export async function recordAttempt(
       },
     });
 
+    // Log to SecurityLog (non-blocking)
+    prisma.securityLog
+      .create({
+        data: {
+          type: "rate_limit_triggered",
+          ip,
+          userAgent: "N/A",
+          details: { actionType, maxAttempts: config.maxAttempts },
+        },
+      })
+      .catch(() => {});
+
     return {
       allowed: false,
       remainingAttempts: 0,
@@ -212,6 +224,18 @@ export async function blockIPForHoneypot(
       reason: `Honeypot activado${details ? `: ${details}` : ""}`,
     },
   });
+
+  // Log to SecurityLog (non-blocking)
+  prisma.securityLog
+    .create({
+      data: {
+        type: "honeypot_triggered",
+        ip,
+        userAgent: "N/A",
+        details: { actionType, details: details || null },
+      },
+    })
+    .catch(() => {});
 }
 
 // Función para limpiar datos antiguos (puede ejecutarse como cron job)

@@ -1,5 +1,6 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
@@ -43,7 +44,7 @@ export function PhotoUploadSectionSettingsForm({
 
   const updateSettings = createSettingsUpdater(setSettings, onSettingsChange);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     setMessage(null);
@@ -65,7 +66,11 @@ export function PhotoUploadSectionSettingsForm({
       {/* Mensaje de feedback */}
       {message && (
         <FeedbackMessage
-          type={message.includes("Error") ? MessageTypes.ERROR : MessageTypes.SUCCESS}
+          type={
+            message.includes("Error")
+              ? MessageTypes.ERROR
+              : MessageTypes.SUCCESS
+          }
           message={message}
         />
       )}

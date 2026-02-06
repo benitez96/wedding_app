@@ -6,35 +6,24 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { enforceEventLimit } from "@/lib/tier-enforcement";
-import {
-  getUserAccessibleEvents,
-  type AccessibleEvent,
-} from "@/lib/event-context";
+import { getUserAccessibleEvents } from "@/lib/event-context";
+import { logError } from "@/lib/logger";
+import { z } from "zod";
 
 const ACTIVE_EVENT_COOKIE = "active-event-id";
 
-/**
- * Obtiene todos los eventos accesibles por el usuario (propios + colaborador)
- */
-export const getEvents = withAuth(async (user: User) => {
-  try {
-    const events = await getUserAccessibleEvents(user.id);
-
-    // Serializar BigInt para enviar al cliente
-    const serialized = events.map((e) => ({
-      id: e.id,
-      name: e.name,
-      slug: e.slug,
-      description: e.description,
-      isOwner: e.isOwner,
-      permissions: e.permissions.toString(),
-    }));
-
-    return { success: true, data: serialized };
-  } catch (error) {
-    console.error("Error al obtener eventos:", error);
-    return { success: false, error: "Error al cargar los eventos" };
-  }
+const createEventSchema = z.object({
+  name: z
+    .string()
+    .min(1, "El nombre es requerido")
+    .max(100, "El nombre no puede exceder 100 caracteres")
+    .transform((val) => val.trim()),
+  description: z
+    .string()
+    .max(500, "La descripción no puede exceder 500 caracteres")
+    .optional()
+    .nullable()
+    .transform((val) => val?.trim() || null),
 });
 
 /**
@@ -52,12 +41,22 @@ export const createEvent = withAuth(async (user: User, formData: FormData) => {
       };
     }
 
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string | null;
+    const rawName = formData.get("name") as string;
+    const rawDescription = formData.get("description") as string | null;
 
-    if (!name || name.trim().length === 0) {
-      return { success: false, error: "El nombre del evento es requerido" };
+    // Validate with Zod
+    const validation = createEventSchema.safeParse({
+      name: rawName,
+      description: rawDescription,
+    });
+    if (!validation.success) {
+      return {
+        success: false,
+        error: validation.error.issues[0]?.message ?? "Datos inválidos",
+      };
     }
+
+    const { name, description } = validation.data;
 
     // Generar slug unico
     const baseSlug = name
@@ -104,7 +103,7 @@ export const createEvent = withAuth(async (user: User, formData: FormData) => {
     revalidatePath("/backoffice");
     return { success: true, data: event };
   } catch (error) {
-    console.error("Error al crear evento:", error);
+    logError("Error al crear evento", error);
     return { success: false, error: "Error al crear el evento" };
   }
 });
@@ -136,7 +135,7 @@ export const switchActiveEvent = withAuth(
       revalidatePath("/backoffice", "layout");
       return { success: true };
     } catch (error) {
-      console.error("Error al cambiar evento activo:", error);
+      logError("Error al cambiar evento activo", error);
       return { success: false, error: "Error al cambiar el evento" };
     }
   },

@@ -23,6 +23,10 @@ async function validateToken(tokenId: string) {
     return { valid: false, error: "Token invalid or revoked" };
   }
 
+  if (token.expiresAt && new Date() > token.expiresAt) {
+    return { valid: false, error: "Token expired" };
+  }
+
   if (!token.invitation) {
     return { valid: false, error: "Invitation not found" };
   }
@@ -62,7 +66,7 @@ export async function processInvitationToken(token: string) {
     const headersList = await headers();
     const userAgent = headersList.get("user-agent") || "Unknown";
     const cookieStore = await cookies();
-    const session = cookieStore.get("session");
+    const session = cookieStore.get("invitation_session");
 
     // If user already has session, check if it's the same token
     if (session) {
@@ -82,7 +86,7 @@ export async function processInvitationToken(token: string) {
           throw new Error("Invalid JWT claims");
         }
 
-        // If same token, just redirect
+        // If same token ID, just redirect (id IS the token now)
         if (payload.tokenId === token) {
           return { success: true, action: "redirect" };
         }
@@ -91,7 +95,7 @@ export async function processInvitationToken(token: string) {
       }
     }
 
-    // Lookup token in database
+    // Lookup token in database by id (the id IS the token in the URL)
     const validatedToken = tokenValidation.data;
     const invitationToken = await prisma.invitationToken.findUnique({
       where: { id: validatedToken },
@@ -108,6 +112,12 @@ export async function processInvitationToken(token: string) {
       return { success: false, action: "error", error: "token-already-used" };
     }
 
+    // Check expiration
+    if (invitationToken.expiresAt && new Date() > invitationToken.expiresAt) {
+      await recordAttempt(clientIP, "invitation-token", false);
+      return { success: false, action: "error", error: "token-expired" };
+    }
+
     // Mark token as used
     await prisma.invitationToken.update({
       where: { id: validatedToken },
@@ -117,10 +127,10 @@ export async function processInvitationToken(token: string) {
       },
     });
 
-    // Create JWT session for guest
+    // Create JWT session for guest (tokenId = the crypto-secure id)
     const secret = new TextEncoder().encode(JWT_SECRET);
     const sessionToken = await new jose.SignJWT({
-      tokenId: validatedToken,
+      tokenId: invitationToken.id,
       invitationId: invitationToken.invitation.id,
       createdAt: Date.now(),
     })
@@ -138,11 +148,13 @@ export async function processInvitationToken(token: string) {
       .sign(secret);
 
     // Set HTTP-only cookie with guest session
-    cookieStore.set("session", sessionToken, {
+    // SECURITY: Use specific cookie name to avoid collision with Better Auth's session
+    cookieStore.set("invitation_session", sessionToken, {
       httpOnly: true,
       secure: SECURITY_CONFIG.COOKIE_SECURE,
       sameSite: SECURITY_CONFIG.COOKIE_SAME_SITE,
       maxAge: SECURITY_CONFIG.INVITATION_SESSION_DURATION,
+      path: "/",
     });
 
     // Log successful token use
@@ -164,7 +176,7 @@ export async function processInvitationToken(token: string) {
 export async function getCurrentUser() {
   try {
     const cookieStore = await cookies();
-    const session = cookieStore.get("session");
+    const session = cookieStore.get("invitation_session");
 
     if (!session) {
       return { success: false, user: null };
@@ -212,7 +224,3 @@ export async function getCurrentUser() {
     return { success: false, user: null };
   }
 }
-
-// Re-export protected invitation actions
-import { updateInvitationResponse as protectedUpdateInvitationResponse } from "./protected-invitations";
-export const updateInvitationResponse = protectedUpdateInvitationResponse;

@@ -3,6 +3,11 @@
 import { withInvitationAuth, InvitationUser } from "@/lib/invitation-auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import {
+  invitationResponseSchema,
+  validateAndSanitize,
+} from "@/utils/validation";
+import { logError } from "@/lib/logger";
 
 // Action protegido para actualizar respuesta de invitación
 export const updateInvitationResponse = withInvitationAuth(
@@ -15,12 +20,20 @@ export const updateInvitationResponse = withInvitationAuth(
     },
   ) => {
     try {
+      // Validate input with Zod
+      const validation = validateAndSanitize(invitationResponseSchema, data);
+      if (!validation.success) {
+        return { success: false, error: validation.error };
+      }
+      const validated = (validation as { success: true; data: typeof data })
+        .data;
+
       // Validar guestCount si isAttending es true
       if (
-        data.isAttending &&
-        (!data.guestCount ||
-          data.guestCount < 1 ||
-          data.guestCount > user.maxGuests)
+        validated.isAttending &&
+        (!validated.guestCount ||
+          validated.guestCount < 1 ||
+          validated.guestCount > user.maxGuests)
       ) {
         return {
           success: false,
@@ -29,21 +42,28 @@ export const updateInvitationResponse = withInvitationAuth(
         };
       }
 
-      // Actualizar la invitación
+      // Actualizar la invitación - only return safe fields
       const updatedInvitation = await prisma.invitation.update({
         where: { id: user.invitationId },
         data: {
           hasResponded: true,
-          isAttending: data.isAttending,
-          guestCount: data.isAttending ? data.guestCount : null,
+          isAttending: validated.isAttending,
+          guestCount: validated.isAttending ? validated.guestCount : null,
           respondedAt: new Date(),
+        },
+        select: {
+          id: true,
+          hasResponded: true,
+          isAttending: true,
+          guestCount: true,
+          respondedAt: true,
         },
       });
 
       revalidatePath("/");
       return { success: true, data: updatedInvitation };
     } catch (error) {
-      console.error("Error al actualizar respuesta de invitación:", error);
+      logError("Error al actualizar respuesta de invitación", error);
       return { success: false, error: "Error al procesar la respuesta" };
     }
   },
@@ -66,43 +86,6 @@ export async function updateInvitationResponseAction(
 
   return result;
 }
-
-// Action protegido para subir fotos (cuando se implemente)
-export const uploadPhoto = withInvitationAuth(
-  async (user: InvitationUser, formData: FormData) => {
-    try {
-      return {
-        success: true,
-        message: "Función de subida de fotos en desarrollo",
-        uploadedBy: user.guestName,
-      };
-    } catch {
-      return { success: false, error: "Error al subir la foto" };
-    }
-  },
-);
-
-// Action protegido para enviar mensajes (cuando se implemente)
-export const sendMessage = withInvitationAuth(
-  async (
-    user: InvitationUser,
-    data: {
-      message: string;
-      type?: "wish" | "memory" | "advice";
-    },
-  ) => {
-    try {
-      return {
-        success: true,
-        message: "Mensaje enviado correctamente",
-        sentBy: user.guestName,
-        messageType: data.type || "wish",
-      };
-    } catch {
-      return { success: false, error: "Error al enviar el mensaje" };
-    }
-  },
-);
 
 // Action protegido para obtener datos del usuario actual
 export const getCurrentUserData = withInvitationAuth(
@@ -132,7 +115,7 @@ export const getCurrentUserData = withInvitationAuth(
         },
       };
     } catch (error) {
-      console.error("Error al obtener datos del usuario:", error);
+      logError("Error al obtener datos del usuario", error);
       return { success: false, error: "Error al obtener datos del usuario" };
     }
   },

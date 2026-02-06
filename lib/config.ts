@@ -5,6 +5,8 @@
  * Invitation guest sessions still use JWT_SECRET via jose.
  */
 
+import { logWarning } from "@/lib/logger";
+
 export function getRequiredEnvVar(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -69,9 +71,7 @@ function validateSecurityConfig() {
       !DATABASE_URL.includes("ssl=true") &&
       !DATABASE_URL.includes("sslmode=require")
     ) {
-      console.warn(
-        "⚠️  ADVERTENCIA: DATABASE_URL no incluye SSL en producción",
-      );
+      logWarning("Security", "DATABASE_URL no incluye SSL en producción");
     }
   }
 }

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
-// Simple in-memory rate limiting for middleware (Edge-safe)
+// ============================================
+// IN-MEMORY RATE LIMITING (Edge-safe)
+// ============================================
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 100;
 
@@ -12,16 +15,27 @@ interface RateLimitEntry {
 
 const rateLimitMap = new Map<string, RateLimitEntry>();
 
-/**
- * Rate limiting middleware function
- * Returns true if request should be blocked
- */
+// Periodically clean up stale rate limit entries to prevent memory leak
+const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+let lastCleanup = Date.now();
+
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL) return;
+  lastCleanup = now;
+
+  for (const [ip, entry] of rateLimitMap) {
+    if (now > entry.resetTime) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}
+
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
 
   if (!entry || now > entry.resetTime) {
-    // Reset or create new entry
     rateLimitMap.set(ip, {
       count: 1,
       resetTime: now + RATE_LIMIT_WINDOW,
@@ -37,9 +51,6 @@ function checkRateLimit(ip: string): boolean {
   return false;
 }
 
-/**
- * Get client IP from request headers
- */
 function getClientIP(request: NextRequest): string {
   return (
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -49,135 +60,128 @@ function getClientIP(request: NextRequest): string {
   );
 }
 
+// ============================================
+// ROUTE DEFINITIONS
+// ============================================
+
+/** Routes that match EXACTLY (no prefix) */
+const PUBLIC_EXACT_ROUTES = new Set([
+  "/",
+  "/login",
+  "/sign-up",
+  "/register",
+  "/backoffice/login",
+  "/favicon.ico",
+  "/logo.png",
+]);
+
+/** Route prefixes - anything starting with these is public */
+const PUBLIC_PREFIX_ROUTES = [
+  "/error",
+  "/api/auth", // Better Auth endpoints - MUST be public for auth to work
+  "/api/health",
+  "/r/",
+  "/join/", // Collaborator invite acceptance (auth happens inside the page)
+  "/_next/",
+  "/static/",
+];
+
+/** Routes that redirect to /login when unauthenticated */
+const AUTH_REDIRECT_PREFIXES = ["/dashboard", "/backoffice"];
+
+// ============================================
+// SESSION CHECK (cookie-based, NO self-fetch)
+// ============================================
+
 /**
- * Middleware de Next.js para proteger rutas
+ * Check if the user has a Better Auth session cookie using the official helper.
  *
- * Better Auth maneja la autenticación automáticamente,
- * pero necesitamos validar la sesión real en el middleware
+ * Uses `getSessionCookie()` from `better-auth/cookies` which automatically
+ * resolves the correct cookie name (handles prefix, secure cookies, etc.).
+ *
+ * WHY cookie-presence check only (no fetch/DB call):
+ *
+ * 1. Middleware runs in Edge Runtime - no Prisma, no direct DB access.
+ *
+ * 2. Fetching our own /api/auth/get-session from inside the middleware causes
+ *    an infinite redirect loop: the fetch goes through the middleware again,
+ *    which fetches again, etc.
+ *
+ * 3. Better Auth's cookieCache (enabled in lib/auth.ts) stores a signed
+ *    session payload in the cookie via HMAC. The cookie is cryptographically
+ *    signed and tamper-proof.
+ *
+ * 4. The REAL session validation (DB check, expiry, etc.) happens in
+ *    server actions and API routes via `auth.api.getSession()`.
+ *    The middleware is just a fast gate to prevent unauthenticated users
+ *    from hitting protected pages.
+ *
+ * Ref: https://www.better-auth.com/docs/integrations/next
  */
-export async function middleware(request: NextRequest) {
+
+// ============================================
+// MIDDLEWARE
+// ============================================
+
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ============================================
-  // RATE LIMITING (applies to all routes)
-  // ============================================
+  // --- Rate limiting (skip static assets) ---
   const clientIP = getClientIP(request);
 
-  // Skip rate limiting for static assets
   const isStaticAsset =
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/static/") ||
     pathname.startsWith("/uploads/") ||
-    pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico|css|js|woff|woff2)$/);
+    /\.(jpg|jpeg|png|gif|webp|svg|ico|css|js|woff|woff2)$/.test(pathname);
+
+  cleanupRateLimitMap();
 
   if (!isStaticAsset && checkRateLimit(clientIP)) {
     return new NextResponse("Rate limit exceeded", {
       status: 429,
-      headers: {
-        "Retry-After": "60",
-      },
+      headers: { "Retry-After": "60" },
     });
   }
 
-  // ============================================
-  // RUTAS PÚBLICAS (no requieren autenticación)
-  // ============================================
-
-  // Rutas que deben coincidir EXACTAMENTE
-  const publicExactRoutes = [
-    "/", // Landing page / invitation page
-    "/login",
-    "/register",
-    "/favicon.ico",
-    "/logo.png",
-  ];
-
-  // Rutas que usan prefix matching (todo lo que empiece con esto es público)
-  const publicPrefixRoutes = [
-    "/error", // Error pages (e.g., /error?message=...)
-    "/api/auth", // Endpoints de Better Auth
-    "/api/health", // Health check
-    "/r/", // Rutas de tokens de invitación (JWT, se validan internamente)
-    "/_next/", // Next.js internals
-    "/static/", // Static files
-  ];
-
+  // --- Public routes: allow through ---
   const isPublic =
-    publicExactRoutes.includes(pathname) ||
-    publicPrefixRoutes.some((prefix) => pathname.startsWith(prefix));
+    PUBLIC_EXACT_ROUTES.has(pathname) ||
+    PUBLIC_PREFIX_ROUTES.some((prefix) => pathname.startsWith(prefix));
 
   if (isPublic) {
     return NextResponse.next();
   }
 
-  // ============================================
-  // RUTAS PROTEGIDAS (requieren autenticación válida)
-  // ============================================
+  // --- Protected routes: check session cookie ---
+  // getSessionCookie returns the session token string or null
+  const sessionCookie = getSessionCookie(request);
+  if (!sessionCookie) {
+    const isAuthRoute = AUTH_REDIRECT_PREFIXES.some((prefix) =>
+      pathname.startsWith(prefix),
+    );
 
-  // Validar sesión con Better Auth vía API call
-  // El middleware corre en Edge Runtime, no podemos usar Prisma directamente
-  const session = await validateSession(request);
-
-  if (!session) {
-    // Si es una ruta del dashboard/backoffice, redirigir a login
-    if (
-      pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/backoffice")
-    ) {
+    if (isAuthRoute) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    // Para otras rutas protegidas, mostrar error
     return NextResponse.redirect(
       new URL("/error?message=authentication-required", request.url),
     );
   }
 
-  // Sesión válida, permitir acceso
+  // Session cookie present -> allow through
+  // Real DB validation happens in server actions via auth.api.getSession()
   return NextResponse.next();
-}
-
-/**
- * Valida la sesión con Better Auth via API call
- * Necesario porque el middleware corre en Edge Runtime y Prisma no está disponible
- */
-async function validateSession(request: NextRequest) {
-  try {
-    // Obtener la cookie de sesión
-    const sessionCookie = request.cookies.get("auth.session_token")?.value;
-    if (!sessionCookie) {
-      return null;
-    }
-
-    // Hacer request al endpoint de sesión de Better Auth
-    // Esto valida que la sesión exista en la DB y no esté expirada
-    const baseUrl = process.env.BETTER_AUTH_URL || request.nextUrl.origin;
-    const response = await fetch(`${baseUrl}/api/auth/session`, {
-      headers: {
-        cookie: request.headers.get("cookie") || "",
-      },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-    return data.session || null;
-  } catch (error) {
-    console.error("[Middleware] Session validation error:", error);
-    return null;
-  }
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all paths except:
      * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - api/auth (Better Auth endpoints)
+     * - _next/image (image optimization)
      */
-    "/((?!_next/static|_next/image|api/auth).*)",
+    "/((?!_next/static|_next/image).*)",
   ],
 };

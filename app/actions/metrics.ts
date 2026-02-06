@@ -1,12 +1,21 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import { headers } from "next/headers";
 import crypto from "crypto";
-import { JWT_SECRET } from "@/lib/config";
-import { verifyUserAuth } from "@/lib/server-auth";
-import { verifyEventAccess, getUserEventContext } from "@/lib/event-context";
+import { logError } from "@/lib/logger";
 import { verifyInvitationAuth } from "@/lib/invitation-auth";
+
+/**
+ * Dedicated salt for device fingerprinting.
+ * SECURITY: Uses a separate salt instead of JWT_SECRET to prevent
+ * known-plaintext attacks if the fingerprint hash is ever exposed.
+ */
+const DEVICE_FINGERPRINT_SALT = crypto
+  .createHash("sha256")
+  .update("wedding-app-device-fingerprint-salt-v1")
+  .digest("hex");
 
 // Función para generar fingerprint del dispositivo (versión mejorada)
 async function generateDeviceFingerprint(userAgent: string): Promise<string> {
@@ -20,7 +29,7 @@ async function generateDeviceFingerprint(userAgent: string): Promise<string> {
     .replace(/Firefox\/[\d.]+/g, "Firefox/VERSION") // Normalizar versión de Firefox
     .replace(/Edge\/[\d.]+/g, "Edge/VERSION"); // Normalizar versión de Edge
 
-  hash.update(normalizedUA + JWT_SECRET);
+  hash.update(normalizedUA + DEVICE_FINGERPRINT_SALT);
   return hash.digest("hex").substring(0, 16); // Primeros 16 caracteres
 }
 
@@ -60,154 +69,25 @@ export async function updateTokenAccessMetrics(tokenId: string) {
     const deviceFp = await generateDeviceFingerprint(userAgent);
 
     // Preparar datos para actualización
-    const updateData: any = {
+    const updateData: Prisma.InvitationTokenUpdateInput = {
       lastAccessAt: new Date(),
       accessCount: {
         increment: 1,
       },
       userAgent: userAgent,
-      deviceId: deviceFp, // Guardar el fingerprint del dispositivo
+      deviceId: deviceFp,
+      ...(!currentToken.firstAccessAt && { firstAccessAt: new Date() }),
     };
-
-    // Solo establecer firstAccessAt si no está ya establecido
-    if (!currentToken.firstAccessAt) {
-      updateData.firstAccessAt = new Date();
-    }
 
     await prisma.invitationToken.update({
       where: { id: tokenId },
       data: updateData,
     });
 
-    console.log(
-      `✅ Métricas actualizadas para token: ${tokenId} con deviceId: ${deviceFp}`,
-    );
+    // Metrics updated successfully
     return { success: true };
   } catch (error) {
-    console.error("Error actualizando métricas de acceso:", error);
-    return { success: false, error: "Error interno del servidor" };
-  }
-}
-
-/**
- * Obtiene estadísticas de acceso para un token específico
- * @param tokenId - ID del token de invitación
- * REQUIERE: Autenticación y ownership del evento asociado al token
- */
-export async function getTokenAccessStats(tokenId: string) {
-  try {
-    // Verificar autenticación
-    const authResult = await verifyUserAuth();
-    if (!authResult.success || !authResult.user) {
-      return { success: false, error: "No autorizado" };
-    }
-
-    // Obtener el token con su relación a invitation para verificar event ownership
-    const tokenWithEvent = await prisma.invitationToken.findUnique({
-      where: { id: tokenId },
-      include: {
-        invitation: {
-          select: { eventId: true },
-        },
-      },
-    });
-
-    if (!tokenWithEvent || !tokenWithEvent.invitation) {
-      return { success: false, error: "Token no encontrado" };
-    }
-
-    // Verificar que el usuario tiene acceso al evento
-    const eventAccess = await verifyEventAccess(
-      authResult.user.id,
-      tokenWithEvent.invitation.eventId,
-    );
-    if (!eventAccess) {
-      return { success: false, error: "No autorizado para este evento" };
-    }
-
-    // Return the metrics (tokenWithEvent already has the data)
-    return {
-      success: true,
-      data: {
-        firstAccessAt: tokenWithEvent.firstAccessAt,
-        lastAccessAt: tokenWithEvent.lastAccessAt,
-        accessCount: tokenWithEvent.accessCount,
-        deviceId: tokenWithEvent.deviceId,
-        userAgent: tokenWithEvent.userAgent,
-      },
-    };
-  } catch (error) {
-    console.error("Error obteniendo estadísticas de acceso:", error);
-    return { success: false, error: "Error interno del servidor" };
-  }
-}
-
-/**
- * Obtiene estadísticas agregadas de tokens del evento activo del usuario
- * REQUIERE: Autenticación
- */
-export async function getAggregatedAccessStats() {
-  try {
-    // Verificar autenticación
-    const authResult = await verifyUserAuth();
-    if (!authResult.success || !authResult.user) {
-      return { success: false, error: "No autorizado" };
-    }
-
-    // Obtener el evento activo del usuario
-    const eventContext = await getUserEventContext(authResult.user.id);
-    if (!eventContext) {
-      return { success: false, error: "No se encontró un evento activo" };
-    }
-
-    // Scopear todas las queries por el evento del usuario
-    const eventFilter = {
-      invitation: {
-        eventId: eventContext.eventId,
-      },
-    };
-
-    const stats = await prisma.invitationToken.aggregate({
-      where: eventFilter,
-      _sum: {
-        accessCount: true,
-      },
-      _count: {
-        id: true,
-        deviceId: true,
-      },
-      _min: {
-        firstAccessAt: true,
-      },
-      _max: {
-        lastAccessAt: true,
-      },
-    });
-
-    // Contar dispositivos únicos (deviceId no nulos) solo del evento del usuario
-    const uniqueDevices = await prisma.invitationToken.count({
-      where: {
-        ...eventFilter,
-        deviceId: {
-          not: null,
-        },
-      },
-    });
-
-    const result = {
-      totalAccesses: stats._sum.accessCount || 0,
-      totalTokens: stats._count.id,
-      uniqueDevices: uniqueDevices,
-      firstAccess: stats._min.firstAccessAt,
-      lastAccess: stats._max.lastAccessAt,
-    };
-
-    console.log(
-      `📊 Estadísticas agregadas para evento ${eventContext.eventId}:`,
-    );
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("Error obteniendo estadísticas agregadas:", error);
+    logError("Error actualizando métricas de acceso", error);
     return { success: false, error: "Error interno del servidor" };
   }
 }

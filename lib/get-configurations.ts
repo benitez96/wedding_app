@@ -2,54 +2,59 @@ import { cache } from "react";
 import prisma from "@/lib/prisma";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import type { ConfigurationKey } from "@/types/configuration";
+import { logError } from "@/lib/logger";
 
 // Cache en memoria con TTL de 5 minutos
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+// Key format: `${eventId}:${configKey}`
+const CACHE_TTL = 5 * 60 * 1000;
 const memoryCache = new Map<
   string,
   { value: string | null; timestamp: number }
 >();
 
+function cacheKey(eventId: string, key: string): string {
+  return `${eventId}:${key}`;
+}
+
 /**
- * Obtiene una configuración específica desde la BBDD
- * Incluye cache en memoria para optimizar lecturas
+ * Obtiene una configuración específica desde la BBDD (scoped por evento)
  */
 export async function getConfigurationValue(
+  eventId: string,
   key: ConfigurationKey,
 ): Promise<string | null> {
-  // Revisar cache
-  const cached = memoryCache.get(key);
+  const ck = cacheKey(eventId, key);
+  const cached = memoryCache.get(ck);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.value;
   }
 
   try {
     const config = await prisma.configuration.findUnique({
-      where: { key },
+      where: { eventId_key: { eventId, key } },
       select: { value: true },
     });
 
     const value = config?.value || null;
-
-    // Guardar en cache
-    memoryCache.set(key, { value, timestamp: Date.now() });
+    memoryCache.set(ck, { value, timestamp: Date.now() });
 
     return value;
   } catch (error) {
-    console.error(`Error obteniendo configuración ${key}:`, error);
+    logError(`Error obteniendo configuración ${key}`, error);
     return null;
   }
 }
 
 /**
- * Obtiene múltiples configuraciones en un solo query
+ * Obtiene múltiples configuraciones en un solo query (scoped por evento)
  */
 export async function getConfigurations(
+  eventId: string,
   keys: ConfigurationKey[],
 ): Promise<Record<ConfigurationKey, string | null>> {
   try {
     const configs = await prisma.configuration.findMany({
-      where: { key: { in: keys } },
+      where: { eventId, key: { in: keys } },
       select: { key: true, value: true },
     });
 
@@ -58,8 +63,7 @@ export async function getConfigurations(
       const config = configs.find((c) => c.key === key);
       result[key] = config?.value || null;
 
-      // Actualizar cache
-      memoryCache.set(key, {
+      memoryCache.set(cacheKey(eventId, key), {
         value: config?.value || null,
         timestamp: Date.now(),
       });
@@ -67,9 +71,8 @@ export async function getConfigurations(
 
     return result as Record<ConfigurationKey, string | null>;
   } catch (error) {
-    console.error("Error obteniendo configuraciones:", error);
+    logError("Error obteniendo configuraciones", error);
 
-    // Retornar objeto con valores null
     const result: Record<string, string | null> = {};
     for (const key of keys) {
       result[key] = null;
@@ -80,16 +83,15 @@ export async function getConfigurations(
 
 /**
  * Obtiene la fecha de la boda desde BBDD o fallback a variable de entorno
- * Wrapeada con React.cache() para deduplicación durante el mismo render
+ * Requiere eventId para scoping
  */
-export const getWeddingDate = cache(async (): Promise<Date> => {
+export const getWeddingDate = cache(async (eventId: string): Promise<Date> => {
   const dateString = await getConfigurationValue(
+    eventId,
     CONFIGURATION_KEYS.WEDDING_DATE,
   );
 
   if (dateString) {
-    // dateString está en formato "YYYY-MM-DDTHH:mm" (datetime-local)
-    // Lo convertimos a Date asumiendo hora local
     return new Date(dateString);
   }
 
@@ -104,34 +106,39 @@ export const getWeddingDate = cache(async (): Promise<Date> => {
 
 /**
  * Obtiene la URL de subida de fotos desde BBDD o fallback a variable de entorno
- * Wrapeada con React.cache() para deduplicación durante el mismo render
  */
-export const getPhotoUploadUrl = cache(async (): Promise<string> => {
-  const url = await getConfigurationValue(CONFIGURATION_KEYS.PHOTO_UPLOAD_URL);
+export const getPhotoUploadUrl = cache(
+  async (eventId: string): Promise<string> => {
+    const url = await getConfigurationValue(
+      eventId,
+      CONFIGURATION_KEYS.PHOTO_UPLOAD_URL,
+    );
 
-  return url || process.env.NEXT_PUBLIC_PHOTO_UPLOAD_URL || "";
-});
+    return url || process.env.NEXT_PUBLIC_PHOTO_UPLOAD_URL || "";
+  },
+);
 
 /**
  * Obtiene los días de recordatorio RSVP desde BBDD o fallback a variable de entorno
- * Wrapeada con React.cache() para deduplicación durante el mismo render
  */
-export const getRemindRestingDays = cache(async (): Promise<number> => {
-  const days = await getConfigurationValue(
-    CONFIGURATION_KEYS.REMIND_RESTING_DAYS,
-  );
+export const getRemindRestingDays = cache(
+  async (eventId: string): Promise<number> => {
+    const days = await getConfigurationValue(
+      eventId,
+      CONFIGURATION_KEYS.REMIND_RESTING_DAYS,
+    );
 
-  if (days) {
-    const parsed = Number.parseInt(days, 10);
-    if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 365) {
-      return parsed;
+    if (days) {
+      const parsed = Number.parseInt(days, 10);
+      if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 365) {
+        return parsed;
+      }
     }
-  }
 
-  // Fallback a variable de entorno
-  const envDays = process.env.NEXT_PUBLIC_REMIND_RESTING || "40";
-  return Number.parseInt(envDays, 10);
-});
+    const envDays = process.env.NEXT_PUBLIC_REMIND_RESTING || "40";
+    return Number.parseInt(envDays, 10);
+  },
+);
 
 /**
  * Limpia el cache de configuraciones (útil después de actualizaciones)

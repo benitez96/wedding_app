@@ -1,5 +1,6 @@
 "use client";
 
+import type { FormEvent } from "react";
 import { Input } from "@heroui/input";
 import { Switch } from "@heroui/switch";
 import { Button } from "@heroui/button";
@@ -64,7 +65,7 @@ export function HeroSectionSettingsForm({
   // Usar el helper para actualizar settings y notificar cambios
   const updateSettings = createSettingsUpdater(setSettings, onSettingsChange);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     setMessage(null);
@@ -86,7 +87,11 @@ export function HeroSectionSettingsForm({
       {/* Mensaje de feedback */}
       {message && (
         <FeedbackMessage
-          type={message.includes("Error") ? MessageTypes.ERROR : MessageTypes.SUCCESS}
+          type={
+            message.includes("Error")
+              ? MessageTypes.ERROR
+              : MessageTypes.SUCCESS
+          }
           message={message}
         />
       )}

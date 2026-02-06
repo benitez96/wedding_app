@@ -1,3 +1,5 @@
+import type { ComponentType } from "react";
+
 // ============================================
 // TYPES
 // ============================================
@@ -43,6 +45,5 @@ export interface SectionPropsWithUser extends BaseSectionProps {
 }
 
 // Tipo del componente de sección
-export type SectionComponent = React.ComponentType<BaseSectionProps>;
-export type SectionComponentWithUser =
-  React.ComponentType<SectionPropsWithUser>;
+export type SectionComponent = ComponentType<BaseSectionProps>;
+export type SectionComponentWithUser = ComponentType<SectionPropsWithUser>;

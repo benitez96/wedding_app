@@ -20,11 +20,11 @@ export default async function Home() {
 
   const user = userResult.user;
 
-  // Ahora obtener los datos del evento
+  // Ahora obtener los datos del evento (scoped por eventId)
   const [sections, weddingDate, remindRestingDays] = await Promise.all([
     getSectionConfigurations(user.eventId),
-    getWeddingDate(),
-    getRemindRestingDays(),
+    getWeddingDate(user.eventId),
+    getRemindRestingDays(user.eventId),
   ]);
 
   // Actualizar métricas de acceso (non-blocking)

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { betterAuth } from "better-auth";
+import { createAuthMiddleware, APIError } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "../app/generated/prisma";
 
@@ -37,7 +38,8 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
-    minPasswordLength: 8,
+    minPasswordLength: 10,
+    maxPasswordLength: 128,
   },
 
   // Social Providers
@@ -75,21 +77,84 @@ export const auth = betterAuth({
     },
   },
 
-  // Rate limiting (Better Auth ya tiene rate limiting built-in)
+  // Rate limiting (Better Auth built-in, persisted in PostgreSQL)
   rateLimit: {
     enabled: true,
     window: 60, // 1 minuto
-    max: 10, // 10 requests por minuto
+    max: 100, // 100 requests por minuto (includes session checks, sign-in, etc.)
+    storage: "database", // Persists across restarts, shared between instances
+    customRules: {
+      "/sign-in/email": {
+        window: 60,
+        max: 5, // 5 login attempts per minute
+      },
+      "/sign-up/email": {
+        window: 60,
+        max: 3, // 3 registrations per minute
+      },
+      "/forget-password": {
+        window: 300,
+        max: 3, // 3 password reset requests per 5 minutes
+      },
+    },
   },
 
-  // Hooks para logging y defaults
+  // Hooks para password policy enforcement and security audit logging
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      // Enforce strong password policy on sign-up and password change
+      if (ctx.path === "/sign-up/email" || ctx.path === "/change-password") {
+        const password = ctx.body?.password || ctx.body?.newPassword;
+
+        if (password && typeof password === "string") {
+          const hasUppercase = /[A-Z]/.test(password);
+          const hasLowercase = /[a-z]/.test(password);
+          const hasNumber = /[0-9]/.test(password);
+          const hasSpecial = /[^A-Za-z0-9]/.test(password);
+
+          if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+            throw new APIError("BAD_REQUEST", {
+              message:
+                "La contraseña debe incluir mayúsculas, minúsculas, números y caracteres especiales",
+            });
+          }
+        }
+      }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      // Log sign-in attempts (success and failure) to SecurityLog
+      if (ctx.path === "/sign-in/email") {
+        const ip =
+          ctx.headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+          ctx.headers?.get("x-real-ip") ||
+          "unknown";
+        const userAgent = ctx.headers?.get("user-agent") || "Unknown";
+        const returned = ctx.context.returned;
+        const isSuccess =
+          returned instanceof Response
+            ? returned.status === 200
+            : !!ctx.context.newSession;
+
+        prisma.securityLog
+          .create({
+            data: {
+              type: isSuccess ? "login_success" : "login_failed",
+              ip,
+              userAgent,
+              details: { path: ctx.path },
+            },
+          })
+          .catch(() => {
+            // Non-blocking — don't fail auth if logging fails
+          });
+      }
+    }),
+  },
   databaseHooks: {
     user: {
       create: {
         // Hook que se ejecuta DESPUÉS de crear un usuario
         async after(user) {
-          console.log(`[Auth] New user created: ${user.email}`);
-
           // Cargar las funciones dinámicamente para evitar dependencias circulares
           // y ejecutar en background sin bloquear el registro
           Promise.resolve()
@@ -107,34 +172,21 @@ export const auth = betterAuth({
                   reason: "New user registration",
                   changedBy: "system",
                 });
-                console.log(
-                  `[Auth] Subscription created for user ${user.id} (FREE tier)`,
-                );
 
                 // 2. Crear evento por defecto para que comience a editar
-                const defaultEvent = await createDefaultEventForUser(user.id);
-                console.log(
-                  `[Auth] Default event created for user ${user.id}: ${defaultEvent.slug}`,
-                );
+                await createDefaultEventForUser(user.id);
               } catch (error) {
-                console.error(
-                  `[Auth] Error setting up new user ${user.id}:`,
-                  error,
-                );
-                // Log pero no fallar - el usuario ya fue creado
-                // El admin puede crear la suscripción manualmente si es necesario
+                if (process.env.NODE_ENV === "development") {
+                  console.error(
+                    `[Auth] Error setting up new user ${user.id}:`,
+                    error,
+                  );
+                }
               }
             })
-            .catch((error) => {
-              console.error(`[Auth] Unexpected error in user setup:`, error);
+            .catch(() => {
+              // Non-blocking
             });
-        },
-      },
-    },
-    session: {
-      create: {
-        async after(session) {
-          console.log(`[Auth] New session created for user: ${session.userId}`);
         },
       },
     },
