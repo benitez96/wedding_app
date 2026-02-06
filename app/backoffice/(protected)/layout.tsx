@@ -2,12 +2,14 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import BackofficeNavbar from "../BackofficeNavbar";
+import AppSidebar from "@/components/backoffice/AppSidebar";
 import { getUserTierContext } from "@/lib/tier-enforcement";
 import {
   getUserAccessibleEvents,
   getUserEventContext,
 } from "@/lib/event-context";
+import { getEventTheme } from "@/app/actions/theme";
+import { THEME_IDS } from "@/types/theme";
 
 interface ProtectedLayoutProps {
   children: ReactNode;
@@ -25,7 +27,7 @@ export default async function ProtectedLayout({
     redirect("/backoffice/login");
   }
 
-  // Obtener tier y eventos en paralelo
+  // Obtener tier, eventos y theme en paralelo
   const [tierContext, accessibleEvents, eventContext] = await Promise.all([
     getUserTierContext(session.user.id),
     getUserAccessibleEvents(session.user.id),
@@ -38,20 +40,23 @@ export default async function ProtectedLayout({
     isOwner: e.isOwner,
   }));
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Navbar con menú (solo para usuarios logueados) */}
-      <BackofficeNavbar
-        showMenu={true}
-        tier={tierContext.tier}
-        events={events}
-        activeEventId={eventContext?.eventId}
-      />
+  // Obtener theme del evento activo
+  const themeId = eventContext?.eventId
+    ? await getEventTheme(eventContext.eventId)
+    : THEME_IDS.CLASSIC;
 
-      {/* Main Content */}
-      <main className="container mx-auto max-w-screen-xl px-2 md:px-4 py-4 md:py-6">
-        {children}
-      </main>
-    </div>
+  return (
+    <AppSidebar
+      events={events}
+      activeEventId={eventContext?.eventId || null}
+      tier={tierContext.tier}
+      themeId={themeId}
+    >
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto max-w-screen-xl px-2 md:px-4 py-4 md:py-6">
+          {children}
+        </div>
+      </div>
+    </AppSidebar>
   );
 }
