@@ -13,22 +13,24 @@ import InstagramSection from "./InstagramSection/InstagramSection";
 import PhotoUploadSection from "./PhotoUploadSection/PhotoUploadSection";
 import QuoteSection from "./QuoteSection/QuoteSection";
 import RSVPSection from "./RSVPSection/RSVPSection";
+import QRSection from "./QRSection/QRSection";
 
 // ============================================
 // COMPONENT REGISTRY
 // ============================================
 export const SECTION_COMPONENTS = {
-  "accommodation": AccommodationSection,
-  "celebration": CelebrationSection,
-  "ceremony": CeremonySection,
-  "date": DateSection,
-  "dress_code": DressCodeSection,
-  "gift": GiftSection,
-  "hero": HeroSection,
-  "instagram": InstagramSection,
-  "photo_upload": PhotoUploadSection,
-  "quote": QuoteSection,
-  "rsvp": RSVPSection,
+  accommodation: AccommodationSection,
+  celebration: CelebrationSection,
+  ceremony: CeremonySection,
+  date: DateSection,
+  dress_code: DressCodeSection,
+  gift: GiftSection,
+  hero: HeroSection,
+  instagram: InstagramSection,
+  photo_upload: PhotoUploadSection,
+  qr: QRSection,
+  quote: QuoteSection,
+  rsvp: RSVPSection,
 } as const;
 
 // ============================================

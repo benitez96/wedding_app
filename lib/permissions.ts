@@ -34,9 +34,14 @@ export const PERMISSIONS = {
   COLLABORATORS_EDIT: 1n << 14n, // 16384 - Editar permisos de colaboradores
   COLLABORATORS_REMOVE: 1n << 15n, // 32768 - Revocar acceso a colaboradores
 
+  // Check-in QR (3 permisos)
+  CHECKIN_SCAN: 1n << 16n, // 65536 - Escanear QR para check-in
+  CHECKIN_VIEW: 1n << 17n, // 131072 - Ver historial de check-ins
+  CHECKIN_DELETE: 1n << 18n, // 262144 - Eliminar check-ins (soft delete)
+
   // Evento - Acciones críticas (2 permisos)
-  EVENT_DELETE: 1n << 16n, // 65536 - Eliminar evento
-  EVENT_TRANSFER: 1n << 17n, // 131072 - Transferir ownership
+  EVENT_DELETE: 1n << 19n, // 524288 - Eliminar evento
+  EVENT_TRANSFER: 1n << 20n, // 1048576 - Transferir ownership
 } as const;
 
 /**
@@ -106,6 +111,16 @@ export const PERMISSION_PRESETS = {
     PERMISSIONS.DESIGN_VIEW |
     PERMISSIONS.STRUCTURE_VIEW |
     PERMISSIONS.ANALYTICS_VIEW,
+
+  /**
+   * CHECK_IN_STAFF - Staff de check-in
+   * Solo puede escanear QR y ver check-ins del evento
+   * Caso de uso: Personal en la entrada del evento
+   */
+  CHECK_IN_STAFF:
+    PERMISSIONS.CHECKIN_SCAN |
+    PERMISSIONS.CHECKIN_VIEW |
+    PERMISSIONS.GUESTS_VIEW,
 } as const;
 
 /**
@@ -382,6 +397,27 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
         key: "COLLABORATORS_REMOVE",
         label: "Revocar",
         description: "Revocar acceso a colaboradores",
+      },
+    ],
+  },
+  {
+    label: "Check-in (QR)",
+    description: "Control de acceso al evento con QR",
+    permissions: [
+      {
+        key: "CHECKIN_SCAN",
+        label: "Escanear QR",
+        description: "Escanear códigos QR para registrar ingreso al evento",
+      },
+      {
+        key: "CHECKIN_VIEW",
+        label: "Ver Check-ins",
+        description: "Ver historial de check-ins y estadísticas de ingreso",
+      },
+      {
+        key: "CHECKIN_DELETE",
+        label: "Eliminar Check-ins",
+        description: "Eliminar registros de check-in (soft delete)",
       },
     ],
   },

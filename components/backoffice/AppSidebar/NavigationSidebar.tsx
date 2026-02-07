@@ -14,6 +14,8 @@ import {
   LogOut,
   Palette,
   UserPlus,
+  QrCode,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
@@ -33,6 +35,16 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Invitaciones",
     href: "/backoffice/invitations",
     icon: <Users className="w-5 h-5" />,
+  },
+  {
+    label: "Scanner QR",
+    href: "/backoffice/scanner",
+    icon: <QrCode className="w-5 h-5" />,
+  },
+  {
+    label: "Check-ins",
+    href: "/backoffice/check-ins",
+    icon: <ClipboardList className="w-5 h-5" />,
   },
   {
     label: "Estructura",

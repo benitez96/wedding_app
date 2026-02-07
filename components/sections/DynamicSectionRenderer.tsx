@@ -19,6 +19,7 @@ const DIVIDER_CONFIG: Record<
   dress_code: { variant: "simple", delay: 0.3 },
   gift: { variant: "heart", delay: 0.4 },
   instagram: { variant: "simple", delay: 0.1 },
+  qr: { variant: "simple", delay: 0.3 },
   rsvp: { variant: "elegant", delay: 0.5 },
   photo_upload: { variant: "simple", delay: 0.5 },
   accommodation: { variant: "simple", delay: 0.2 },

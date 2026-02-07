@@ -8,6 +8,7 @@ import { getUserEventContext } from "@/lib/event-context";
 import { getEventTheme } from "@/app/actions/theme";
 import { THEME_IDS, type ThemeId } from "@/types/theme";
 import { ThemeSync } from "@/components/providers/ThemeSync";
+import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
   title: {
@@ -52,6 +53,7 @@ export default async function BackofficeLayout({
 
   return (
     <>
+      <ServiceWorkerRegistration />
       <ThemeSync themeId={themeId} />
       {children}
     </>

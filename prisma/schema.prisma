@@ -36,6 +36,8 @@ model User {
   accounts             Account[]
   subscription         Subscription?          @relation("UserSubscription")
   subscriptionHistory  SubscriptionHistory[]
+  checkIns             CheckIn[]              @relation("CheckInsByUser")
+  deletedCheckIns      CheckIn[]              @relation("CheckInsDeletedByUser")
 
   @@map("users")
 }
@@ -265,8 +267,14 @@ model Invitation {
   isAttending  Boolean?
   guestCount   Int?
   respondedAt  DateTime?
+  
+  // Check-in tracking
+  checkInCount  Int       @default(0)  // Cache: total de personas que ya ingresaron
+  lastCheckInAt DateTime?              // Última vez que se escaneó esta invitación
+  
   // Relaciones
   tokens       InvitationToken[]
+  checkIns     CheckIn[]
 
   @@index([eventId])
   @@index([guestName])
@@ -303,6 +311,50 @@ model InvitationToken {
   @@index([invitationId])
   @@index([isActive])
   @@map("invitation_tokens")
+}
+
+// ============================================
+// CHECK-IN (QR Scanner)
+// ============================================
+
+// Registro de cada check-in (entrada al evento)
+// Soporta flujo offline-first con sincronización posterior
+model CheckIn {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  
+  // Relación con invitación
+  invitationId  String
+  invitation    Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  
+  // Quién hizo el check-in (staff member)
+  checkedInBy   String
+  checkedByUser User       @relation("CheckInsByUser", fields: [checkedInBy], references: [id], onDelete: Cascade)
+  
+  // Cuántas personas ingresaron en ESTE check-in
+  guestsCount   Int       @default(1)
+  
+  // Metadata para offline-first
+  clientId      String    @default(cuid()) @unique // UUID generado en cliente (deduplicación en sync)
+  deviceId      String?                            // Identificador del dispositivo que hizo el check-in
+  syncedAt      DateTime?                          // NULL = creado offline y pendiente de sync
+  
+  // Soft delete (trazabilidad)
+  deletedAt     DateTime?
+  deletedBy     String?
+  deletedByUser User?      @relation("CheckInsDeletedByUser", fields: [deletedBy], references: [id], onDelete: SetNull)
+  
+  // Gestión de excesos de capacidad (offline)
+  // Si al sincronizar se detecta que se excedió maxGuests, se marca pero NO se rechaza
+  exceededCapacity Boolean  @default(false)     // TRUE si este check-in excedió la capacidad
+  capacityNote     String?                       // Ej: "Ingresaron 5/4 personas (exceso: 1)"
+  
+  @@index([invitationId])
+  @@index([syncedAt])
+  @@index([clientId])
+  @@index([deletedAt])
+  @@index([exceededCapacity])
+  @@map("check_ins")
 }
 
 // ============================================

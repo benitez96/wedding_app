@@ -11,6 +11,7 @@ import { GiftSectionMetadata } from "./GiftSection/GiftSection.metadata";
 import { HeroSectionMetadata } from "./HeroSection/HeroSection.metadata";
 import { InstagramSectionMetadata } from "./InstagramSection/InstagramSection.metadata";
 import { PhotoUploadSectionMetadata } from "./PhotoUploadSection/PhotoUploadSection.metadata";
+import { QRSectionMetadata } from "./QRSection/QRSection.metadata";
 import { QuoteSectionMetadata } from "./QuoteSection/QuoteSection.metadata";
 import { RSVPSectionMetadata } from "./RSVPSection/RSVPSection.metadata";
 
@@ -18,17 +19,18 @@ import { RSVPSectionMetadata } from "./RSVPSection/RSVPSection.metadata";
 // METADATA REGISTRY
 // ============================================
 export const SECTION_METADATA = {
-  "accommodation": AccommodationSectionMetadata,
-  "celebration": CelebrationSectionMetadata,
-  "ceremony": CeremonySectionMetadata,
-  "date": DateSectionMetadata,
-  "dress_code": DressCodeSectionMetadata,
-  "gift": GiftSectionMetadata,
-  "hero": HeroSectionMetadata,
-  "instagram": InstagramSectionMetadata,
-  "photo_upload": PhotoUploadSectionMetadata,
-  "quote": QuoteSectionMetadata,
-  "rsvp": RSVPSectionMetadata,
+  accommodation: AccommodationSectionMetadata,
+  celebration: CelebrationSectionMetadata,
+  ceremony: CeremonySectionMetadata,
+  date: DateSectionMetadata,
+  dress_code: DressCodeSectionMetadata,
+  gift: GiftSectionMetadata,
+  hero: HeroSectionMetadata,
+  instagram: InstagramSectionMetadata,
+  photo_upload: PhotoUploadSectionMetadata,
+  qr: QRSectionMetadata,
+  quote: QuoteSectionMetadata,
+  rsvp: RSVPSectionMetadata,
 } as const;
 
 // ============================================
