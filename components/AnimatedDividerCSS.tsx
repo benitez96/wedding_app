@@ -6,6 +6,7 @@ interface AnimatedDividerCSSProps {
   variant?: "simple" | "heart" | "ornate" | "elegant";
   delay?: number;
   className?: string;
+  hasAlternateBg?: boolean;
 }
 
 /**
@@ -16,6 +17,7 @@ export default function AnimatedDividerCSS({
   variant = "heart",
   delay = 0,
   className = "",
+  hasAlternateBg = false,
 }: AnimatedDividerCSSProps) {
   return (
     <div
@@ -26,7 +28,11 @@ export default function AnimatedDividerCSS({
         animationFillMode: "forwards",
       }}
     >
-      <Divider variant={variant} className={className} />
+      <Divider
+        variant={variant}
+        className={className}
+        hasAlternateBg={hasAlternateBg}
+      />
     </div>
   );
 }

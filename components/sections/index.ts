@@ -6,31 +6,33 @@ import AccommodationSection from "./AccommodationSection/AccommodationSection";
 import CelebrationSection from "./CelebrationSection/CelebrationSection";
 import CeremonySection from "./CeremonySection/CeremonySection";
 import DateSection from "./DateSection/DateSection";
+import DividerSection from "./DividerSection/DividerSection";
 import DressCodeSection from "./DressCodeSection/DressCodeSection";
 import GiftSection from "./GiftSection/GiftSection";
 import HeroSection from "./HeroSection/HeroSection";
 import InstagramSection from "./InstagramSection/InstagramSection";
 import PhotoUploadSection from "./PhotoUploadSection/PhotoUploadSection";
+import QRSection from "./QRSection/QRSection";
 import QuoteSection from "./QuoteSection/QuoteSection";
 import RSVPSection from "./RSVPSection/RSVPSection";
-import QRSection from "./QRSection/QRSection";
 
 // ============================================
 // COMPONENT REGISTRY
 // ============================================
 export const SECTION_COMPONENTS = {
-  accommodation: AccommodationSection,
-  celebration: CelebrationSection,
-  ceremony: CeremonySection,
-  date: DateSection,
-  dress_code: DressCodeSection,
-  gift: GiftSection,
-  hero: HeroSection,
-  instagram: InstagramSection,
-  photo_upload: PhotoUploadSection,
-  qr: QRSection,
-  quote: QuoteSection,
-  rsvp: RSVPSection,
+  "accommodation": AccommodationSection,
+  "celebration": CelebrationSection,
+  "ceremony": CeremonySection,
+  "date": DateSection,
+  "divider": DividerSection,
+  "dress_code": DressCodeSection,
+  "gift": GiftSection,
+  "hero": HeroSection,
+  "instagram": InstagramSection,
+  "photo_upload": PhotoUploadSection,
+  "qr": QRSection,
+  "quote": QuoteSection,
+  "rsvp": RSVPSection,
 } as const;
 
 // ============================================

@@ -450,7 +450,9 @@ model SectionConfiguration {
   // Relación con evento
   eventId   String
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  // Identificador único (hero, date, ceremony, etc.)
+  // Identificador de sección (hero, date, ceremony, divider, etc.)
+  // NOTA: Puede repetirse (ej: múltiples dividers)
+  // La unicidad para secciones NO-divider se valida en código
   key       String
   // Control de visualización
   isEnabled Boolean  @default(true)
@@ -458,8 +460,8 @@ model SectionConfiguration {
   // Configuración específica (JSON validado con Zod)
   settings  Json?
 
-  @@unique([eventId, key])
   @@index([eventId, order])
+  @@index([eventId, key])
   @@map("section_configurations")
 }
 

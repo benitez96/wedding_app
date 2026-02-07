@@ -221,20 +221,21 @@ export const addSection = withEventAuth(
       }
 
       // Verificar que la sección no exista ya para este evento
-      const existing = await prisma.sectionConfiguration.findUnique({
-        where: {
-          eventId_key: {
+      // EXCEPCIÓN: Los dividers pueden agregarse múltiples veces
+      if (validated.data.key !== "divider") {
+        const existing = await prisma.sectionConfiguration.findFirst({
+          where: {
             eventId: ctx.event.eventId,
             key: validated.data.key,
           },
-        },
-      });
+        });
 
-      if (existing) {
-        return {
-          success: false,
-          error: "Esta sección ya está agregada",
-        };
+        if (existing) {
+          return {
+            success: false,
+            error: "Esta sección ya está agregada",
+          };
+        }
       }
 
       // Obtener el orden máximo actual para este evento

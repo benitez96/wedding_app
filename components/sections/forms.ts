@@ -12,50 +12,19 @@ export const SECTION_SETTINGS_FORM_IMPORTS: Record<
   string,
   () => Promise<{ default: ComponentType<any> }>
 > = {
-  accommodation: () =>
-    import("./AccommodationSection/AccommodationSectionSettings").then(
-      (mod) => ({ default: mod.AccommodationSectionSettingsForm }),
-    ),
-  celebration: () =>
-    import("./CelebrationSection/CelebrationSectionSettings").then((mod) => ({
-      default: mod.CelebrationSectionSettingsForm,
-    })),
-  ceremony: () =>
-    import("./CeremonySection/CeremonySectionSettings").then((mod) => ({
-      default: mod.CeremonySectionSettingsForm,
-    })),
-  date: () =>
-    import("./DateSection/DateSectionSettings").then((mod) => ({
-      default: mod.DateSectionSettingsForm,
-    })),
-  dress_code: () =>
-    import("./DressCodeSection/DressCodeSectionSettings").then((mod) => ({
-      default: mod.DressCodeSectionSettingsForm,
-    })),
-  gift: () =>
-    import("./GiftSection/GiftSectionSettings").then((mod) => ({
-      default: mod.GiftSectionSettingsForm,
-    })),
-  hero: () =>
-    import("./HeroSection/HeroSectionSettings").then((mod) => ({
-      default: mod.HeroSectionSettingsForm,
-    })),
-  instagram: () =>
-    import("./InstagramSection/InstagramSectionSettings").then((mod) => ({
-      default: mod.InstagramSectionSettingsForm,
-    })),
-  photo_upload: () =>
-    import("./PhotoUploadSection/PhotoUploadSectionSettings").then((mod) => ({
-      default: mod.PhotoUploadSectionSettingsForm,
-    })),
-  quote: () =>
-    import("./QuoteSection/QuoteSectionSettings").then((mod) => ({
-      default: mod.QuoteSectionSettingsForm,
-    })),
-  rsvp: () =>
-    import("./RSVPSection/RSVPSectionSettings").then((mod) => ({
-      default: mod.RSVPSectionSettingsForm,
-    })),
+  "accommodation": () => import("./AccommodationSection/AccommodationSectionSettings").then(mod => ({ default: mod.AccommodationSectionSettingsForm })),
+  "celebration": () => import("./CelebrationSection/CelebrationSectionSettings").then(mod => ({ default: mod.CelebrationSectionSettingsForm })),
+  "ceremony": () => import("./CeremonySection/CeremonySectionSettings").then(mod => ({ default: mod.CeremonySectionSettingsForm })),
+  "date": () => import("./DateSection/DateSectionSettings").then(mod => ({ default: mod.DateSectionSettingsForm })),
+  "divider": () => import("./DividerSection/DividerSectionSettings").then(mod => ({ default: mod.DividerSectionSettingsForm })),
+  "dress_code": () => import("./DressCodeSection/DressCodeSectionSettings").then(mod => ({ default: mod.DressCodeSectionSettingsForm })),
+  "gift": () => import("./GiftSection/GiftSectionSettings").then(mod => ({ default: mod.GiftSectionSettingsForm })),
+  "hero": () => import("./HeroSection/HeroSectionSettings").then(mod => ({ default: mod.HeroSectionSettingsForm })),
+  "instagram": () => import("./InstagramSection/InstagramSectionSettings").then(mod => ({ default: mod.InstagramSectionSettingsForm })),
+  "photo_upload": () => import("./PhotoUploadSection/PhotoUploadSectionSettings").then(mod => ({ default: mod.PhotoUploadSectionSettingsForm })),
+  "qr": () => import("./QRSection/QRSectionSettings").then(mod => ({ default: mod.QRSectionSettingsForm })),
+  "quote": () => import("./QuoteSection/QuoteSectionSettings").then(mod => ({ default: mod.QuoteSectionSettingsForm })),
+  "rsvp": () => import("./RSVPSection/RSVPSectionSettings").then(mod => ({ default: mod.RSVPSectionSettingsForm })),
 };
 
 // ============================================

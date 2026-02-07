@@ -1,29 +1,11 @@
 import { SectionConfiguration, SectionUser } from "@/types/sections";
 import { SECTION_COMPONENTS, SectionKey } from "./index";
-import AnimatedDividerCSS from "@/components/AnimatedDividerCSS";
 import { ComponentType } from "react";
 
 interface DynamicSectionRendererProps {
   sections: SectionConfiguration[];
   user?: SectionUser | null;
 }
-
-// Configuración de dividers entre secciones
-const DIVIDER_CONFIG: Record<
-  string,
-  { variant: "heart" | "elegant" | "simple"; delay: number } | null
-> = {
-  date: { variant: "heart", delay: 0.2 },
-  ceremony: null, // No divider después de ceremony
-  celebration: { variant: "elegant", delay: 0.1 },
-  dress_code: { variant: "simple", delay: 0.3 },
-  gift: { variant: "heart", delay: 0.4 },
-  instagram: { variant: "simple", delay: 0.1 },
-  qr: { variant: "simple", delay: 0.3 },
-  rsvp: { variant: "elegant", delay: 0.5 },
-  photo_upload: { variant: "simple", delay: 0.5 },
-  accommodation: { variant: "simple", delay: 0.2 },
-};
 
 // Secciones que necesitan user prop
 const SECTIONS_WITH_USER = new Set<string>(["rsvp"]);
@@ -45,10 +27,7 @@ export default function DynamicSectionRenderer({
 
   return (
     <>
-      {enabledSections.map((section, index) => {
-        const isLastSection = index === enabledSections.length - 1;
-        const dividerConfig = DIVIDER_CONFIG[section.key];
-
+      {enabledSections.map((section) => {
         // Obtener el componente del registry
         const Component = SECTION_COMPONENTS[section.key as SectionKey] as
           | ComponentType<GenericSectionProps>
@@ -69,14 +48,6 @@ export default function DynamicSectionRenderer({
         return (
           <div key={section.id}>
             <Component {...props} />
-
-            {/* Renderizar divider si corresponde */}
-            {!isLastSection && dividerConfig && (
-              <AnimatedDividerCSS
-                variant={dividerConfig.variant}
-                delay={dividerConfig.delay}
-              />
-            )}
           </div>
         );
       })}

@@ -48,8 +48,11 @@ export default function SectionCatalog({
     });
   }
 
-  // Todas las secciones en un solo array
-  const allSections = Object.entries(SECTION_METADATA);
+  // Todas las secciones ordenadas alfabéticamente por key (determinista)
+  // Usamos key en vez de name porque es ASCII puro y no depende del locale
+  const allSections = Object.entries(SECTION_METADATA).sort(([keyA], [keyB]) =>
+    keyA < keyB ? -1 : keyA > keyB ? 1 : 0,
+  );
 
   return (
     <div className="space-y-4">
@@ -73,7 +76,9 @@ export default function SectionCatalog({
         <div className="flex gap-3 flex-nowrap p-1">
           {allSections.map(([key, metadata]) => {
             const sectionKey = key as SectionKey; // Cast para tipos estrictos
-            const isActive = optimisticActiveKeys.has(sectionKey);
+            // Los dividers pueden agregarse múltiples veces
+            const isActive =
+              sectionKey !== "divider" && optimisticActiveKeys.has(sectionKey);
 
             return (
               <Card

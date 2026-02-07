@@ -7,11 +7,13 @@ import { AccommodationSectionSettingsSchema } from "./AccommodationSection/Accom
 import { CelebrationSectionSettingsSchema } from "./CelebrationSection/CelebrationSection.metadata";
 import { CeremonySectionSettingsSchema } from "./CeremonySection/CeremonySection.metadata";
 import { DateSectionSettingsSchema } from "./DateSection/DateSection.metadata";
+import { DividerSectionSettingsSchema } from "./DividerSection/DividerSection.metadata";
 import { DressCodeSectionSettingsSchema } from "./DressCodeSection/DressCodeSection.metadata";
 import { GiftSectionSettingsSchema } from "./GiftSection/GiftSection.metadata";
 import { HeroSectionSettingsSchema } from "./HeroSection/HeroSection.metadata";
 import { InstagramSectionSettingsSchema } from "./InstagramSection/InstagramSection.metadata";
 import { PhotoUploadSectionSettingsSchema } from "./PhotoUploadSection/PhotoUploadSection.metadata";
+import { QRSectionSettingsSchema } from "./QRSection/QRSection.metadata";
 import { QuoteSectionSettingsSchema } from "./QuoteSection/QuoteSection.metadata";
 import { RSVPSectionSettingsSchema } from "./RSVPSection/RSVPSection.metadata";
 
@@ -23,11 +25,13 @@ export const SECTION_SCHEMAS = {
   "celebration": CelebrationSectionSettingsSchema,
   "ceremony": CeremonySectionSettingsSchema,
   "date": DateSectionSettingsSchema,
+  "divider": DividerSectionSettingsSchema,
   "dress_code": DressCodeSectionSettingsSchema,
   "gift": GiftSectionSettingsSchema,
   "hero": HeroSectionSettingsSchema,
   "instagram": InstagramSectionSettingsSchema,
   "photo_upload": PhotoUploadSectionSettingsSchema,
+  "qr": QRSectionSettingsSchema,
   "quote": QuoteSectionSettingsSchema,
   "rsvp": RSVPSectionSettingsSchema,
 } as const;
