@@ -8,23 +8,9 @@ import { revalidatePath } from "next/cache";
 import { enforceEventLimit } from "@/lib/tier-enforcement-prisma";
 import { getUserAccessibleEvents } from "@/lib/event-context-prisma";
 import { logError } from "@/lib/logger";
-import { z } from "zod";
+import { createEventSchema } from "@/app/actions/schemas";
 
 const ACTIVE_EVENT_COOKIE = "active-event-id";
-
-const createEventSchema = z.object({
-  name: z
-    .string()
-    .min(1, "El nombre es requerido")
-    .max(100, "El nombre no puede exceder 100 caracteres")
-    .transform((val) => val.trim()),
-  description: z
-    .string()
-    .max(500, "La descripción no puede exceder 500 caracteres")
-    .optional()
-    .nullable()
-    .transform((val) => val?.trim() || null),
-});
 
 /**
  * Crea un nuevo evento (enforce event limit)

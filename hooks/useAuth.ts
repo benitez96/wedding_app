@@ -3,9 +3,9 @@
 import { authClient } from "@/lib/auth-client";
 
 /**
- * Hook para acceder a la sesión en Client Components
+ * Hook to access session in Client Components
  *
- * Uso:
+ * @example
  * ```tsx
  * function MyComponent() {
  *   const { data: session, isPending, error } = useAuth();
@@ -13,7 +13,7 @@ import { authClient } from "@/lib/auth-client";
  *   if (isPending) return <Loading />;
  *   if (!session) return <Login />;
  *
- *   return <div>Hola {session.user.name}</div>;
+ *   return <div>Hello {session.user.name}</div>;
  * }
  * ```
  */

@@ -6,13 +6,7 @@ import prisma from "@/lib/prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-
-const createCheckInSchema = z.object({
-  invitationId: z.string().cuid(),
-  guestsCount: z.number().int().min(1).max(20),
-  deviceId: z.string().optional(),
-  clientId: z.string().optional(),
-});
+import { createCheckInSchema } from "@/app/actions/schemas";
 
 interface CreateCheckInResult {
   success: boolean;

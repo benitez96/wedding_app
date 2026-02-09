@@ -26,6 +26,7 @@ export default function TokenActionsCell({
 }: TokenActionsCellProps) {
   return (
     <div className="flex items-center gap-1">
+      {/* TODO i18n: Tooltip labels need translation support */}
       <Tooltip content="Abrir invitación">
         <Button
           size="sm"

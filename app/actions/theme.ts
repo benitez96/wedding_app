@@ -1,18 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { THEME_IDS, type ThemeId, getThemeById } from "@/types/theme";
 import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logError } from "@/lib/logger";
-
-// Schema de validación para theme ID
-const themeIdSchema = z.enum([
-  THEME_IDS.CLASSIC,
-  THEME_IDS.WARM,
-  THEME_IDS.PASTEL_GREEN,
-]);
+import { themeIdSchema } from "@/app/actions/schemas";
 
 interface ActionResult<T = void> {
   success: boolean;

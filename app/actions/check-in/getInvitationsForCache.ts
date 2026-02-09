@@ -5,10 +5,7 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { z } from "zod";
-
-const getInvitationsCacheSchema = z.object({
-  eventId: z.string().cuid(),
-});
+import { getInvitationsCacheSchema } from "@/app/actions/schemas";
 
 interface InvitationCacheData {
   id: string;

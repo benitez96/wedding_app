@@ -7,8 +7,8 @@ import { CelebrationSectionSettings } from "./CelebrationSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
-import { useSectionIcon } from "@/hooks/useSectionIcon";
-import { SectionIcon } from "@/types/section-icon";
+import { SectionIcon } from "@/components/ui/SectionIcon";
+import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
 interface CelebrationSectionProps {
   settings?: CelebrationSectionSettings;
@@ -25,13 +25,8 @@ export default function CelebrationSection({
   const showDirectionsButton = settings?.showDirectionsButton ?? true;
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
-  // Ícono de sección
-  const sectionIcon = (settings?.icon || "celebration-1") as SectionIcon;
-  const { IconComponent } = useSectionIcon({
-    icon: sectionIcon,
-    size: 100,
-    alt: "Celebración",
-  });
+  // Section icon
+  const sectionIcon = (settings?.icon || "celebration-1") as SectionIconType;
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -52,7 +47,9 @@ export default function CelebrationSection({
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
+          <Section.Icon>
+            <SectionIcon icon={sectionIcon} size={100} alt="Celebration" />
+          </Section.Icon>
           <Section.Title>CELEBRACIÓN</Section.Title>
           <Section.Description>{description}</Section.Description>
           {showDirectionsButton && (

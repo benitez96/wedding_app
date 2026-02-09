@@ -44,7 +44,7 @@ export default function FeedbackMessage({
         className,
       )}
     >
-      {isSuccess && (icon ?? defaultIcon)}
+      {icon ?? defaultIcon}
       <span className="flex-1">{message}</span>
     </div>
   );

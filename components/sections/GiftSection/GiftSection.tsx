@@ -4,8 +4,8 @@ import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
 import { GiftSectionSettings } from "./GiftSection.metadata";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
-import { useSectionIcon } from "@/hooks/useSectionIcon";
-import { SectionIcon } from "@/types/section-icon";
+import { SectionIcon } from "@/components/ui/SectionIcon";
+import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
 interface GiftSectionProps {
   settings?: GiftSectionSettings;
@@ -21,13 +21,8 @@ export default function GiftSection({ settings }: GiftSectionProps) {
     settings?.footerText || "Ayudanos con nuestra luna de miel";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
-  // Ícono de sección
-  const sectionIcon = (settings?.icon || "gift-2") as SectionIcon;
-  const { IconComponent } = useSectionIcon({
-    icon: sectionIcon,
-    size: 100,
-    alt: "Gift",
-  });
+  // Section icon
+  const sectionIcon = (settings?.icon || "gift-2") as SectionIconType;
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -46,7 +41,9 @@ export default function GiftSection({ settings }: GiftSectionProps) {
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
+          <Section.Icon>
+            <SectionIcon icon={sectionIcon} size={100} alt="Gift" />
+          </Section.Icon>
           <Section.Title>{title}</Section.Title>
           <Section.Description isDecorative>{description}</Section.Description>
           <Snippet symbol=" " color="primary" variant="bordered" size="md">

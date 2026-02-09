@@ -9,6 +9,7 @@ import { getJwtSecret, getSecurityConfig } from "@/lib/config";
 import { tokenSchema, validateAndSanitize } from "@/utils/validation";
 import { getClientIP, recordAttempt } from "@/lib/rate-limiter-prisma";
 import { logError } from "@/lib/logger";
+import { validateTokenState } from "@/lib/invitation-tokens";
 
 /**
  * Helper: Validate invitation token exists and is active
@@ -19,12 +20,19 @@ async function validateToken(tokenId: string) {
     include: { invitation: true },
   });
 
-  if (!token || !token.isActive) {
-    return { valid: false, error: "Token invalid or revoked" };
+  if (!token) {
+    return { valid: false, error: "Token not found" };
   }
 
-  if (token.expiresAt && new Date() > token.expiresAt) {
-    return { valid: false, error: "Token expired" };
+  // Use pure validation logic
+  const validation = validateTokenState({
+    isActive: token.isActive,
+    isUsed: token.isUsed,
+    expiresAt: token.expiresAt,
+  });
+
+  if (!validation.valid) {
+    return { valid: false, error: validation.reason || "Token invalid" };
   }
 
   if (!token.invitation) {
@@ -106,20 +114,26 @@ export async function processInvitationToken(token: string) {
       include: { invitation: true },
     });
 
-    if (!invitationToken || !invitationToken.isActive) {
+    if (!invitationToken) {
       await recordAttempt(clientIP, "invitation-token", false);
       return { success: false, action: "error", error: "invalid-token" };
     }
 
-    if (invitationToken.isUsed) {
-      await recordAttempt(clientIP, "invitation-token", false);
-      return { success: false, action: "error", error: "token-already-used" };
-    }
+    // Use pure validation logic
+    const tokenStateValidation = validateTokenState({
+      isActive: invitationToken.isActive,
+      isUsed: invitationToken.isUsed,
+      expiresAt: invitationToken.expiresAt,
+    });
 
-    // Check expiration
-    if (invitationToken.expiresAt && new Date() > invitationToken.expiresAt) {
+    if (!tokenStateValidation.valid) {
       await recordAttempt(clientIP, "invitation-token", false);
-      return { success: false, action: "error", error: "token-expired" };
+      const errorCode = tokenStateValidation.reason?.includes("already used")
+        ? "token-already-used"
+        : tokenStateValidation.reason?.includes("expired")
+          ? "token-expired"
+          : "invalid-token";
+      return { success: false, action: "error", error: errorCode };
     }
 
     // Mark token as used

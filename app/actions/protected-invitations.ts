@@ -8,6 +8,10 @@ import {
   validateAndSanitize,
 } from "@/utils/validation";
 import { logError } from "@/lib/logger";
+import {
+  validateGuestCount,
+  normalizeGuestCount,
+} from "@/lib/invitation-tokens";
 
 // Action protegido para actualizar respuesta de invitación
 export const updateInvitationResponse = withInvitationAuth(
@@ -28,19 +32,25 @@ export const updateInvitationResponse = withInvitationAuth(
       const validated = (validation as { success: true; data: typeof data })
         .data;
 
-      // Validar guestCount si isAttending es true
-      if (
-        validated.isAttending &&
-        (!validated.guestCount ||
-          validated.guestCount < 1 ||
-          validated.guestCount > user.maxGuests)
-      ) {
+      // Use pure validation logic
+      const guestCountValidation = validateGuestCount(
+        validated.guestCount,
+        user.maxGuests,
+        validated.isAttending,
+      );
+
+      if (!guestCountValidation.valid) {
         return {
           success: false,
-          error:
-            "Número de asistentes debe estar entre 1 y el máximo permitido",
+          error: guestCountValidation.reason || "Invalid guest count",
         };
       }
+
+      // Normalize guest count using pure function
+      const normalizedGuestCount = normalizeGuestCount(
+        validated.guestCount,
+        validated.isAttending,
+      );
 
       // Actualizar la invitación - only return safe fields
       const updatedInvitation = await prisma.invitation.update({
@@ -48,7 +58,7 @@ export const updateInvitationResponse = withInvitationAuth(
         data: {
           hasResponded: true,
           isAttending: validated.isAttending,
-          guestCount: validated.isAttending ? validated.guestCount : null,
+          guestCount: normalizedGuestCount,
           respondedAt: new Date(),
         },
         select: {

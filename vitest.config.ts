@@ -1,7 +1,11 @@
 import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
+  // Vite plugins - auto-import React in JSX (test environment only)
+  plugins: [react()],
+
   // Set Vite cache directory to avoid permission issues
   cacheDir: ".vite-cache",
 
@@ -61,7 +65,7 @@ export default defineConfig({
         "lib/**/*.{ts,tsx}",
         "hooks/**/*.{ts,tsx}",
         "components/**/*.{ts,tsx}",
-        "app/actions/**/*.{ts,tsx}",
+        "app/actions/schemas.ts", // Solo schemas, no actions completas
       ],
 
       // Archivos a excluir del coverage

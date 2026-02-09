@@ -1,50 +1,23 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { z } from "zod";
 import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { SectionConfiguration } from "@/types/sections";
 import { getSectionSettingsSchema } from "@/types/section-settings";
-import { isSectionKey } from "@/components/sections/metadata";
 import { logError } from "@/lib/logger";
+import {
+  addSectionSchema,
+  removeSectionSchema,
+  updateSectionSettingsSchema,
+  updateSectionsOrderSchema,
+} from "@/app/actions/schemas";
 
 interface ActionState {
   success: boolean;
   error?: string;
   message?: string;
 }
-
-// ============================================
-// ZOD SCHEMAS
-// ============================================
-const addSectionSchema = z.object({
-  key: z.string().refine((key) => isSectionKey(key), {
-    message: "Invalid section key",
-  }),
-});
-
-const removeSectionSchema = z.object({
-  id: z.string().cuid({ message: "Invalid ID format" }),
-});
-
-const updateSectionSettingsSchema = z.object({
-  id: z.string().cuid({ message: "Invalid ID format" }),
-  key: z.string().refine((key) => isSectionKey(key), {
-    message: "Invalid section key",
-  }),
-});
-
-const updateSectionsOrderSchema = z
-  .array(
-    z.object({
-      id: z.string().cuid({ message: "Invalid ID format" }),
-      order: z.number().int().min(0),
-      isEnabled: z.boolean(),
-    }),
-  )
-  .min(1)
-  .max(50);
 
 // ============================================
 // OBTENER TODAS LAS SECCIONES (ordenadas)

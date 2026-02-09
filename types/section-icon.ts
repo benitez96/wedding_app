@@ -1,6 +1,6 @@
 /**
- * Sistema de íconos para secciones
- * Soporta GIFs, SVGs estáticos y SVGs animados
+ * Section icon system
+ * Supports GIFs, static SVGs, and animated SVGs
  */
 
 export const SectionIconTypes = {
@@ -12,9 +12,9 @@ export const SectionIconTypes = {
 export type SectionIconType =
   (typeof SectionIconTypes)[keyof typeof SectionIconTypes];
 
-// Íconos disponibles (agregar más acá)
+// Available icons (add more here)
 export const SectionIcons = {
-  // Predeterminado
+  // Default
   NONE: "none",
 
   // GIFs
@@ -38,20 +38,21 @@ export const SectionIcons = {
 
 export type SectionIcon = (typeof SectionIcons)[keyof typeof SectionIcons];
 
-// Configuración de cada ícono
+// Configuration for each icon
 export interface SectionIconConfig {
   value: SectionIcon;
   label: string;
   type: SectionIconType;
-  path: string; // Ruta al archivo (puede ser .gif, .svg, etc)
-  animationClass?: string; // Clase CSS opcional para animaciones adicionales
+  path: string; // Path to file (can be .gif, .svg, etc)
+  animationClass?: string; // Optional CSS class for additional animations
 }
 
-// Catálogo completo de íconos
+// Complete icon catalog
+// TODO i18n: Labels need translation support
 export const SECTION_ICON_CATALOG: SectionIconConfig[] = [
   {
     value: "none",
-    label: "Sin ícono",
+    label: "No icon",
     type: "svg",
     path: "",
   },
@@ -59,49 +60,49 @@ export const SECTION_ICON_CATALOG: SectionIconConfig[] = [
   // === GIFs ===
   {
     value: "rings-1",
-    label: "Anillos 1",
+    label: "Rings 1",
     type: "gif",
     path: "/icons/anillos-boda-1.gif",
   },
   {
     value: "rings-2",
-    label: "Anillos 2",
+    label: "Rings 2",
     type: "gif",
     path: "/icons/anillos-boda.gif",
   },
   {
     value: "celebration-1",
-    label: "Copas 1",
+    label: "Glasses 1",
     type: "gif",
     path: "/icons/copas-fiesta-1.gif",
   },
   {
     value: "celebration-2",
-    label: "Copas 2",
+    label: "Glasses 2",
     type: "gif",
     path: "/icons/copas-fiesta.gif",
   },
   {
     value: "gift-1",
-    label: "Regalo 1",
+    label: "Gift 1",
     type: "gif",
     path: "/icons/regalo-1.gif",
   },
   {
     value: "gift-2",
-    label: "Regalo 2",
+    label: "Gift 2",
     type: "gif",
     path: "/icons/regalo-2.gif",
   },
   {
     value: "photos-1",
-    label: "Fotos 1",
+    label: "Photos 1",
     type: "gif",
     path: "/icons/fotos.gif",
   },
   {
     value: "photos-2",
-    label: "Fotos 2",
+    label: "Photos 2",
     type: "gif",
     path: "/icons/fotos-2.gif",
   },
@@ -119,13 +120,13 @@ export const SECTION_ICON_CATALOG: SectionIconConfig[] = [
   },
   {
     value: "accommodation",
-    label: "Alojamiento",
+    label: "Accommodation",
     type: "gif",
     path: "/icons/accommodation.gif",
   },
   {
     value: "church",
-    label: "Iglesia",
+    label: "Church",
     type: "gif",
     path: "/icons/iglesia.gif",
   },
@@ -143,31 +144,31 @@ export const SECTION_ICON_CATALOG: SectionIconConfig[] = [
   },
   {
     value: "calendar",
-    label: "Calendario",
+    label: "Calendar",
     type: "gif",
     path: "/icons/calendar-1.gif",
   },
   {
     value: "music",
-    label: "Música",
+    label: "Music",
     type: "gif",
     path: "/icons/cancion.gif",
   },
 
-  // === SVGs estáticos ===
-  // Agregar acá cuando tengas SVGs estáticos
+  // === Static SVGs ===
+  // Add here when you have static SVGs
   // {
   //   value: "heart-static",
-  //   label: "Corazón",
+  //   label: "Heart",
   //   type: "svg",
   //   path: "/icons/heart.svg",
   // },
 
-  // === SVGs animados ===
-  // Agregar acá cuando tengas SVGs con animación CSS
+  // === Animated SVGs ===
+  // Add here when you have SVGs with CSS animations
   // {
   //   value: "heart-animated",
-  //   label: "Corazón animado",
+  //   label: "Animated Heart",
   //   type: "svg-animated",
   //   path: "/icons/heart-animated.svg",
   //   animationClass: "animate-pulse",
@@ -175,7 +176,7 @@ export const SECTION_ICON_CATALOG: SectionIconConfig[] = [
 ];
 
 /**
- * Helper para obtener la configuración de un ícono
+ * Helper to get icon configuration
  */
 export function getSectionIconConfig(
   icon: SectionIcon,
@@ -184,7 +185,7 @@ export function getSectionIconConfig(
 }
 
 /**
- * Helper para obtener la ruta de un ícono
+ * Helper to get icon path
  */
 export function getSectionIconPath(icon: SectionIcon): string {
   const config = getSectionIconConfig(icon);

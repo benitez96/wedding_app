@@ -5,8 +5,8 @@ import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
 import { QRSectionSettings } from "./QRSection.metadata";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
-import { useSectionIcon } from "@/hooks/useSectionIcon";
-import { SectionIcon } from "@/types/section-icon";
+import { SectionIcon } from "@/components/ui/SectionIcon";
+import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
 interface QRSectionProps {
   settings?: QRSectionSettings;
@@ -33,13 +33,8 @@ export default async function QRSection({ settings }: QRSectionProps) {
     settings?.subtitle || "Presenta este código QR al ingresar al evento";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
-  // Ícono de sección (opcional)
-  const sectionIcon = (settings?.icon || "qrcode") as SectionIcon;
-  const { IconComponent } = useSectionIcon({
-    icon: sectionIcon,
-    size: 100,
-    alt: "QR Code",
-  });
+  // Section icon (optional)
+  const sectionIcon = (settings?.icon || "qrcode") as SectionIconType;
 
   // Decoraciones (opcionales)
   const decorationSvg = ((settings as any)?.decorationSvg ||
@@ -59,7 +54,9 @@ export default async function QRSection({ settings }: QRSectionProps) {
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
+          <Section.Icon>
+            <SectionIcon icon={sectionIcon} size={100} alt="QR Code" />
+          </Section.Icon>
           <Section.Title>{title}</Section.Title>
           <Section.Description>{subtitle}</Section.Description>
 

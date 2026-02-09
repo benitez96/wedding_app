@@ -7,8 +7,8 @@ import { PhotoUploadSectionSettings } from "./PhotoUploadSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
-import { useSectionIcon } from "@/hooks/useSectionIcon";
-import { SectionIcon } from "@/types/section-icon";
+import { SectionIcon } from "@/components/ui/SectionIcon";
+import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
 interface PhotoUploadSectionProps {
   settings?: PhotoUploadSectionSettings;
@@ -23,13 +23,8 @@ export default function PhotoUploadSection({
     settings?.description || "Subi las fotos y videos desde tu mesa";
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
-  // Ícono de sección
-  const sectionIcon = (settings?.icon || "photos-1") as SectionIcon;
-  const { IconComponent } = useSectionIcon({
-    icon: sectionIcon,
-    size: 100,
-    alt: "Fotos y Videos",
-  });
+  // Section icon
+  const sectionIcon = (settings?.icon || "photos-1") as SectionIconType;
 
   // Decoraciones
   const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
@@ -55,7 +50,13 @@ export default function PhotoUploadSection({
         hasAlternateBg={hasAlternateBg}
       >
         <Section.Container hasAlternateBg={hasAlternateBg}>
-          {IconComponent && <Section.Icon>{IconComponent}</Section.Icon>}
+          <Section.Icon>
+            <SectionIcon
+              icon={sectionIcon}
+              size={100}
+              alt="Photos and Videos"
+            />
+          </Section.Icon>
           <Section.Description isDecorative>{quoteText}</Section.Description>
 
           <Button

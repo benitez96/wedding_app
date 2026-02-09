@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Input, type InputProps } from "@heroui/input";
 import { Eye, EyeOff, Lock } from "lucide-react";
 
-export interface PasswordInputProps extends Omit<InputProps, "type" | "endContent" | "startContent"> {
+export interface PasswordInputProps
+  extends Omit<InputProps, "type" | "endContent" | "startContent"> {
   name?: string;
   label?: string;
   placeholder?: string;
@@ -16,7 +17,7 @@ export interface PasswordInputProps extends Omit<InputProps, "type" | "endConten
 
 export default function PasswordInput({
   name = "password",
-  label = "Contraseña",
+  label = "Contraseña", // TODO i18n: Default label needs translation support
   placeholder = "••••••••",
   description,
   isRequired = false,
@@ -41,7 +42,10 @@ export default function PasswordInput({
           onMouseDown={(e) => e.preventDefault()}
           onTouchStart={(e) => e.preventDefault()}
           className="focus:outline-none"
-          aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+          aria-label={
+            // TODO i18n: Aria labels need translation support
+            showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+          }
         >
           {showPassword ? (
             <EyeOff className="w-4 h-4 text-gray-400" />

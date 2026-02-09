@@ -5,11 +5,7 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { z } from "zod";
-
-const scanQRSchema = z.object({
-  tokenId: z.string().min(1, "Token inválido"),
-  eventId: z.string().cuid(),
-});
+import { scanQRSchema } from "@/app/actions/schemas";
 
 interface ScanQRResult {
   success: boolean;
