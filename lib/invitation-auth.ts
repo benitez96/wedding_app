@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import * as jose from "jose";
 import prisma from "@/lib/prisma";
-import { JWT_SECRET, SECURITY_CONFIG } from "@/lib/config";
+import { getJwtSecret, getSecurityConfig } from "@/lib/config";
 
 /**
  * Invitation guest user (NOT a registered User)
@@ -36,6 +36,9 @@ export async function verifyInvitationAuth(): Promise<{
     if (!session) {
       return { success: false, error: "no-session" };
     }
+
+    const JWT_SECRET = getJwtSecret();
+    const SECURITY_CONFIG = getSecurityConfig();
 
     const secret = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jose.jwtVerify(session.value, secret, {

@@ -85,16 +85,23 @@ export function logInfo(
 }
 
 /**
- * Sanitiza metadata removiendo campos sensibles
+ * Sanitizes metadata by removing sensitive fields
+ *
+ * @param metadata - Metadata object to sanitize
+ * @param depth - Current recursion depth (for preventing stack overflow)
+ * @returns Sanitized metadata object
  */
 function sanitizeMetadata(
   metadata: Record<string, unknown>,
+  depth = 0,
 ): Record<string, unknown> {
+  const MAX_DEPTH = 10; // Prevent stack overflow from deeply nested objects
+
   const sensitiveKeys = [
     "password",
     "token",
     "secret",
-    "apiKey",
+    "apikey", // Fixed: lowercase to match keyLower.includes() comparison
     "authorization",
     "cookie",
     "session",
@@ -111,8 +118,16 @@ function sanitizeMetadata(
     if (isSensitive) {
       sanitized[key] = "[REDACTED]";
     } else if (typeof value === "object" && value !== null) {
-      // Recursivamente sanitizar objetos anidados
-      sanitized[key] = sanitizeMetadata(value as Record<string, unknown>);
+      if (depth >= MAX_DEPTH) {
+        // Stop recursion at max depth
+        sanitized[key] = "[MAX_DEPTH_EXCEEDED]";
+      } else {
+        // Recursively sanitize nested objects
+        sanitized[key] = sanitizeMetadata(
+          value as Record<string, unknown>,
+          depth + 1,
+        );
+      }
     } else {
       sanitized[key] = value;
     }

@@ -12,6 +12,7 @@
 > - [`typescript`](../skills/typescript/SKILL.md) - TypeScript strict patterns and best practices
 > - [`vercel-composition-patterns`](../skills/vercel-composition-patterns/SKILL.md) - React composition patterns
 > - [`vercel-react-best-practices`](../skills/vercel-react-best-practices/SKILL.md) - React/Next.js performance optimization
+> - [`vitest`](.agents/skills/vitest/SKILL.md) - Vitest fast unit testing framework
 > - [`web-design-guidelines`](../skills/web-design-guidelines/SKILL.md) - UI review & Web Interface Guidelines compliance
 > - [`zod-4`](../skills/zod-4/SKILL.md) - Zod 4 schema validation patterns
 
@@ -39,6 +40,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Troubleshoot why a skill is missing from AGENTS.md auto-invoke | `skill-sync`                  |
 | TypeScript types and interfaces                                | `typescript`                  |
 | UI review, accessibility audit, or UX best practices check     | `web-design-guidelines`       |
+| Writing unit tests, mocking, or configuring test coverage      | `vitest`                      |
 | Zod validation and schemas                                     | `zod-4`                       |
 
 ---

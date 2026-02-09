@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import * as jose from "jose";
 import { headers, cookies } from "next/headers";
 import crypto from "crypto";
-import { JWT_SECRET, SECURITY_CONFIG } from "@/lib/config";
+import { getJwtSecret, getSecurityConfig } from "@/lib/config";
 import { tokenSchema, validateAndSanitize } from "@/utils/validation";
 import { getClientIP, recordAttempt } from "@/lib/rate-limiter";
 import { logError } from "@/lib/logger";
@@ -40,6 +40,10 @@ async function validateToken(tokenId: string) {
  */
 export async function processInvitationToken(token: string) {
   try {
+    // Load config once
+    const JWT_SECRET = getJwtSecret();
+    const SECURITY_CONFIG = getSecurityConfig();
+
     // Validate token format
     const tokenValidation = validateAndSanitize(tokenSchema, token);
     if (!tokenValidation.success) {
@@ -175,6 +179,10 @@ export async function processInvitationToken(token: string) {
  */
 export async function getCurrentUser() {
   try {
+    // Load config once
+    const JWT_SECRET = getJwtSecret();
+    const SECURITY_CONFIG = getSecurityConfig();
+
     const cookieStore = await cookies();
     const session = cookieStore.get("invitation_session");
 

@@ -1,101 +1,101 @@
 import { z, type ZodError } from "zod";
 
-// Esquemas de validación para invitaciones
+// Invitation validation schemas
 export const invitationSchema = z.object({
   guestName: z
     .string()
-    .min(1, "El nombre es requerido")
-    .max(100, "El nombre no puede exceder 100 caracteres")
+    .min(1, "Guest name is required")
+    .max(100, "Guest name cannot exceed 100 characters")
     .transform((val) => val.trim()),
   guestNickname: z
     .string()
-    .max(50, "El apodo no puede exceder 50 caracteres")
+    .max(50, "Nickname cannot exceed 50 characters")
     .optional()
     .transform((val) => val?.trim() || ""),
   guestPhone: z
     .string()
-    .max(20, "El teléfono no puede exceder 20 caracteres")
+    .max(20, "Phone number cannot exceed 20 characters")
     .optional()
     .transform((val) => val?.trim() || ""),
   maxGuests: z.coerce
     .number()
-    .int("El máximo de invitados debe ser un número entero")
-    .min(1, "Debe permitir al menos 1 invitado")
-    .max(10, "No puede exceder 10 invitados"),
+    .int("Maximum guests must be an integer")
+    .min(1, "Must allow at least 1 guest")
+    .max(10, "Cannot exceed 10 guests"),
   hasResponded: z.boolean().optional(),
   isAttending: z.boolean().optional(),
   guestCount: z.coerce
     .number()
-    .int("El número de invitados debe ser un número entero")
-    .min(1, "Debe ser al menos 1")
-    .max(10, "No puede exceder 10")
+    .int("Guest count must be an integer")
+    .min(1, "Must be at least 1")
+    .max(10, "Cannot exceed 10")
     .optional()
     .nullable(),
 });
 
-// Esquema para respuesta de invitación
+// Invitation response schema
 export const invitationResponseSchema = z.object({
   isAttending: z.boolean(),
   guestCount: z
     .number()
-    .int("El número de invitados debe ser un número entero")
-    .min(1, "Debe ser al menos 1")
-    .max(10, "No puede exceder 10")
+    .int("Guest count must be an integer")
+    .min(1, "Must be at least 1")
+    .max(10, "Cannot exceed 10")
     .optional(),
   message: z
     .string()
-    .max(500, "El mensaje no puede exceder 500 caracteres")
+    .max(500, "Message cannot exceed 500 characters")
     .optional(),
 });
 
-// Esquema para login de admin
+// Admin login schema
 export const adminLoginSchema = z.object({
   username: z
     .string()
-    .min(3, "El usuario debe tener al menos 3 caracteres")
-    .max(50, "El usuario no puede exceder 50 caracteres")
+    .min(3, "Username must be at least 3 characters")
+    .max(50, "Username cannot exceed 50 characters")
     .regex(
       /^[a-zA-Z0-9_-]+$/,
-      "El usuario solo puede contener letras, números, guiones y guiones bajos",
+      "Username can only contain letters, numbers, hyphens and underscores",
     ),
   password: z
     .string()
-    .min(8, "La contraseña debe tener al menos 8 caracteres")
-    .max(128, "La contraseña no puede exceder 128 caracteres"),
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password cannot exceed 128 characters"),
   honeypotValue: z.string().optional(),
 });
 
-// Esquema para búsqueda
+// Search schema
 export const searchSchema = z.object({
   searchTerm: z
     .string()
-    .max(100, "El término de búsqueda no puede exceder 100 caracteres")
+    .max(100, "Search term cannot exceed 100 characters")
     .regex(
       /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/,
-      "El término de búsqueda solo puede contener letras y espacios",
+      "Search term can only contain letters and spaces",
     )
     .optional(),
 });
 
-// Esquema para mensajes
+// Message schema
 export const messageSchema = z.object({
   message: z
     .string()
-    .min(1, "El mensaje es requerido")
-    .max(1000, "El mensaje no puede exceder 1000 caracteres")
-    .regex(/^[^<>]*$/, "El mensaje no puede contener caracteres HTML"),
+    .min(1, "Message is required")
+    .max(1000, "Message cannot exceed 1000 characters")
+    .regex(/^[^<>]*$/, "Message cannot contain HTML characters"),
   type: z.enum(["wish", "memory", "advice"]).optional(),
 });
 
-// Función para sanitizar strings básica
+// Basic string sanitization
 export function sanitizeString(input: string): string {
   return input
     .trim()
-    .replace(/[<>]/g, "") // Remover caracteres HTML peligrosos
-    .replace(/\s+/g, " "); // Normalizar espacios
+    .replace(/[<>]/g, "") // Remove dangerous HTML characters
+    .replace(/\s+/g, " "); // Normalize spaces
 }
 
-// Función para sanitizar HTML (prevenir XSS)
+// Sanitize HTML to prevent XSS
 export function sanitizeHtml(input: string): string {
   return input
     .replace(/&/g, "&amp;")
@@ -106,41 +106,41 @@ export function sanitizeHtml(input: string): string {
     .replace(/\//g, "&#x2F;");
 }
 
-// Función para sanitizar nombres (permite letras, espacios y caracteres comunes)
+// Sanitize names (allows letters, spaces and common characters)
 export function sanitizeName(input: string): string {
   return input
     .trim()
-    .replace(/[<>\\"']/g, "") // Remover caracteres peligrosos
-    .replace(/\s+/g, " ") // Normalizar espacios
-    .slice(0, 100); // Limitar longitud
+    .replace(/[<>\\"']/g, "") // Remove dangerous characters
+    .replace(/\s+/g, " ") // Normalize spaces
+    .slice(0, 100); // Limit length
 }
 
-// Función para sanitizar teléfonos (solo números, espacios, +, -, paréntesis)
+// Sanitize phone numbers (only numbers, spaces, +, -, parentheses)
 export function sanitizePhone(input: string): string {
   return input
     .trim()
-    .replace(/[^\d\s+\-()]/g, "") // Solo permitir caracteres válidos para teléfono
-    .slice(0, 20); // Limitar longitud
+    .replace(/[^\d\s+\-()]/g, "") // Only allow valid phone characters
+    .slice(0, 20); // Limit length
 }
 
-// Función para sanitizar IDs (alfanumérico, guiones, guiones bajos)
+// Sanitize IDs (alphanumeric, hyphens, underscores)
 export function sanitizeId(input: string): string {
   return input
     .trim()
-    .replace(/[^a-zA-Z0-9_-]/g, "") // Solo alfanumérico, guiones y guiones bajos
-    .slice(0, 50); // Limitar longitud
+    .replace(/[^a-zA-Z0-9_-]/g, "") // Only alphanumeric, hyphens and underscores
+    .slice(0, 50); // Limit length
 }
 
-// Función para sanitizar búsqueda (remover caracteres especiales peligrosos)
+// Sanitize search queries (remove dangerous special characters)
 export function sanitizeSearch(input: string): string {
   return input
     .trim()
-    .replace(/[<>\\"'%&;\\/]/g, "") // Remover caracteres peligrosos para búsqueda
-    .replace(/\s+/g, " ") // Normalizar espacios
-    .slice(0, 100); // Limitar longitud
+    .replace(/[<>\\"'%&;\\/]/g, "") // Remove dangerous search characters
+    .replace(/\s+/g, " ") // Normalize spaces
+    .slice(0, 100); // Limit length
 }
 
-// Función para validar y sanitizar datos
+// Validate and sanitize data with Zod schemas
 export function validateAndSanitize<T>(
   schema: z.ZodSchema<T>,
   data: unknown,
@@ -156,22 +156,22 @@ export function validateAndSanitize<T>(
         return { success: false, error: firstIssue.message };
       }
 
-      return { success: false, error: "Datos de entrada inválidos" };
+      return { success: false, error: "Invalid input data" };
     }
-    return { success: false, error: "Error de validación desconocido" };
+    return { success: false, error: "Unknown validation error" };
   }
 }
 
-// Función para validar ID de invitación
+// Invitation ID validation
 export const invitationIdSchema = z
   .string()
-  .min(1, "ID de invitación requerido")
-  .max(50, "ID de invitación inválido")
-  .regex(/^[a-zA-Z0-9_-]+$/, "ID de invitación inválido");
+  .min(1, "Invitation ID is required")
+  .max(50, "Invalid invitation ID")
+  .regex(/^[a-zA-Z0-9_-]+$/, "Invalid invitation ID");
 
-// Función para validar token
+// Token validation
 export const tokenSchema = z
   .string()
-  .min(1, "Token requerido")
-  .max(100, "Token inválido")
-  .regex(/^[a-zA-Z0-9_-]+$/, "Token inválido");
+  .min(1, "Token is required")
+  .max(100, "Invalid token")
+  .regex(/^[a-zA-Z0-9_-]+$/, "Invalid token");
