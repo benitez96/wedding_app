@@ -37,6 +37,7 @@ interface RSVPModalProps {
   onSuccess: () => void;
 }
 
+// TODO i18n: All user-facing text in RSVPModal needs translation
 export default function RSVPModal({
   isOpen,
   onClose,

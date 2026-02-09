@@ -19,7 +19,12 @@ interface DecorationSvgSelectorProps {
   onChange: (value: DecorationSvg) => void;
 }
 
-// Opciones disponibles
+// Hoist static classNames to prevent re-renders
+const RADIO_GROUP_CLASS_NAMES = {
+  wrapper: "gap-2 flex-nowrap",
+} as const;
+
+// TODO i18n: SVG option labels need translation support
 const SVG_OPTIONS: DecorationSvgOption[] = [
   {
     value: "none",
@@ -101,15 +106,14 @@ export function DecorationSvgSelector({
 
   return (
     <div className="space-y-2">
+      {/* TODO i18n: Label needs translation */}
       <label className="text-sm font-medium">Elemento Decorativo</label>
       <div className="overflow-x-auto pb-2">
         <RadioGroup
           value={value}
           onValueChange={handleChange}
           orientation="horizontal"
-          classNames={{
-            wrapper: "gap-2 flex-nowrap",
-          }}
+          classNames={RADIO_GROUP_CLASS_NAMES}
         >
           {SVG_OPTIONS.map((option) => (
             <SvgRadioCard

@@ -12,6 +12,11 @@ import {
   SectionIconConfig,
 } from "@/types/section-icon";
 
+// Hoist static classNames to prevent re-renders
+const RADIO_GROUP_CLASS_NAMES = {
+  wrapper: "gap-2 flex-nowrap",
+} as const;
+
 interface SectionIconSelectorProps {
   value: SectionIcon;
   onChange: (value: SectionIcon) => void;
@@ -74,7 +79,7 @@ function IconRadioCard(props: SectionIconConfig & { children?: ReactNode }) {
 export function SectionIconSelector({
   value,
   onChange,
-  label = "Ícono de Sección",
+  label = "Ícono de Sección", // TODO i18n: Default label needs translation
 }: SectionIconSelectorProps) {
   const handleChange = (val: string) => {
     onChange(val as SectionIcon);
@@ -91,9 +96,7 @@ export function SectionIconSelector({
           value={value}
           onValueChange={handleChange}
           orientation="horizontal"
-          classNames={{
-            wrapper: "gap-2 flex-nowrap",
-          }}
+          classNames={RADIO_GROUP_CLASS_NAMES}
         >
           {SECTION_ICON_CATALOG.map((iconConfig) => (
             <IconRadioCard
@@ -110,6 +113,7 @@ export function SectionIconSelector({
         </RadioGroup>
       </div>
       {/* Info sobre el tipo seleccionado */}
+      {/* TODO i18n: Type label needs translation */}
       {value !== "none" && (
         <p className="text-xs text-gray-500">
           Tipo:{" "}

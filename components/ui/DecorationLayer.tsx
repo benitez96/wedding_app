@@ -31,11 +31,13 @@ export function DecorationLayer({
   useEffect(() => {
     if (!containerRef.current || !isMounted) return;
 
+    const element = containerRef.current;
+
     const updateDimensions = () => {
-      if (containerRef.current) {
+      if (element) {
         setDimensions({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight,
+          width: element.offsetWidth,
+          height: element.offsetHeight,
         });
       }
     };
@@ -45,9 +47,12 @@ export function DecorationLayer({
 
     // Observer para cambios de tamaño
     const resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(containerRef.current);
+    resizeObserver.observe(element);
 
-    return () => resizeObserver.disconnect();
+    // ✅ Cleanup garantizado con referencia capturada
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [isMounted]);
 
   const svgPath = `/tramas/svgs/${svg}.svg`;

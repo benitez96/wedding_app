@@ -14,6 +14,12 @@ interface GuestCountSelectorProps {
   disabled?: boolean;
 }
 
+// Hoist static classNames object outside component to prevent re-renders
+const INPUT_CLASS_NAMES = {
+  input: "text-center text-lg font-semibold",
+  inputWrapper: "h-[40px]",
+} as const;
+
 export default function GuestCountSelector({
   value,
   onChange,
@@ -84,10 +90,7 @@ export default function GuestCountSelector({
         max={max}
         disabled={disabled}
         className="w-20 text-center"
-        classNames={{
-          input: "text-center text-lg font-semibold",
-          inputWrapper: "h-[40px]",
-        }}
+        classNames={INPUT_CLASS_NAMES}
       />
 
       <Button

@@ -18,8 +18,8 @@ interface ImageUploadProps {
 export function ImageUpload({
   currentImageUrl,
   onImageChange,
-  label = "Imagen o Video",
-  description = "Subir imagen (JPG, PNG, WebP) o video (MP4, WebM, MOV - Máx. 20MB)",
+  label = "Imagen o Video", // TODO i18n: Default label needs translation
+  description = "Subir imagen (JPG, PNG, WebP) o video (MP4, WebM, MOV - Máx. 20MB)", // TODO i18n: Default description needs translation
   currentMediaType = "image",
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -98,6 +98,7 @@ export function ImageUpload({
         </div>
       )}
 
+      {/* TODO i18n: Error messages need translation */}
       {error && (
         <div className="p-3 bg-danger-50 text-danger-700 border border-danger-200 rounded-lg text-sm">
           {error}
@@ -131,6 +132,7 @@ export function ImageUpload({
                 )}
               </div>
               <div className="flex gap-2">
+                {/* TODO i18n: Button text needs translation */}
                 <Button
                   size="sm"
                   color="danger"
@@ -161,6 +163,7 @@ export function ImageUpload({
               className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-400 hover:bg-primary-50 transition-colors flex flex-col items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ImageIcon className="w-12 h-12 text-gray-400" />
+              {/* TODO i18n: Upload text needs translation */}
               <div className="text-sm text-gray-600">
                 {isUploading
                   ? "Subiendo..."

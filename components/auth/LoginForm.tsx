@@ -67,6 +67,7 @@ export function LoginForm({
   return (
     <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        {/* TODO i18n: All text in LoginForm needs translation */}
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-gray-100">
             Bienvenido de vuelta
@@ -78,6 +79,7 @@ export function LoginForm({
 
         <Card className="shadow-lg">
           <CardHeader className="pb-0">
+            {/* TODO i18n: Card header needs translation */}
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
               Iniciar Sesión
             </h3>

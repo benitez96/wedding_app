@@ -47,6 +47,7 @@ export function SignUpForm({
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
+    // TODO i18n: Validation error messages need translation
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");

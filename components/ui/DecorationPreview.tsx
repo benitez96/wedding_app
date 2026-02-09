@@ -45,9 +45,9 @@ export function DecorationPreview({
               }`}
             >
               {/* Background layer si hasAlternateBg */}
-              {hasAlternateBg && (
+              {hasAlternateBg ? (
                 <div className="absolute inset-0 -z-10 bg-secondary" />
-              )}
+              ) : null}
               <p
                 className={`text-sm font-medium relative z-10 ${
                   hasAlternateBg ? "text-secondary-foreground" : "text-gray-600"
