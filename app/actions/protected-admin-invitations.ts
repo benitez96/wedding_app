@@ -11,7 +11,10 @@ import {
   validateAndSanitize,
   sanitizeString,
 } from "@/utils/validation";
-import { enforceGuestLimit, getGuestUsage } from "@/lib/tier-enforcement";
+import {
+  enforceGuestLimit,
+  getGuestUsage,
+} from "@/lib/tier-enforcement-prisma";
 import { PERMISSIONS } from "@/lib/permissions";
 import { logError } from "@/lib/logger";
 

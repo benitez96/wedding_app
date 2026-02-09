@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { getUserEventContext } from "@/lib/event-context";
+import { getUserEventContext } from "@/lib/event-context-prisma";
 import { SECTION_METADATA, isSectionKey } from "@/components/sections/metadata";
 import {
   getSectionConfigurations,

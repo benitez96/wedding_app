@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import ExportConfirmedGuestsButton from "@/components/ExportConfirmedGuestsButton";
 import { verifyUserAuth } from "@/lib/server-auth";
-import { getUserEventContext } from "@/lib/event-context";
+import { getUserEventContext } from "@/lib/event-context-prisma";
 
 // Forzar renderizado dinámico
 export const dynamic = "force-dynamic";

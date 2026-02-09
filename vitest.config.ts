@@ -2,6 +2,9 @@ import { defineConfig } from "vitest/config";
 import path from "path";
 
 export default defineConfig({
+  // Set Vite cache directory to avoid permission issues
+  cacheDir: ".vite-cache",
+
   test: {
     // Environment variables for tests
     // These are set BEFORE any modules are imported
@@ -72,6 +75,15 @@ export default defineConfig({
         "**/*.metadata.ts",
         "**/*.stories.{ts,tsx}", // Si tenés Storybook
         "**/node_modules/**",
+        // Excluir adapters Prisma (no son lógica de negocio, solo DB glue)
+        "**/*-prisma.{ts,tsx}",
+        // Excluir QR scanner (React hook con Web APIs, se testea con E2E)
+        "**/lib/qr/**",
+        // Excluir IndexedDB wrapper (wrapper de librería idb, se testea con E2E)
+        "**/lib/offline/indexedDB.ts",
+        // Excluir archivos de configuración de Better Auth (se testea con E2E)
+        "**/lib/auth.ts",
+        "**/lib/auth-client.ts",
       ],
 
       // Thresholds de coverage
@@ -133,6 +145,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
+      // Mock server-only para tests (solo funciona en Next.js server)
+      "server-only": path.resolve(__dirname, "tests/mocks/server-only.ts"),
     },
   },
 });

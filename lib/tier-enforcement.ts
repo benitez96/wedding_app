@@ -1,11 +1,14 @@
 import "server-only";
 
-import prisma from "@/lib/prisma";
 import {
   TIER_LIMITS,
   type SubscriptionTier,
   type TierLimits,
 } from "@/types/subscription";
+
+// ============================================================================
+// PURE BUSINESS LOGIC - No database dependencies
+// ============================================================================
 
 /**
  * Contexto de tier del usuario - subscription + limites
@@ -14,26 +17,6 @@ export interface UserTierContext {
   userId: string;
   tier: SubscriptionTier;
   limits: TierLimits;
-}
-
-/**
- * Obtiene el contexto de tier de un usuario (subscription + limits)
- */
-export async function getUserTierContext(
-  userId: string,
-): Promise<UserTierContext> {
-  const subscription = await prisma.subscription.findUnique({
-    where: { userId },
-    select: { tier: true },
-  });
-
-  const tier = (subscription?.tier ?? "FREE") as SubscriptionTier;
-
-  return {
-    userId,
-    tier,
-    limits: TIER_LIMITS[tier],
-  };
 }
 
 /**
@@ -47,26 +30,78 @@ export interface EnforcementResult {
 }
 
 /**
- * Verifica si el usuario puede crear mas invitados en un evento
+ * Crea el contexto de tier a partir de un tier
  */
-export async function enforceGuestLimit(
+export function createTierContext(
   userId: string,
-  eventId: string,
-): Promise<EnforcementResult> {
-  const { tier, limits } = await getUserTierContext(userId);
+  tier: SubscriptionTier,
+): UserTierContext {
+  return {
+    userId,
+    tier,
+    limits: TIER_LIMITS[tier],
+  };
+}
+
+/**
+ * Verifica si el conteo actual excede el límite
+ */
+export function checkLimit(
+  current: number,
+  limit: number | null,
+): { exceeded: boolean } {
+  if (limit === null) {
+    return { exceeded: false };
+  }
+  return { exceeded: current >= limit };
+}
+
+/**
+ * Genera mensaje de error para límite de invitados
+ */
+export function generateGuestLimitError(
+  tier: SubscriptionTier,
+  limit: number,
+): string {
+  return `El plan ${tier} permite hasta ${limit} invitados por evento`;
+}
+
+/**
+ * Genera mensaje de error para límite de eventos
+ */
+export function generateEventLimitError(
+  tier: SubscriptionTier,
+  limit: number,
+): string {
+  return `El plan ${tier} permite hasta ${limit} evento(s)`;
+}
+
+/**
+ * Genera mensaje de error para colaboradores
+ */
+export function generateCollaboratorError(): string {
+  return "La funcionalidad de colaboradores requiere el plan Company";
+}
+
+/**
+ * Evalúa enforcement de invitados (lógica pura)
+ */
+export function evaluateGuestEnforcement(
+  context: UserTierContext,
+  currentCount: number,
+): EnforcementResult {
+  const { tier, limits } = context;
 
   if (limits.maxGuestsPerEvent === null) {
     return { allowed: true };
   }
 
-  const currentCount = await prisma.invitation.count({
-    where: { eventId },
-  });
+  const { exceeded } = checkLimit(currentCount, limits.maxGuestsPerEvent);
 
-  if (currentCount >= limits.maxGuestsPerEvent) {
+  if (exceeded) {
     return {
       allowed: false,
-      reason: `El plan ${tier} permite hasta ${limits.maxGuestsPerEvent} invitados por evento`,
+      reason: generateGuestLimitError(tier, limits.maxGuestsPerEvent),
       current: currentCount,
       limit: limits.maxGuestsPerEvent,
     };
@@ -80,25 +115,24 @@ export async function enforceGuestLimit(
 }
 
 /**
- * Verifica si el usuario puede crear mas eventos
+ * Evalúa enforcement de eventos (lógica pura)
  */
-export async function enforceEventLimit(
-  userId: string,
-): Promise<EnforcementResult> {
-  const { tier, limits } = await getUserTierContext(userId);
+export function evaluateEventEnforcement(
+  context: UserTierContext,
+  currentCount: number,
+): EnforcementResult {
+  const { tier, limits } = context;
 
   if (limits.maxEvents === null) {
     return { allowed: true };
   }
 
-  const currentCount = await prisma.event.count({
-    where: { ownerId: userId },
-  });
+  const { exceeded } = checkLimit(currentCount, limits.maxEvents);
 
-  if (currentCount >= limits.maxEvents) {
+  if (exceeded) {
     return {
       allowed: false,
-      reason: `El plan ${tier} permite hasta ${limits.maxEvents} evento(s)`,
+      reason: generateEventLimitError(tier, limits.maxEvents),
       current: currentCount,
       limit: limits.maxEvents,
     };
@@ -112,40 +146,87 @@ export async function enforceEventLimit(
 }
 
 /**
- * Verifica si el usuario tiene acceso a funcionalidad de colaboradores (tier COMPANY)
+ * Evalúa enforcement de colaboradores (lógica pura)
  */
-export async function enforceCollaboratorAccess(
-  userId: string,
-): Promise<EnforcementResult> {
-  const { limits } = await getUserTierContext(userId);
+export function evaluateCollaboratorEnforcement(
+  context: UserTierContext,
+): EnforcementResult {
+  const { limits } = context;
 
   if (!limits.canHaveCollaborators) {
     return {
       allowed: false,
-      reason:
-        "La funcionalidad de colaboradores requiere el plan Company",
+      reason: generateCollaboratorError(),
     };
   }
 
   return { allowed: true };
 }
 
+// ============================================================================
+// DATABASE OPERATIONS - Depend on external database adapter
+// ============================================================================
+
 /**
- * Obtiene el conteo actual de invitados para un evento (util para mostrar en UI)
+ * Database adapter interface for tier enforcement
  */
-export async function getGuestUsage(
-  userId: string,
-  eventId: string,
-): Promise<{ current: number; limit: number | null; tier: SubscriptionTier }> {
-  const { tier, limits } = await getUserTierContext(userId);
+export interface TierEnforcementStorage {
+  getUserSubscription(userId: string): Promise<{
+    tier: SubscriptionTier;
+  } | null>;
 
-  const current = await prisma.invitation.count({
-    where: { eventId },
-  });
+  countInvitations(eventId: string): Promise<number>;
 
-  return {
-    current,
-    limit: limits.maxGuestsPerEvent,
-    tier,
-  };
+  countEvents(userId: string): Promise<number>;
+}
+
+/**
+ * Tier enforcement service with dependency injection
+ */
+export class TierEnforcementService {
+  constructor(private storage: TierEnforcementStorage) {}
+
+  async getUserTierContext(userId: string): Promise<UserTierContext> {
+    const subscription = await this.storage.getUserSubscription(userId);
+    const tier = (subscription?.tier ?? "FREE") as SubscriptionTier;
+    return createTierContext(userId, tier);
+  }
+
+  async enforceGuestLimit(
+    userId: string,
+    eventId: string,
+  ): Promise<EnforcementResult> {
+    const context = await this.getUserTierContext(userId);
+    const currentCount = await this.storage.countInvitations(eventId);
+    return evaluateGuestEnforcement(context, currentCount);
+  }
+
+  async enforceEventLimit(userId: string): Promise<EnforcementResult> {
+    const context = await this.getUserTierContext(userId);
+    const currentCount = await this.storage.countEvents(userId);
+    return evaluateEventEnforcement(context, currentCount);
+  }
+
+  async enforceCollaboratorAccess(userId: string): Promise<EnforcementResult> {
+    const context = await this.getUserTierContext(userId);
+    return evaluateCollaboratorEnforcement(context);
+  }
+
+  async getGuestUsage(
+    userId: string,
+    eventId: string,
+  ): Promise<{
+    current: number;
+    limit: number | null;
+    tier: SubscriptionTier;
+  }> {
+    const context = await this.getUserTierContext(userId);
+    const current = await this.storage.countInvitations(eventId);
+
+    return {
+      current,
+      limit: context.limits.maxGuestsPerEvent,
+      tier: context.tier,
+    };
+  }
 }

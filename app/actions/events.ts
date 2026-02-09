@@ -5,8 +5,8 @@ import type { User } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { enforceEventLimit } from "@/lib/tier-enforcement";
-import { getUserAccessibleEvents } from "@/lib/event-context";
+import { enforceEventLimit } from "@/lib/tier-enforcement-prisma";
+import { getUserAccessibleEvents } from "@/lib/event-context-prisma";
 import { logError } from "@/lib/logger";
 import { z } from "zod";
 

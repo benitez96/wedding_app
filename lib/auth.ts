@@ -4,6 +4,7 @@ import { betterAuth } from "better-auth";
 import { createAuthMiddleware, APIError } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "../app/generated/prisma";
+import { validatePasswordStrength } from "@/lib/password-policy";
 
 // Crear instancia de Prisma para Better Auth
 // Esta instancia se crea aquí porque es necesaria para el adapter
@@ -107,15 +108,11 @@ export const auth = betterAuth({
         const password = ctx.body?.password || ctx.body?.newPassword;
 
         if (password && typeof password === "string") {
-          const hasUppercase = /[A-Z]/.test(password);
-          const hasLowercase = /[a-z]/.test(password);
-          const hasNumber = /[0-9]/.test(password);
-          const hasSpecial = /[^A-Za-z0-9]/.test(password);
+          const validation = validatePasswordStrength(password);
 
-          if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+          if (!validation.valid) {
             throw new APIError("BAD_REQUEST", {
-              message:
-                "La contraseña debe incluir mayúsculas, minúsculas, números y caracteres especiales",
+              message: validation.message!,
             });
           }
         }
@@ -162,7 +159,7 @@ export const auth = betterAuth({
               try {
                 // Importar dinámicamente para evitar circular dependencies
                 const { createSubscription, createDefaultEventForUser } =
-                  await import("@/lib/subscription-manager");
+                  await import("@/lib/subscription-manager-prisma");
 
                 // 1. Crear suscripción FREE automáticamente
                 await createSubscription({

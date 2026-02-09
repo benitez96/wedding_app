@@ -7,7 +7,7 @@ import { headers, cookies } from "next/headers";
 import crypto from "crypto";
 import { getJwtSecret, getSecurityConfig } from "@/lib/config";
 import { tokenSchema, validateAndSanitize } from "@/utils/validation";
-import { getClientIP, recordAttempt } from "@/lib/rate-limiter";
+import { getClientIP, recordAttempt } from "@/lib/rate-limiter-prisma";
 import { logError } from "@/lib/logger";
 
 /**

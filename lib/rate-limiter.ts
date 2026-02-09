@@ -1,17 +1,16 @@
 import { headers } from "next/headers";
-import prisma from "@/lib/prisma";
 
 /**
  * Rate limit configuration by action type
  * Admin login removed - Better Auth handles its own rate limiting
  */
-interface RateLimitConfig {
+export interface RateLimitConfig {
   maxAttempts: number;
   windowMs: number;
   blockDurationMs: number;
 }
 
-const RATE_LIMIT_CONFIGS = {
+export const RATE_LIMIT_CONFIGS = {
   // Invitation token processing
   "invitation-token": {
     maxAttempts: 10,
@@ -26,7 +25,300 @@ const RATE_LIMIT_CONFIGS = {
   },
 } as const;
 
-// Función para obtener la IP real del cliente
+export type RateLimitActionType = keyof typeof RATE_LIMIT_CONFIGS;
+
+// ============================================================================
+// PURE BUSINESS LOGIC - No database dependencies
+// ============================================================================
+
+/**
+ * Calcula si un intento está dentro de la ventana de tiempo
+ */
+export function isWithinWindow(
+  attemptDate: Date,
+  now: Date,
+  windowMs: number,
+): boolean {
+  return now.getTime() - attemptDate.getTime() < windowMs;
+}
+
+/**
+ * Calcula cuántos intentos quedan disponibles
+ */
+export function calculateRemainingAttempts(
+  currentAttempts: number,
+  maxAttempts: number,
+): number {
+  return Math.max(0, maxAttempts - currentAttempts);
+}
+
+/**
+ * Determina si se debe bloquear basado en número de intentos
+ */
+export function shouldBlock(
+  attemptCount: number,
+  maxAttempts: number,
+): boolean {
+  return attemptCount >= maxAttempts;
+}
+
+/**
+ * Calcula la fecha hasta cuando bloquear
+ */
+export function calculateBlockedUntil(
+  now: Date,
+  blockDurationMs: number,
+): Date {
+  return new Date(now.getTime() + blockDurationMs);
+}
+
+/**
+ * Calcula la fecha de inicio de la ventana de tiempo
+ */
+export function calculateWindowStart(now: Date, windowMs: number): Date {
+  return new Date(now.getTime() - windowMs);
+}
+
+/**
+ * Genera el mensaje de razón de bloqueo
+ */
+export function generateBlockReason(
+  maxAttempts: number,
+  windowMs: number,
+): string {
+  const windowMinutes = windowMs / 1000 / 60;
+  return `Excedió límite de ${maxAttempts} intentos en ${windowMinutes} minutos`;
+}
+
+/**
+ * Calcula la fecha de bloqueo para honeypot (7 días)
+ */
+export function calculateHoneypotBlockDuration(now: Date): Date {
+  const HONEYPOT_BLOCK_DAYS = 7;
+  return new Date(now.getTime() + HONEYPOT_BLOCK_DAYS * 24 * 60 * 60 * 1000);
+}
+
+/**
+ * Genera el mensaje de razón para honeypot
+ */
+export function generateHoneypotReason(details?: string): string {
+  return `Honeypot activado${details ? `: ${details}` : ""}`;
+}
+
+// ============================================================================
+// DATABASE OPERATIONS - Depend on external database adapter
+// ============================================================================
+
+/**
+ * Database adapter interface for rate limiting
+ * Permite inyectar diferentes implementaciones (Prisma, mock, etc)
+ */
+export interface RateLimitStorage {
+  findActiveBlock(
+    ip: string,
+    actionType: RateLimitActionType,
+    now: Date,
+  ): Promise<{ blockedUntil: Date } | null>;
+
+  deleteOldAttempts(
+    ip: string,
+    actionType: RateLimitActionType,
+    windowStart: Date,
+  ): Promise<void>;
+
+  countAttemptsInWindow(
+    ip: string,
+    actionType: RateLimitActionType,
+    windowStart: Date,
+  ): Promise<number>;
+
+  createAttempt(
+    ip: string,
+    actionType: RateLimitActionType,
+    success: boolean,
+  ): Promise<void>;
+
+  createBlock(
+    ip: string,
+    actionType: RateLimitActionType,
+    blockedUntil: Date,
+    reason: string,
+  ): Promise<void>;
+
+  logSecurityEvent(
+    type: string,
+    ip: string,
+    details: Record<string, unknown>,
+  ): Promise<void>;
+
+  deleteOldAttemptsGlobal(olderThan: Date): Promise<void>;
+
+  deleteExpiredBlocks(now: Date): Promise<void>;
+}
+
+// ============================================================================
+// RATE LIMITER SERVICE - Uses injected storage adapter
+// ============================================================================
+
+/**
+ * Rate limiter service with dependency injection
+ * No tiene dependencias directas de Prisma, usa el adapter inyectado
+ */
+export class RateLimiterService {
+  constructor(private storage: RateLimitStorage) {}
+
+  async isIPBlocked(
+    ip: string,
+    actionType: RateLimitActionType,
+  ): Promise<{ blocked: boolean; block?: { blockedUntil: Date } | null }> {
+    const now = new Date();
+    const activeBlock = await this.storage.findActiveBlock(ip, actionType, now);
+    return { blocked: !!activeBlock, block: activeBlock };
+  }
+
+  async recordAttempt(
+    ip: string,
+    actionType: RateLimitActionType,
+    success: boolean = false,
+  ): Promise<{
+    allowed: boolean;
+    remainingAttempts: number;
+    blockedUntil?: Date;
+  }> {
+    const now = new Date();
+    const config = RATE_LIMIT_CONFIGS[actionType];
+
+    // Verificar si ya está bloqueado
+    const { blocked, block } = await this.isIPBlocked(ip, actionType);
+    if (blocked) {
+      return {
+        allowed: false,
+        remainingAttempts: 0,
+        blockedUntil: block?.blockedUntil,
+      };
+    }
+
+    // Limpiar intentos antiguos fuera de la ventana
+    const windowStart = calculateWindowStart(now, config.windowMs);
+    await this.storage.deleteOldAttempts(ip, actionType, windowStart);
+
+    // Contar intentos en la ventana actual
+    const attemptsInWindow = await this.storage.countAttemptsInWindow(
+      ip,
+      actionType,
+      windowStart,
+    );
+
+    // Registrar el intento actual
+    await this.storage.createAttempt(ip, actionType, success);
+
+    const remainingAttempts = calculateRemainingAttempts(
+      attemptsInWindow + 1,
+      config.maxAttempts,
+    );
+
+    // Si se excedió el límite, bloquear la IP
+    if (shouldBlock(attemptsInWindow, config.maxAttempts)) {
+      const blockedUntil = calculateBlockedUntil(now, config.blockDurationMs);
+      const reason = generateBlockReason(config.maxAttempts, config.windowMs);
+
+      await this.storage.createBlock(ip, actionType, blockedUntil, reason);
+
+      // Log to SecurityLog (non-blocking)
+      await this.storage
+        .logSecurityEvent("rate_limit_triggered", ip, {
+          actionType,
+          maxAttempts: config.maxAttempts,
+        })
+        .catch(() => {});
+
+      return {
+        allowed: false,
+        remainingAttempts: 0,
+        blockedUntil,
+      };
+    }
+
+    return {
+      allowed: true,
+      remainingAttempts,
+    };
+  }
+
+  async checkRateLimit(
+    ip: string,
+    actionType: RateLimitActionType,
+  ): Promise<{
+    allowed: boolean;
+    remainingAttempts: number;
+    blockedUntil?: Date;
+  }> {
+    const now = new Date();
+    const config = RATE_LIMIT_CONFIGS[actionType];
+
+    // Verificar si está bloqueado
+    const { blocked, block } = await this.isIPBlocked(ip, actionType);
+    if (blocked) {
+      return {
+        allowed: false,
+        remainingAttempts: 0,
+        blockedUntil: block?.blockedUntil,
+      };
+    }
+
+    // Contar intentos en la ventana actual
+    const windowStart = calculateWindowStart(now, config.windowMs);
+    const attemptsInWindow = await this.storage.countAttemptsInWindow(
+      ip,
+      actionType,
+      windowStart,
+    );
+
+    return {
+      allowed: attemptsInWindow < config.maxAttempts,
+      remainingAttempts: calculateRemainingAttempts(
+        attemptsInWindow,
+        config.maxAttempts,
+      ),
+    };
+  }
+
+  async blockIPForHoneypot(
+    ip: string,
+    actionType: RateLimitActionType,
+    details?: string,
+  ): Promise<void> {
+    const now = new Date();
+    const blockedUntil = calculateHoneypotBlockDuration(now);
+    const reason = generateHoneypotReason(details);
+
+    await this.storage.createBlock(ip, actionType, blockedUntil, reason);
+
+    // Log to SecurityLog (non-blocking)
+    await this.storage
+      .logSecurityEvent("honeypot_triggered", ip, {
+        actionType,
+        details: details || null,
+      })
+      .catch(() => {});
+  }
+
+  async cleanupOldRateLimitData(): Promise<void> {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    await this.storage.deleteOldAttemptsGlobal(oneDayAgo);
+    await this.storage.deleteExpiredBlocks(now);
+  }
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS - No dependency injection needed
+// ============================================================================
+
+/**
+ * Función para obtener la IP real del cliente
+ */
 export async function getClientIP(): Promise<string> {
   const headersList = await headers();
 
@@ -40,224 +332,4 @@ export async function getClientIP(): Promise<string> {
 
   // Si hay múltiples IPs (x-forwarded-for puede contener varias), tomar la primera
   return ip.split(",")[0].trim();
-}
-
-// Función para verificar si una IP está bloqueada (devuelve el bloqueo para evitar query duplicada)
-export async function isIPBlocked(
-  ip: string,
-  actionType: keyof typeof RATE_LIMIT_CONFIGS,
-): Promise<{ blocked: boolean; block?: { blockedUntil: Date } | null }> {
-  const now = new Date();
-
-  // Buscar bloqueos activos para esta IP y acción
-  const activeBlock = await prisma.rateLimitBlock.findFirst({
-    where: {
-      ip,
-      actionType,
-      blockedUntil: {
-        gt: now,
-      },
-    },
-    select: {
-      blockedUntil: true,
-    },
-  });
-
-  return { blocked: !!activeBlock, block: activeBlock };
-}
-
-// Función para registrar un intento
-export async function recordAttempt(
-  ip: string,
-  actionType: keyof typeof RATE_LIMIT_CONFIGS,
-  success: boolean = false,
-): Promise<{
-  allowed: boolean;
-  remainingAttempts: number;
-  blockedUntil?: Date;
-}> {
-  const now = new Date();
-  const config = RATE_LIMIT_CONFIGS[actionType];
-
-  // Verificar si ya está bloqueado (una sola query)
-  const { blocked, block } = await isIPBlocked(ip, actionType);
-  if (blocked) {
-    return {
-      allowed: false,
-      remainingAttempts: 0,
-      blockedUntil: block?.blockedUntil,
-    };
-  }
-
-  // Limpiar intentos antiguos fuera de la ventana
-  const windowStart = new Date(now.getTime() - config.windowMs);
-  await prisma.rateLimitAttempt.deleteMany({
-    where: {
-      ip,
-      actionType,
-      createdAt: {
-        lt: windowStart,
-      },
-    },
-  });
-
-  // Contar intentos en la ventana actual
-  const attemptsInWindow = await prisma.rateLimitAttempt.count({
-    where: {
-      ip,
-      actionType,
-      createdAt: {
-        gte: windowStart,
-      },
-      success: false,
-    },
-  });
-
-  // Registrar el intento actual
-  await prisma.rateLimitAttempt.create({
-    data: {
-      ip,
-      actionType,
-      success,
-    },
-  });
-
-  const remainingAttempts = Math.max(
-    0,
-    config.maxAttempts - attemptsInWindow - 1,
-  );
-
-  // Si se excedió el límite, bloquear la IP
-  if (attemptsInWindow >= config.maxAttempts) {
-    const blockedUntil = new Date(now.getTime() + config.blockDurationMs);
-
-    await prisma.rateLimitBlock.create({
-      data: {
-        ip,
-        actionType,
-        blockedUntil,
-        reason: `Excedió límite de ${config.maxAttempts} intentos en ${config.windowMs / 1000 / 60} minutos`,
-      },
-    });
-
-    // Log to SecurityLog (non-blocking)
-    prisma.securityLog
-      .create({
-        data: {
-          type: "rate_limit_triggered",
-          ip,
-          userAgent: "N/A",
-          details: { actionType, maxAttempts: config.maxAttempts },
-        },
-      })
-      .catch(() => {});
-
-    return {
-      allowed: false,
-      remainingAttempts: 0,
-      blockedUntil,
-    };
-  }
-
-  return {
-    allowed: true,
-    remainingAttempts,
-  };
-}
-
-// Función para verificar rate limit sin registrar intento
-export async function checkRateLimit(
-  ip: string,
-  actionType: keyof typeof RATE_LIMIT_CONFIGS,
-): Promise<{
-  allowed: boolean;
-  remainingAttempts: number;
-  blockedUntil?: Date;
-}> {
-  const now = new Date();
-  const config = RATE_LIMIT_CONFIGS[actionType];
-
-  // Verificar si está bloqueado (una sola query)
-  const { blocked, block } = await isIPBlocked(ip, actionType);
-  if (blocked) {
-    return {
-      allowed: false,
-      remainingAttempts: 0,
-      blockedUntil: block?.blockedUntil,
-    };
-  }
-
-  // Contar intentos en la ventana actual
-  const windowStart = new Date(now.getTime() - config.windowMs);
-  const attemptsInWindow = await prisma.rateLimitAttempt.count({
-    where: {
-      ip,
-      actionType,
-      createdAt: {
-        gte: windowStart,
-      },
-    },
-  });
-
-  return {
-    allowed: attemptsInWindow < config.maxAttempts,
-    remainingAttempts: Math.max(0, config.maxAttempts - attemptsInWindow),
-  };
-}
-
-// Función para bloquear IP por honeypot (bloqueo inmediato y más largo)
-export async function blockIPForHoneypot(
-  ip: string,
-  actionType: keyof typeof RATE_LIMIT_CONFIGS,
-  details?: string,
-): Promise<void> {
-  const now = new Date();
-  // Bloqueo más largo para honeypot: 7 días
-  const blockedUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-  // Crear bloqueo inmediato
-  await prisma.rateLimitBlock.create({
-    data: {
-      ip,
-      actionType,
-      blockedUntil,
-      reason: `Honeypot activado${details ? `: ${details}` : ""}`,
-    },
-  });
-
-  // Log to SecurityLog (non-blocking)
-  prisma.securityLog
-    .create({
-      data: {
-        type: "honeypot_triggered",
-        ip,
-        userAgent: "N/A",
-        details: { actionType, details: details || null },
-      },
-    })
-    .catch(() => {});
-}
-
-// Función para limpiar datos antiguos (puede ejecutarse como cron job)
-export async function cleanupOldRateLimitData(): Promise<void> {
-  const now = new Date();
-  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-  // Limpiar intentos de hace más de 1 día
-  await prisma.rateLimitAttempt.deleteMany({
-    where: {
-      createdAt: {
-        lt: oneDayAgo,
-      },
-    },
-  });
-
-  // Limpiar bloqueos expirados
-  await prisma.rateLimitBlock.deleteMany({
-    where: {
-      blockedUntil: {
-        lt: now,
-      },
-    },
-  });
 }

@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { getUserEventContext } from "@/lib/event-context";
+import { getUserEventContext } from "@/lib/event-context-prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";

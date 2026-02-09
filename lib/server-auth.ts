@@ -1,8 +1,10 @@
 import { headers } from "next/headers";
 import { auth } from "./auth";
 import type { User } from "./auth";
-import { getUserEventContext, type EventContext } from "./event-context";
-import { getUserTierContext, type UserTierContext } from "./tier-enforcement";
+import { getUserEventContext } from "./event-context-prisma";
+import type { EventContext } from "./event-context";
+import { getUserTierContext } from "./tier-enforcement-prisma";
+import type { UserTierContext } from "./tier-enforcement";
 import { hasPermission } from "./permissions";
 
 /**

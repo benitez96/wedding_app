@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/app/actions/invitations";
 import { getSectionConfigurations } from "@/app/actions/sections";
-import { getWeddingDate, getRemindRestingDays } from "@/lib/get-configurations";
+import {
+  getWeddingDate,
+  getRemindRestingDays,
+} from "@/lib/get-configurations-prisma";
 import { updateTokenAccessMetrics } from "@/app/actions/metrics";
 import InvitationClientWidgets from "@/app/(invitation)/InvitationClientWidgets";
 import DynamicSectionRenderer from "@/components/sections/DynamicSectionRenderer";

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { getUserTierContext } from "@/lib/tier-enforcement";
+import { getUserTierContext } from "@/lib/tier-enforcement-prisma";
 import { Divider } from "@heroui/react";
 import CollaboratorsList from "@/components/backoffice/CollaboratorsList";
 import InviteLinksSection from "@/components/backoffice/InviteLinksSection";

@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 
 import { siteConfig } from "@/config/site";
 import { auth } from "@/lib/auth";
-import { getUserEventContext } from "@/lib/event-context";
+import { getUserEventContext } from "@/lib/event-context-prisma";
 import { getEventTheme } from "@/app/actions/theme";
 import { THEME_IDS, type ThemeId } from "@/types/theme";
 import { ThemeSync } from "@/components/providers/ThemeSync";

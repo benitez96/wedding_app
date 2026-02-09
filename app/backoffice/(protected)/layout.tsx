@@ -3,11 +3,11 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import AppSidebar from "@/components/backoffice/AppSidebar";
-import { getUserTierContext } from "@/lib/tier-enforcement";
+import { getUserTierContext } from "@/lib/tier-enforcement-prisma";
 import {
   getUserAccessibleEvents,
   getUserEventContext,
-} from "@/lib/event-context";
+} from "@/lib/event-context-prisma";
 import { getEventTheme } from "@/app/actions/theme";
 import { THEME_IDS } from "@/types/theme";
 

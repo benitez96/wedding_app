@@ -10,6 +10,12 @@ import { cleanup } from "@testing-library/react";
 import { afterEach, beforeAll, vi } from "vitest";
 
 /**
+ * Mock de server-only para que los tests funcionen
+ * server-only solo funciona en Next.js server, no en tests
+ */
+vi.mock("server-only", () => ({}));
+
+/**
  * Cleanup automático de React Testing Library
  * Se ejecuta después de CADA test para limpiar el DOM
  */
