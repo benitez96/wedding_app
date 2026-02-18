@@ -42,7 +42,6 @@ export default function EventListSelector({
         return;
       }
 
-      // Wait for router refresh to complete before clearing loading state
       await router.refresh();
       setSwitchingEventId(null);
     } catch (error) {
@@ -54,6 +53,7 @@ export default function EventListSelector({
   if (events.length === 0) {
     return (
       <div className="flex flex-col gap-3 py-2">
+        {/* TODO i18n: "No tienes eventos" */}
         <p className="text-sm text-default-500 text-center">
           No tienes eventos
         </p>
@@ -65,6 +65,7 @@ export default function EventListSelector({
           onPress={onCreateEvent}
           fullWidth
         >
+          {/* TODO i18n: "Crear Primer Evento" */}
           Crear Primer Evento
         </Button>
       </div>
@@ -73,6 +74,7 @@ export default function EventListSelector({
 
   return (
     <div className="flex flex-col gap-1 py-2">
+      {/* TODO i18n: "Mis Eventos" */}
       <p className="text-xs text-default-500 uppercase font-semibold px-3 mb-1">
         Mis Eventos
       </p>
@@ -89,14 +91,14 @@ export default function EventListSelector({
               className={clsx(
                 "flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-left",
                 "hover:bg-default-100 disabled:cursor-default",
-                isActive && "bg-primary/10 hover:bg-primary/10"
+                isActive && "bg-primary/10 hover:bg-primary/10",
               )}
             >
               <div className="flex-1 min-w-0">
                 <p
                   className={clsx(
                     "text-sm font-medium truncate",
-                    isActive && "text-primary"
+                    isActive && "text-primary",
                   )}
                 >
                   {event.name}
@@ -105,7 +107,9 @@ export default function EventListSelector({
                   <EventBadge isOwner={event.isOwner} variant="minimal" />
                 </div>
               </div>
-              {isActive && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+              {isActive && (
+                <Check className="w-4 h-4 text-primary flex-shrink-0" />
+              )}
               {isLoading && (
                 <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin flex-shrink-0" />
               )}
@@ -122,6 +126,7 @@ export default function EventListSelector({
           onPress={onCreateEvent}
           fullWidth
         >
+          {/* TODO i18n: "Crear Nuevo Evento" */}
           Crear Nuevo Evento
         </Button>
       </div>

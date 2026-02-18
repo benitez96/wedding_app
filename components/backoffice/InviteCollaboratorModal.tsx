@@ -10,7 +10,6 @@ import {
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
-import { RadioGroup, Radio } from "@heroui/radio";
 import { Checkbox } from "@heroui/checkbox";
 import { Snippet } from "@heroui/snippet";
 import { Select, SelectItem } from "@heroui/select";
@@ -19,6 +18,15 @@ import PermissionsSelector, {
   type PresetKey,
   getPermissionsBigInt,
 } from "@/components/backoffice/PermissionsSelector";
+
+// TODO i18n: expiration option labels
+const EXPIRATION_OPTIONS = [
+  { key: "1", label: "1 día" },
+  { key: "3", label: "3 días" },
+  { key: "7", label: "7 días" },
+  { key: "14", label: "14 días" },
+  { key: "30", label: "30 días" },
+] as const;
 
 interface LinkConfig {
   expirationDays: string;
@@ -90,6 +98,7 @@ export default function InviteCollaboratorModal({
       } else {
         setUIState((prev) => ({
           ...prev,
+          // TODO i18n: error message
           error: result.error ?? "Error al generar el link",
           isLoading: false,
         }));
@@ -97,6 +106,7 @@ export default function InviteCollaboratorModal({
     } catch (err) {
       setUIState((prev) => ({
         ...prev,
+        // TODO i18n: error message
         error: "Error al generar el link de invitación",
         isLoading: false,
       }));
@@ -105,33 +115,37 @@ export default function InviteCollaboratorModal({
 
   const handleClose = () => {
     setPermissions({ preset: "EDITOR", custom: 0n });
-    setLinkConfig({ expirationDays: "7", maxUses: "1", isUnlimitedUses: false });
+    setLinkConfig({
+      expirationDays: "7",
+      maxUses: "1",
+      isUnlimitedUses: false,
+    });
     setUIState({ generatedLink: null, isLoading: false, error: null });
     onClose();
   };
 
+  const expirationDays = parseInt(linkConfig.expirationDays);
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="lg" placement="center">
       <ModalContent>
+        {/* TODO i18n: modal header */}
         <ModalHeader>Invitar Colaborador</ModalHeader>
 
         <ModalBody>
           {uiState.generatedLink ? (
             <div className="flex flex-col gap-4">
               <p className="text-sm text-default-600">
-                Comparte este link con la persona que quieras invitar.
-                {parseInt(linkConfig.expirationDays) === 1
+                {/* TODO i18n: share link description */}
+                Comparte este link con la persona que quieras invitar.{" "}
+                {expirationDays === 1
                   ? " El link expira en 1 día."
                   : ` El link expira en ${linkConfig.expirationDays} días.`}
                 {linkConfig.isUnlimitedUses
                   ? " Usos ilimitados."
                   : ` Máximo ${linkConfig.maxUses} uso${parseInt(linkConfig.maxUses) > 1 ? "s" : ""}.`}
               </p>
-              <Snippet
-                symbol=""
-                variant="bordered"
-                className="overflow-x-auto"
-              >
+              <Snippet symbol="" variant="bordered" className="overflow-x-auto">
                 {uiState.generatedLink}
               </Snippet>
             </div>
@@ -155,28 +169,33 @@ export default function InviteCollaboratorModal({
               />
 
               <div className="flex flex-col gap-3 pt-2 border-t border-divider">
+                {/* TODO i18n: "Configuración del Link" */}
                 <p className="text-sm font-medium">Configuración del Link</p>
 
                 <Select
+                  // TODO i18n: label + placeholder
                   label="Expiración"
                   placeholder="Selecciona días"
                   selectedKeys={[linkConfig.expirationDays]}
                   onSelectionChange={(keys) => {
                     const value = Array.from(keys)[0] as string;
-                    setLinkConfig((prev) => ({ ...prev, expirationDays: value }));
+                    setLinkConfig((prev) => ({
+                      ...prev,
+                      expirationDays: value,
+                    }));
                   }}
                   size="sm"
                 >
-                  <SelectItem key="1" value="1">1 día</SelectItem>
-                  <SelectItem key="3" value="3">3 días</SelectItem>
-                  <SelectItem key="7" value="7">7 días</SelectItem>
-                  <SelectItem key="14" value="14">14 días</SelectItem>
-                  <SelectItem key="30" value="30">30 días</SelectItem>
+                  {EXPIRATION_OPTIONS.map((opt) => (
+                    // HeroUI SelectItem: `key` only — no `value` prop
+                    <SelectItem key={opt.key}>{opt.label}</SelectItem>
+                  ))}
                 </Select>
 
                 <div className="flex flex-col gap-2">
                   <Input
                     type="number"
+                    // TODO i18n: label + placeholder
                     label="Número de usos"
                     placeholder="1"
                     value={linkConfig.maxUses}
@@ -192,9 +211,13 @@ export default function InviteCollaboratorModal({
                     size="sm"
                     isSelected={linkConfig.isUnlimitedUses}
                     onValueChange={(value) =>
-                      setLinkConfig((prev) => ({ ...prev, isUnlimitedUses: value }))
+                      setLinkConfig((prev) => ({
+                        ...prev,
+                        isUnlimitedUses: value,
+                      }))
                     }
                   >
+                    {/* TODO i18n: "Usos ilimitados" */}
                     Usos ilimitados
                   </Checkbox>
                 </div>
@@ -205,6 +228,7 @@ export default function InviteCollaboratorModal({
 
         <ModalFooter>
           <Button variant="light" onPress={handleClose}>
+            {/* TODO i18n: "Cerrar" / "Cancelar" */}
             {uiState.generatedLink ? "Cerrar" : "Cancelar"}
           </Button>
           {!uiState.generatedLink && (
@@ -217,6 +241,7 @@ export default function InviteCollaboratorModal({
                 (permissions.preset === "CUSTOM" && permissions.custom === 0n)
               }
             >
+              {/* TODO i18n: "Generar Link" */}
               Generar Link
             </Button>
           )}
@@ -228,6 +253,7 @@ export default function InviteCollaboratorModal({
                 onSuccess();
               }}
             >
+              {/* TODO i18n: "Listo" */}
               Listo
             </Button>
           )}

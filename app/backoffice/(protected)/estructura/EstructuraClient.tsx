@@ -18,15 +18,25 @@ export default function EstructuraClient({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Estructura</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Estructura
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
           Configurá el orden y visibilidad de las secciones de la invitación
         </p>
       </div>
 
       {/* Catálogo de componentes disponibles */}
       <Card>
-        <CardBody className="p-6">
+        <CardHeader>
+          <div className="flex flex-col gap-1">
+            <h3 className="text-lg font-semibold">Componentes Disponibles</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Hacé click para agregar una sección a tu invitación
+            </p>
+          </div>
+        </CardHeader>
+        <CardBody>
           <SectionCatalog activeSectionKeys={activeSectionKeys} />
         </CardBody>
       </Card>
@@ -39,7 +49,7 @@ export default function EstructuraClient({
               <h3 className="text-lg font-semibold">
                 Secciones de la Invitación
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Arrastrá para reordenar, usá el switch para
                 habilitar/deshabilitar
               </p>
@@ -51,7 +61,7 @@ export default function EstructuraClient({
         </Card>
       ) : (
         <Card>
-          <CardBody className="p-6 text-center text-gray-500">
+          <CardBody className="p-6 text-center text-gray-500 dark:text-gray-400">
             <p>
               No hay secciones agregadas aún. Usá el catálogo de arriba para
               agregar componentes a tu invitación.

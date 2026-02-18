@@ -56,24 +56,15 @@ export default function SectionCatalog({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">
-          Componentes Disponibles
-        </h3>
-        <p className="text-sm text-gray-600 mt-1">
-          Hacé click para agregar una sección a tu invitación
-        </p>
-      </div>
-
       {error ? (
         <div className="p-3 rounded-lg bg-danger-50 text-danger-700 border border-danger-200">
           {error}
         </div>
       ) : null}
 
-      {/* Scroll horizontal con TODAS las secciones */}
-      <div className="overflow-x-auto pb-2">
-        <div className="flex gap-3 flex-nowrap p-1">
+      {/* Scroll horizontal CONTENIDO dentro de la card */}
+      <div className="overflow-x-auto">
+        <div className="flex gap-3 pb-1">
           {allSections.map(([key, metadata]) => {
             const sectionKey = key as SectionKey; // Cast para tipos estrictos
             // Los dividers pueden agregarse múltiples veces
@@ -84,7 +75,7 @@ export default function SectionCatalog({
               <Card
                 key={sectionKey}
                 className={clsx(
-                  "transition-all group flex-shrink-0 w-48",
+                  "transition-all group flex-shrink-0 w-44",
                   isActive
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:shadow-md hover:scale-105",

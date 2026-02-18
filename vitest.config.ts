@@ -66,6 +66,7 @@ export default defineConfig({
         "hooks/**/*.{ts,tsx}",
         "components/**/*.{ts,tsx}",
         "app/actions/schemas.ts", // Solo schemas, no actions completas
+        "lib/middleware/**/*.ts", // Middleware modules (pure logic, edge-safe)
       ],
 
       // Archivos a excluir del coverage

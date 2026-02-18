@@ -9,6 +9,7 @@ const TIER_STYLES = {
   COMPANY: "secondary",
 } as const;
 
+// TODO i18n: tier labels ("Gratis")
 const TIER_LABELS = {
   FREE: "Gratis",
   BASIC: "Basic",
@@ -22,11 +23,7 @@ interface TierBadgeProps {
 
 export default function TierBadge({ tier, size = "sm" }: TierBadgeProps) {
   return (
-    <Chip
-      size={size}
-      color={TIER_STYLES[tier]}
-      variant="flat"
-    >
+    <Chip size={size} color={TIER_STYLES[tier]} variant="flat">
       {TIER_LABELS[tier]}
     </Chip>
   );

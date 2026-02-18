@@ -8,6 +8,7 @@ import {
   PERMISSION_GROUPS,
 } from "@/lib/permissions";
 
+// TODO i18n: preset option labels and descriptions
 export const PRESET_OPTIONS = {
   ADMIN: "Admin",
   EDITOR: "Editor",
@@ -61,11 +62,13 @@ export default function PermissionsSelector({
   return (
     <>
       <RadioGroup
+        // TODO i18n: "Tipo de acceso"
         label="Tipo de acceso"
         value={selectedPreset}
         onValueChange={(v) => onPresetChange(v as PresetKey)}
         isDisabled={isDisabled}
       >
+        {/* TODO i18n: Radio descriptions */}
         <Radio value="ADMIN" description="Todo excepto eliminar evento">
           Admin
         </Radio>
@@ -78,7 +81,11 @@ export default function PermissionsSelector({
         <Radio value="CLIENT" description="Gestionar invitados + ver diseño">
           Cliente
         </Radio>
-        <Radio value="CUSTOM" description="Seleccionar permisos individualmente">
+        <Radio
+          value="CUSTOM"
+          description="Seleccionar permisos individualmente"
+        >
+          {/* TODO i18n: "Personalizado" */}
           Personalizado
         </Radio>
       </RadioGroup>
@@ -88,6 +95,7 @@ export default function PermissionsSelector({
           {PERMISSION_GROUPS.filter((g) => g.label !== "Evento (Crítico)").map(
             (group) => (
               <div key={group.label}>
+                {/* TODO i18n: group.label */}
                 <p className="text-sm font-medium mb-1">{group.label}</p>
                 <div className="flex flex-wrap gap-2">
                   {group.permissions.map((perm) => {
@@ -102,6 +110,7 @@ export default function PermissionsSelector({
                         onValueChange={() => togglePermission(perm.key)}
                         isDisabled={isDisabled}
                       >
+                        {/* TODO i18n: perm.label */}
                         {perm.label}
                       </Checkbox>
                     );

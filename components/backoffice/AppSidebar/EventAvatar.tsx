@@ -86,6 +86,7 @@ export default function EventAvatar({
           stiffness: 400,
           damping: 25,
         }}
+        // TODO i18n: aria-label
         aria-label={`Seleccionar evento: ${eventName}`}
         aria-current={isActive ? "page" : undefined}
       >

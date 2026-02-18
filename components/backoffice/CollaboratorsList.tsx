@@ -34,6 +34,7 @@ interface Collaborator {
   invitedBy: string;
 }
 
+// TODO i18n: preset labels ("Cliente")
 function getPresetLabel(permissions: bigint): string | null {
   if (permissions === PERMISSION_PRESETS.ADMIN) return "Admin";
   if (permissions === PERMISSION_PRESETS.EDITOR) return "Editor";
@@ -69,6 +70,7 @@ export default function CollaboratorsList() {
   }, []);
 
   const handleRemove = async (memberId: string) => {
+    // TODO i18n: confirm message
     if (!confirm("¿Estás seguro de revocar el acceso a este colaborador?")) {
       return;
     }
@@ -99,6 +101,7 @@ export default function CollaboratorsList() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
+        {/* TODO i18n: "Colaboradores" */}
         <h2 className="text-lg font-semibold">Colaboradores</h2>
         <Button
           color="primary"
@@ -106,20 +109,24 @@ export default function CollaboratorsList() {
           onPress={inviteModal.onOpen}
           size="sm"
         >
+          {/* TODO i18n: "Invitar" */}
           Invitar
         </Button>
       </div>
 
       {collaborators.length === 0 ? (
         <div className="text-center py-8 text-default-400">
+          {/* TODO i18n: empty state messages */}
           <p>No hay colaboradores en este evento.</p>
           <p className="text-sm mt-1">
             Invita a otros usuarios para que colaboren contigo.
           </p>
         </div>
       ) : (
+        // TODO i18n: aria-label
         <Table aria-label="Lista de colaboradores">
           <TableHeader>
+            {/* TODO i18n: column headers */}
             <TableColumn>Usuario</TableColumn>
             <TableColumn>Rol</TableColumn>
             <TableColumn>Invitado</TableColumn>
@@ -140,9 +147,7 @@ export default function CollaboratorsList() {
                         size="sm"
                       />
                       <div>
-                        <p className="text-sm font-medium">
-                          {member.userName}
-                        </p>
+                        <p className="text-sm font-medium">{member.userName}</p>
                         <p className="text-xs text-default-400">
                           {member.userEmail}
                         </p>
@@ -156,6 +161,7 @@ export default function CollaboratorsList() {
                       </Chip>
                     ) : (
                       <Chip size="sm" variant="flat">
+                        {/* TODO i18n: "Personalizado" */}
                         Personalizado
                       </Chip>
                     )}
@@ -172,6 +178,7 @@ export default function CollaboratorsList() {
                         size="sm"
                         variant="light"
                         onPress={() => handleEdit(member)}
+                        // TODO i18n: aria-label
                         aria-label="Editar permisos"
                       >
                         <Pencil className="w-4 h-4" />
@@ -182,6 +189,7 @@ export default function CollaboratorsList() {
                         variant="light"
                         color="danger"
                         onPress={() => handleRemove(member.id)}
+                        // TODO i18n: aria-label
                         aria-label="Revocar acceso"
                       >
                         <Trash2 className="w-4 h-4" />

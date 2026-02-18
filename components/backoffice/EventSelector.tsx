@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Select, SelectItem } from "@heroui/select";
-import { Spinner } from "@heroui/spinner";
 import { switchActiveEvent } from "@/app/actions/events";
 import { useRouter } from "next/navigation";
 
@@ -43,6 +42,7 @@ export default function EventSelector({
   if (events.length <= 1) {
     return (
       <div className="px-4 py-2 text-sm text-default-500">
+        {/* TODO i18n: "Sin eventos" */}
         {events[0]?.name ?? "Sin eventos"}
       </div>
     );
@@ -51,6 +51,7 @@ export default function EventSelector({
   return (
     <div className="px-2">
       <Select
+        // TODO i18n: label
         label="Evento activo"
         selectedKeys={[activeEventId]}
         onChange={(e) => handleChange(e.target.value)}
@@ -66,6 +67,7 @@ export default function EventSelector({
             <div className="flex items-center gap-2">
               <span>{event.name}</span>
               {!event.isOwner && (
+                // TODO i18n: "(colaborador)"
                 <span className="text-xs text-default-400">(colaborador)</span>
               )}
             </div>

@@ -28,6 +28,7 @@ import { useDisclosure } from "@heroui/use-disclosure";
 import CreateEventModal from "@/components/backoffice/CreateEventModal";
 import { switchActiveEvent } from "@/app/actions/events";
 
+// TODO i18n: menu item labels
 const MENU_ITEMS: MenuItem[] = [
   {
     label: "Dashboard",
@@ -120,6 +121,7 @@ export default function MobileMenu() {
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-content1 border-b border-divider flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
           <Heart className="text-red-500 w-6 h-6" />
+          {/* TODO i18n: app name */}
           <span className="font-bold text-foreground text-lg">Wedding App</span>
         </div>
 
@@ -127,6 +129,7 @@ export default function MobileMenu() {
           isIconOnly
           variant="light"
           onPress={() => setIsOpen(!isOpen)}
+          // TODO i18n: aria-label
           aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
         >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -170,6 +173,7 @@ export default function MobileMenu() {
                       <TierBadge tier={tier} />
                     </div>
                   ) : (
+                    // TODO i18n: "Sin evento seleccionado"
                     <p className="text-sm text-default-500">
                       Sin evento seleccionado
                     </p>
@@ -183,6 +187,7 @@ export default function MobileMenu() {
                   <>
                     <div className="p-4">
                       <h3 className="text-xs font-semibold text-default-500 uppercase mb-3">
+                        {/* TODO i18n: "Eventos" */}
                         Eventos
                       </h3>
                       <div className="flex flex-wrap gap-3">
@@ -204,6 +209,7 @@ export default function MobileMenu() {
                             setIsOpen(false);
                             createEventModal.onOpen();
                           }}
+                          // TODO i18n: aria-label
                           aria-label="Crear nuevo evento"
                         >
                           <UserPlus className="w-4 h-4" />
@@ -215,7 +221,11 @@ export default function MobileMenu() {
                 )}
 
                 {/* Navigation Menu */}
-                <nav className="flex-1 p-4" aria-label="Menú principal">
+                <nav
+                  className="flex-1 p-4"
+                  // TODO i18n: aria-label
+                  aria-label="Menú principal"
+                >
                   <div className="flex flex-col gap-1">
                     {visibleItems.map((item) => {
                       const isActive = pathname === item.href;
@@ -242,7 +252,6 @@ export default function MobileMenu() {
 
                 <Divider />
 
-                {/* Logout Button */}
                 <div className="p-4">
                   <Button
                     color="danger"
@@ -254,6 +263,7 @@ export default function MobileMenu() {
                     isDisabled={isLoggingOut}
                     className="justify-start"
                   >
+                    {/* TODO i18n: "Cerrar Sesión" */}
                     Cerrar Sesión
                   </Button>
                 </div>

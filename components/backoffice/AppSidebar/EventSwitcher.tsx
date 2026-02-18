@@ -70,6 +70,7 @@ export default function EventSwitcher() {
               color="primary"
               className="rounded-full w-10 h-10"
               onPress={createEventModal.onOpen}
+              // TODO i18n: aria-label
               aria-label="Crear nuevo evento"
             >
               <Plus className="w-4 h-4" />

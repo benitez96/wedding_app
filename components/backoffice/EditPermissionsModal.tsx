@@ -59,9 +59,11 @@ export default function EditPermissionsModal({
         onSuccess();
         onClose();
       } else {
+        // TODO i18n: error message
         setError(result.error ?? "Error al actualizar permisos");
       }
     } catch (err) {
+      // TODO i18n: error message
       setError("Error al actualizar los permisos");
     } finally {
       setIsLoading(false);
@@ -71,6 +73,7 @@ export default function EditPermissionsModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" placement="center">
       <ModalContent>
+        {/* TODO i18n: "Editar permisos de {memberName}" */}
         <ModalHeader>Editar permisos de {memberName}</ModalHeader>
 
         <ModalBody>
@@ -91,6 +94,7 @@ export default function EditPermissionsModal({
 
         <ModalFooter>
           <Button variant="light" onPress={onClose} isDisabled={isLoading}>
+            {/* TODO i18n: "Cancelar" */}
             Cancelar
           </Button>
           <Button
@@ -102,6 +106,7 @@ export default function EditPermissionsModal({
               (selectedPreset === "CUSTOM" && customPermissions === 0n)
             }
           >
+            {/* TODO i18n: "Guardar" */}
             Guardar
           </Button>
         </ModalFooter>

@@ -45,6 +45,10 @@ async function validateToken(tokenId: string) {
 /**
  * Process invitation token: validate and create JWT session
  * Public action - no auth required
+ *
+ * Error codes returned to the client (TODO i18n: map these to user-facing messages):
+ *   "invalid-token" | "rate-limit-exceeded" | "token-already-used" |
+ *   "token-expired" | "error-processing-token"
  */
 export async function processInvitationToken(token: string) {
   try {
@@ -136,16 +140,8 @@ export async function processInvitationToken(token: string) {
       return { success: false, action: "error", error: errorCode };
     }
 
-    // Mark token as used
-    await prisma.invitationToken.update({
-      where: { id: validatedToken },
-      data: {
-        isUsed: true,
-        userAgent,
-      },
-    });
-
     // Create JWT session for guest (tokenId = the crypto-secure id)
+    // IMPORTANT: Create session BEFORE marking token as used to avoid burning token on errors
     const secret = new TextEncoder().encode(JWT_SECRET);
     const sessionToken = await new jose.SignJWT({
       tokenId: invitationToken.id,
@@ -173,6 +169,16 @@ export async function processInvitationToken(token: string) {
       sameSite: SECURITY_CONFIG.COOKIE_SAME_SITE,
       maxAge: SECURITY_CONFIG.INVITATION_SESSION_DURATION,
       path: "/",
+    });
+
+    // Mark token as used ONLY after session is successfully created
+    // This prevents burning tokens on JWT creation errors
+    await prisma.invitationToken.update({
+      where: { id: validatedToken },
+      data: {
+        isUsed: true,
+        userAgent,
+      },
     });
 
     // Log successful token use
@@ -219,10 +225,14 @@ export async function getCurrentUser() {
       return { success: false, user: null };
     }
 
-    // Validate token exists and is active
-    const validation = await validateToken(payload.tokenId as string);
+    // Get token and invitation (no state validation needed - user already has valid JWT session)
+    // The JWT itself proves the token was valid when the session was created
+    const token = await prisma.invitationToken.findUnique({
+      where: { id: payload.tokenId as string },
+      include: { invitation: true },
+    });
 
-    if (!validation.valid || !validation.invitation) {
+    if (!token || !token.invitation) {
       return { success: false, user: null };
     }
 
@@ -231,14 +241,14 @@ export async function getCurrentUser() {
       user: {
         invitationId: payload.invitationId,
         tokenId: payload.tokenId,
-        eventId: validation.invitation.eventId,
-        guestName: validation.invitation.guestName,
-        guestNickname: validation.invitation.guestNickname,
-        maxGuests: validation.invitation.maxGuests,
-        hasResponded: validation.invitation.hasResponded,
-        isAttending: validation.invitation.isAttending,
-        guestCount: validation.invitation.guestCount,
-        respondedAt: validation.invitation.respondedAt,
+        eventId: token.invitation.eventId,
+        guestName: token.invitation.guestName,
+        guestNickname: token.invitation.guestNickname,
+        maxGuests: token.invitation.maxGuests,
+        hasResponded: token.invitation.hasResponded,
+        isAttending: token.invitation.isAttending,
+        guestCount: token.invitation.guestCount,
+        respondedAt: token.invitation.respondedAt,
       },
     };
   } catch (error) {

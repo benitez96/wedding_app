@@ -17,6 +17,7 @@ import { createEvent } from "@/app/actions/events";
 import { z } from "zod";
 
 const createEventSchema = z.object({
+  // TODO i18n: validation messages
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().optional(),
 });
@@ -40,10 +41,10 @@ export default function CreateEventModal({
     e.preventDefault();
     setError("");
 
-    // Validación con Zod
     const validation = createEventSchema.safeParse({ name, description });
     if (!validation.success) {
-      setError(validation.error.errors[0].message);
+      // Zod 4: .issues (not .errors)
+      setError(validation.error.issues[0]?.message ?? "Error de validación");
       return;
     }
 
@@ -59,15 +60,14 @@ export default function CreateEventModal({
       const result = await createEvent(formData);
 
       if (!result.success) {
+        // TODO i18n: error message
         setError(result.error || "Error al crear el evento");
         setIsLoading(false);
         return;
       }
 
-      // Refresh para actualizar lista de eventos
       await router.refresh();
 
-      // Limpiar form, cerrar modal y resetear loading
       setName("");
       setDescription("");
       setError("");
@@ -75,6 +75,7 @@ export default function CreateEventModal({
       onClose();
     } catch (err) {
       console.error("Error creating event:", err);
+      // TODO i18n: error message
       setError("Error inesperado al crear el evento");
       setIsLoading(false);
     }
@@ -99,11 +100,13 @@ export default function CreateEventModal({
     >
       <ModalContent>
         <form onSubmit={handleSubmit}>
+          {/* TODO i18n: modal header */}
           <ModalHeader className="flex flex-col gap-1">
             Crear Nuevo Evento
           </ModalHeader>
           <ModalBody>
             <Input
+              // TODO i18n: label + placeholder
               label="Nombre del Evento"
               placeholder="Mi Boda 2026"
               value={name}
@@ -114,6 +117,7 @@ export default function CreateEventModal({
               isInvalid={!!error && name.trim().length === 0}
             />
             <Textarea
+              // TODO i18n: label + placeholder
               label="Descripción (opcional)"
               placeholder="Detalles sobre el evento..."
               value={description}
@@ -132,9 +136,11 @@ export default function CreateEventModal({
               onPress={handleClose}
               isDisabled={isLoading}
             >
+              {/* TODO i18n: "Cancelar" */}
               Cancelar
             </Button>
             <Button color="primary" type="submit" isLoading={isLoading}>
+              {/* TODO i18n: "Crear Evento" */}
               Crear Evento
             </Button>
           </ModalFooter>

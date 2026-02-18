@@ -5,6 +5,7 @@ import Link from "next/link";
 
 interface PermissionRequiredProps {
   permission: string;
+  // TODO i18n: message prop
   message?: string;
 }
 
@@ -14,6 +15,7 @@ interface PermissionRequiredProps {
  */
 export default function PermissionRequired({
   permission,
+  // TODO i18n: default message
   message = "No tienes permisos para acceder a esta sección",
 }: PermissionRequiredProps) {
   return (
@@ -22,11 +24,13 @@ export default function PermissionRequired({
         <CardBody className="text-center space-y-4 p-8">
           <ShieldAlert className="mx-auto text-warning" size={64} />
           <div>
+            {/* TODO i18n: "Acceso Restringido" */}
             <h2 className="text-xl font-bold mb-2">Acceso Restringido</h2>
             <p className="text-default-600">{message}</p>
           </div>
           <div className="bg-default-100 rounded-lg p-4">
             <p className="text-sm text-default-500">
+              {/* TODO i18n: "Permiso requerido:" */}
               Permiso requerido: <code className="font-mono">{permission}</code>
             </p>
           </div>
@@ -37,6 +41,7 @@ export default function PermissionRequired({
               color="primary"
               variant="flat"
             >
+              {/* TODO i18n: "Volver al Dashboard" */}
               Volver al Dashboard
             </Button>
           </div>

@@ -41,7 +41,7 @@ function AppSidebarContent({ children }: { children: ReactNode }) {
         {/* Main Content - se ajusta al sidebar */}
         <main
           className={clsx(
-            "flex-1 transition-all duration-300 ease-in-out",
+            "flex-1 min-w-0 transition-all duration-300 ease-in-out",
             "pt-16 lg:pt-0", // Padding top para mobile header
             isExpanded ? "lg:ml-[336px]" : "lg:ml-[72px]", // 72px EventSwitcher + 264px NavigationSidebar
           )}

@@ -27,6 +27,7 @@ interface InviteLink {
   createdAt: string;
 }
 
+// TODO i18n: relative time strings ("en X min", "en Xh", etc.)
 function formatTimeUntil(date: Date): string {
   const now = new Date();
   const diffMs = date.getTime() - now.getTime();
@@ -72,6 +73,7 @@ export default function InviteLinksSection() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // TODO i18n: role labels
   const getRoleLabel = (permissions: string): string => {
     const perms = BigInt(permissions);
     if (perms === PERMISSION_PRESETS.ADMIN) return "Admin";
@@ -94,6 +96,7 @@ export default function InviteLinksSection() {
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <p className="text-sm text-default-600">
+            {/* TODO i18n: description */}
             Genera links para invitar colaboradores a tu evento
           </p>
           <Button
@@ -102,17 +105,21 @@ export default function InviteLinksSection() {
             startContent={<Plus className="w-4 h-4" />}
             onPress={inviteModal.onOpen}
           >
+            {/* TODO i18n: "Generar Link" */}
             Generar Link
           </Button>
         </div>
 
         {links.length === 0 ? (
           <div className="text-center py-8 text-default-500">
+            {/* TODO i18n: empty state */}
             No hay links de invitación activos
           </div>
         ) : (
+          // TODO i18n: aria-label
           <Table aria-label="Links de invitación" removeWrapper>
             <TableHeader>
+              {/* TODO i18n: column headers */}
               <TableColumn>URL</TableColumn>
               <TableColumn>ROL</TableColumn>
               <TableColumn>EXPIRA</TableColumn>
@@ -121,10 +128,11 @@ export default function InviteLinksSection() {
             </TableHeader>
             <TableBody>
               {links.map((link) => {
-                const url = `${window.location.origin}/join/${link.token}`;
                 const truncatedUrl = `...${link.token.slice(-8)}`;
-                const isExpired = link.expiresAt && new Date(link.expiresAt) < new Date();
-                const isMaxedOut = link.maxUses !== null && link.usedCount >= link.maxUses;
+                const isExpired =
+                  link.expiresAt && new Date(link.expiresAt) < new Date();
+                const isMaxedOut =
+                  link.maxUses !== null && link.usedCount >= link.maxUses;
 
                 return (
                   <TableRow key={link.id}>
@@ -142,9 +150,9 @@ export default function InviteLinksSection() {
                       <span className="text-sm text-default-600">
                         {link.expiresAt
                           ? isExpired
-                            ? "Expirado"
+                            ? /* TODO i18n: "Expirado" */ "Expirado"
                             : formatTimeUntil(new Date(link.expiresAt))
-                          : "Nunca"}
+                          : /* TODO i18n: "Nunca" */ "Nunca"}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -158,7 +166,7 @@ export default function InviteLinksSection() {
                         variant="flat"
                         isIconOnly
                         onPress={() => handleCopyLink(link.token, link.id)}
-                        isDisabled={isExpired || isMaxedOut}
+                        isDisabled={Boolean(isExpired) || Boolean(isMaxedOut)}
                       >
                         {copiedId === link.id ? (
                           <Check className="w-4 h-4 text-success" />
