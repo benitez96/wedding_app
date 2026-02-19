@@ -87,8 +87,8 @@ export default function TokensTable({
   };
 
   return (
-    <Card>
-      <CardBody className="gap-4">
+    <Card className="shrink-0">
+      <CardBody className="gap-4 p-6 max-h-96 overflow-y-auto">
         {/* Error banner */}
         {error && (
           <div className="p-3 bg-danger-50 border border-danger-200 text-danger-700 rounded-lg text-sm">

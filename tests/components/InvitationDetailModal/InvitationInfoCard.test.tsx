@@ -21,6 +21,9 @@ const BASE_INVITATION: InvitationWithTokens = {
   isAttending: null,
   guestCount: null,
   respondedAt: null,
+  menuPreference: null,
+  dietaryRestrictions: null,
+  messageForCouple: null,
   tokens: [],
 };
 

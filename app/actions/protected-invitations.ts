@@ -66,9 +66,6 @@ export const updateInvitationResponse = withInvitationAuth(
             messageForCouple: null,
           };
 
-      // Update invitation — only return safe fields
-      // NOTE: extendedFields (menuPreference, dietaryRestrictions, messageForCouple)
-      // will be active after running: prisma migrate dev
       const updatedInvitation = await prisma.invitation.update({
         where: { id: user.invitationId },
         data: {
@@ -76,8 +73,7 @@ export const updateInvitationResponse = withInvitationAuth(
           isAttending: validated.isAttending,
           guestCount: normalizedGuestCount,
           respondedAt: new Date(),
-          // TODO: uncomment after migration
-          // ...extendedFields,
+          ...extendedFields,
         },
         select: {
           id: true,
@@ -85,7 +81,9 @@ export const updateInvitationResponse = withInvitationAuth(
           isAttending: true,
           guestCount: true,
           respondedAt: true,
-          // menuPreference, dietaryRestrictions, messageForCouple added after migration
+          menuPreference: true,
+          dietaryRestrictions: true,
+          messageForCouple: true,
         },
       });
 
@@ -141,11 +139,9 @@ export const getCurrentUserData = withInvitationAuth(
           isAttending: invitation.isAttending,
           guestCount: invitation.guestCount,
           respondedAt: invitation.respondedAt,
-          // Extended RSVP fields — available after migration
-          // TODO: uncomment after migration
-          // menuPreference: invitation.menuPreference,
-          // dietaryRestrictions: invitation.dietaryRestrictions,
-          // messageForCouple: invitation.messageForCouple,
+          menuPreference: invitation.menuPreference,
+          dietaryRestrictions: invitation.dietaryRestrictions,
+          messageForCouple: invitation.messageForCouple,
         },
       };
     } catch (error) {

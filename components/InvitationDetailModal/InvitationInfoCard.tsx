@@ -44,8 +44,8 @@ export default function InvitationInfoCard({
   invitation,
 }: InvitationInfoCardProps) {
   return (
-    <Card>
-      <CardBody className="gap-4">
+    <Card className="shrink-0">
+      <CardBody className="gap-4 p-6">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Información del Invitado</h3>
           {getStatusChip(invitation)}

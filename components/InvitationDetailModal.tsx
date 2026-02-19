@@ -7,6 +7,7 @@ import { useDisclosure } from "@heroui/use-disclosure";
 import { Edit } from "lucide-react";
 import type { InvitationWithTokens } from "@/app/backoffice/(protected)/invitations/types";
 import InvitationInfoCard from "./InvitationDetailModal/InvitationInfoCard";
+import RSVPResponseCard from "./InvitationDetailModal/RSVPResponseCard";
 import TokensTable from "./InvitationDetailModal/TokensTable";
 import EditInvitationModal from "./EditInvitationModal";
 
@@ -67,8 +68,9 @@ export default function InvitationDetailModal({
             </div>
           </ModalHeader>
 
-          <ModalBody className="gap-6">
+          <ModalBody className="gap-6 overflow-y-auto">
             <InvitationInfoCard invitation={invitation} />
+            <RSVPResponseCard invitation={invitation} />
             <TokensTable
               invitationId={invitation.id}
               tokens={invitation.tokens}

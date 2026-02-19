@@ -11,6 +11,10 @@ export interface Invitation {
   isAttending: boolean | null;
   guestCount: number | null;
   respondedAt: Date | null;
+  // Extended RSVP fields — only collected when enabled in section settings
+  menuPreference: string | null;
+  dietaryRestrictions: string | null;
+  messageForCouple: string | null;
 }
 
 // Invitation Token interface
