@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import dynamic from "next/dynamic";
 import { Spinner } from "@heroui/spinner";
 import { SectionEditorLayout } from "./SectionEditorLayout";
@@ -155,7 +155,13 @@ export function SectionEditor({
   const [currentSettings, setCurrentSettings] =
     useState<Record<string, unknown>>(initialSettings);
 
-  // Obtener el componente del mapa pre-creado (estable, no se recrea)
+  // _previewState lives here, separate from settings, so field edits never wipe it.
+  // The settings form emits it mixed into the settings object — we extract and
+  // preserve it independently so it survives every keystroke.
+  const [previewState, setPreviewState] = useState<string | undefined>(
+    undefined,
+  );
+
   const SettingsForm =
     SECTION_SETTINGS_FORMS[sectionKey as keyof typeof SECTION_SETTINGS_FORMS];
   const SectionComponent =
@@ -163,14 +169,22 @@ export function SectionEditor({
       sectionKey as keyof typeof SECTION_PREVIEW_COMPONENTS
     ];
 
-  // Debug: log para ver qué componentes están cargando
-  console.log("SectionEditor:", {
-    sectionKey,
-    hasForm: !!SettingsForm,
-    hasPreview: !!SectionComponent,
-  });
+  // Intercept onSettingsChange: extract _previewState, store it separately,
+  // pass clean settings (without _previewState) to the settings state.
+  const handleSettingsChange = (incoming: Record<string, unknown>) => {
+    const { _previewState, ...cleanSettings } = incoming;
+    if (_previewState !== undefined) {
+      setPreviewState(_previewState as string);
+    }
+    setCurrentSettings(cleanSettings);
+  };
 
-  // Si no existe el form, mostrar mensaje
+  // Inject _previewState back into the settings passed to the preview component
+  const previewSettings =
+    previewState !== undefined
+      ? { ...currentSettings, _previewState: previewState }
+      : currentSettings;
+
   if (!SettingsForm) {
     return (
       <div className="p-8 text-center text-gray-500">
@@ -179,26 +193,29 @@ export function SectionEditor({
     );
   }
 
-  // Generar preview según disponibilidad del componente
-  const preview = SectionComponent ? (
-    <SectionComponent settings={currentSettings as never} />
-  ) : (
-    <PreviewPlaceholder
-      sectionName={getPreviewPlaceholderName(sectionKey)}
-      description={getPreviewPlaceholderDescription(sectionKey)}
-    />
-  );
-
   return (
     <SectionEditorLayout
       form={
         <SettingsForm
           initialSettings={initialSettings}
           onSave={onSave}
-          onSettingsChange={setCurrentSettings}
+          onSettingsChange={handleSettingsChange}
         />
       }
-      preview={preview}
+      PreviewComponent={
+        (SectionComponent ?? (() => null)) as ComponentType<{
+          settings: Record<string, unknown>;
+        }>
+      }
+      previewSettings={previewSettings}
+      previewPlaceholder={
+        !SectionComponent ? (
+          <PreviewPlaceholder
+            sectionName={getPreviewPlaceholderName(sectionKey)}
+            description={getPreviewPlaceholderDescription(sectionKey)}
+          />
+        ) : undefined
+      }
     />
   );
 }

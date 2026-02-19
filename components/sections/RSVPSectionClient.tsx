@@ -9,14 +9,37 @@ import ConfirmedRSVP from "./RSVPStatus/ConfirmedRSVP";
 import DeclinedRSVP from "./RSVPStatus/DeclinedRSVP";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import {
+  RSVPAttendanceStep,
+  RSVPPendingContent,
+  RSVPConfirmedContent,
+  RSVPDeclinedContent,
+  RSVPMenuStep,
+  RSVPDietaryStep,
+  RSVPMessageStep,
+} from "./RSVPSection/RSVPSection.metadata";
+
+interface RSVPUser {
+  hasResponded: boolean;
+  isAttending?: boolean | null;
+  guestCount?: number | null;
+  maxGuests: number;
+}
+
+// Full config passed down from section settings to modal and status components
+export interface RSVPStepConfig {
+  attendanceStep: RSVPAttendanceStep;
+  pendingContent: RSVPPendingContent;
+  confirmedContent: RSVPConfirmedContent;
+  declinedContent: RSVPDeclinedContent;
+  menuStep: RSVPMenuStep;
+  dietaryStep: RSVPDietaryStep;
+  messageStep: RSVPMessageStep;
+}
 
 interface RSVPSectionClientProps {
-  user: {
-    hasResponded: boolean;
-    isAttending?: boolean | null;
-    guestCount?: number | null;
-    maxGuests: number;
-  };
+  user: RSVPUser;
+  stepConfig: RSVPStepConfig;
   hasAlternateBg?: boolean;
   decorationSvg: DecorationSvg;
   decorationPattern: DecorationPattern;
@@ -26,6 +49,7 @@ interface RSVPSectionClientProps {
 
 export default function RSVPSectionClient({
   user,
+  stepConfig,
   hasAlternateBg = false,
   decorationSvg,
   decorationPattern,
@@ -36,42 +60,41 @@ export default function RSVPSectionClient({
   const router = useRouter();
 
   useEffect(() => {
-    const handleOpenRSVPModal = () => {
-      setIsModalOpen(true);
-    };
-
+    const handleOpenRSVPModal = () => setIsModalOpen(true);
     window.addEventListener("openRSVPModal", handleOpenRSVPModal);
-
-    return () => {
+    return () =>
       window.removeEventListener("openRSVPModal", handleOpenRSVPModal);
-    };
   }, []);
 
-  const handleRSVPSuccess = () => {
-    router.refresh();
-  };
+  const handleRSVPSuccess = () => router.refresh();
+  const handleOpenModal = () => setIsModalOpen(true);
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const renderRSVPContent = () => {
+  function renderContent() {
     if (!user.hasResponded) {
-      return <PendingRSVP onOpenModal={handleOpenModal} />;
+      return (
+        <PendingRSVP
+          onOpenModal={handleOpenModal}
+          content={stepConfig.pendingContent}
+        />
+      );
     }
-
     if (user.isAttending) {
       return (
         <ConfirmedRSVP
           guestCount={user.guestCount || 0}
           maxGuests={user.maxGuests}
           onOpenModal={handleOpenModal}
+          content={stepConfig.confirmedContent}
         />
       );
     }
-
-    return <DeclinedRSVP onOpenModal={handleOpenModal} />;
-  };
+    return (
+      <DeclinedRSVP
+        onOpenModal={handleOpenModal}
+        content={stepConfig.declinedContent}
+      />
+    );
+  }
 
   return (
     <>
@@ -85,7 +108,7 @@ export default function RSVPSectionClient({
           hasAlternateBg={hasAlternateBg}
         >
           <Section.Container id="rsvp-section" hasAlternateBg={hasAlternateBg}>
-            {renderRSVPContent()}
+            {renderContent()}
           </Section.Container>
         </DecorationLayer>
       </div>
@@ -94,6 +117,7 @@ export default function RSVPSectionClient({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleRSVPSuccess}
+        stepConfig={stepConfig}
       />
     </>
   );

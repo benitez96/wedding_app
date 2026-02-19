@@ -1,33 +1,47 @@
 import { Users, Music, Edit } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Section } from "@/components/section";
-import Image from "next/image";
+import { RSVPConfirmedContent } from "@/components/sections/RSVPSection/RSVPSection.metadata";
+import { SectionIcon } from "@/components/ui/SectionIcon";
+import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
 interface ConfirmedRSVPProps {
   guestCount: number;
   maxGuests: number;
   onOpenModal: () => void;
+  content: RSVPConfirmedContent;
 }
 
-export default function ConfirmedRSVP({ guestCount, maxGuests, onOpenModal }: ConfirmedRSVPProps) {
+export default function ConfirmedRSVP({
+  guestCount,
+  maxGuests,
+  onOpenModal,
+  content,
+}: ConfirmedRSVPProps) {
   return (
     <>
       <Section.Icon>
-        <Image src="/icons/disco-ball.gif" alt="Confirmar Asistencia" width={100} height={100} />
+        <SectionIcon
+          icon={content.icon as SectionIconType}
+          size={100}
+          alt="Confirmado"
+        />
       </Section.Icon>
       <Section.Description isDecorative>
-        ¡Gracias por confirmar tu asistencia!
+        {content.decorativeText}
       </Section.Description>
       <div className="flex items-center gap-2 text-success-600 font-semibold md:text-lg text-balance">
         <Users className="w-5 h-5" />
-        <span>¡CONFIRMADO! {maxGuests > 1 ? `(${guestCount} de ${maxGuests} personas)` : ''}</span>
+        {/* TODO: i18n — guest count label */}
+        <span>
+          ¡CONFIRMADO!{" "}
+          {maxGuests > 1 ? `(${guestCount} de ${maxGuests} personas)` : ""}
+        </span>
       </div>
-      <Section.Description>
-        ¡Anda recargando baterías que vamos a bailar toda la noche! 🕺💃
-      </Section.Description>
+      <Section.Description>{content.description}</Section.Description>
       <div className="flex items-center gap-2 text-default-600">
         <Music className="w-4 h-4" />
-        <span className="text-sm">¡Prepárate para una noche inolvidable!</span>
+        <span className="text-sm">{content.footerText}</span>
       </div>
       <Button
         color="default"
@@ -36,7 +50,7 @@ export default function ConfirmedRSVP({ guestCount, maxGuests, onOpenModal }: Co
         onPress={onOpenModal}
         className="mt-4"
       >
-        Cambié de opinión
+        {content.changeLabel}
       </Button>
     </>
   );

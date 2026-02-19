@@ -263,11 +263,15 @@ model Invitation {
   guestPhone    String?
   maxGuests     Int      @default(1)
 
-  // Respuesta del invitado
-  hasResponded Boolean           @default(false)
-  isAttending  Boolean?
-  guestCount   Int?
-  respondedAt  DateTime?
+  // Guest response
+  hasResponded         Boolean   @default(false)
+  isAttending          Boolean?
+  guestCount           Int?
+  respondedAt          DateTime?
+  // Extended RSVP fields (optional, only collected when enabled in section settings)
+  menuPreference       String?   // Selected menu option (e.g. "Carne", "Vegetariano")
+  dietaryRestrictions  String?   // Free text, null = no restrictions
+  messageForCouple     String?   // Free text message from guest to couple
   
   // Check-in tracking
   checkInCount  Int       @default(0)  // Cache: total de personas que ya ingresaron

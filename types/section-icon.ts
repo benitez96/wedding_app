@@ -2,6 +2,7 @@
  * Section icon system
  * Supports GIFs, static SVGs, and animated SVGs
  */
+import { z } from "zod";
 
 export const SectionIconTypes = {
   GIF: "gif",
@@ -37,6 +38,15 @@ export const SectionIcons = {
 } as const;
 
 export type SectionIcon = (typeof SectionIcons)[keyof typeof SectionIcons];
+
+// Derived tuple for Zod — single source of truth, add icons in SectionIcons above
+export const SECTION_ICON_VALUES = Object.values(SectionIcons) as [
+  SectionIcon,
+  ...SectionIcon[],
+];
+
+// Reusable Zod schema for any section that has an icon field
+export const SectionIconSchema = z.enum(SECTION_ICON_VALUES);
 
 // Configuration for each icon
 export interface SectionIconConfig {

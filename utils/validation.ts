@@ -41,11 +41,24 @@ export const invitationResponseSchema = z.object({
     .int("Guest count must be an integer")
     .min(1, "Must be at least 1")
     .max(10, "Cannot exceed 10")
-    .optional(),
-  message: z
+    .optional()
+    .nullable(),
+  // Extended RSVP fields — only present when enabled in section settings
+  menuPreference: z
     .string()
-    .max(500, "Message cannot exceed 500 characters")
-    .optional(),
+    .max(100, "Menu preference cannot exceed 100 characters")
+    .optional()
+    .nullable(),
+  dietaryRestrictions: z
+    .string()
+    .max(500, "Dietary restrictions cannot exceed 500 characters")
+    .optional()
+    .nullable(),
+  messageForCouple: z
+    .string()
+    .max(1000, "Message cannot exceed 1000 characters")
+    .optional()
+    .nullable(),
 });
 
 // Admin login schema

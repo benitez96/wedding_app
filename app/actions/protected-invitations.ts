@@ -13,28 +13,29 @@ import {
   normalizeGuestCount,
 } from "@/lib/invitation-tokens";
 
-// Action protegido para actualizar respuesta de invitación
+// Input type mirrors invitationResponseSchema
+type UpdateInvitationResponseData = {
+  isAttending: boolean;
+  guestCount?: number | null;
+  menuPreference?: string | null;
+  dietaryRestrictions?: string | null;
+  messageForCouple?: string | null;
+};
+
+// Protected action: update guest RSVP response
 export const updateInvitationResponse = withInvitationAuth(
-  async (
-    user: InvitationUser,
-    data: {
-      isAttending: boolean;
-      guestCount?: number | null;
-      message?: string | null;
-    },
-  ) => {
+  async (user: InvitationUser, data: UpdateInvitationResponseData) => {
     try {
       // Validate input with Zod
       const validation = validateAndSanitize(invitationResponseSchema, data);
       if (!validation.success) {
         return { success: false, error: validation.error };
       }
-      const validated = (validation as { success: true; data: typeof data })
-        .data;
+      const validated = validation.data;
 
       // Use pure validation logic
       const guestCountValidation = validateGuestCount(
-        validated.guestCount,
+        validated.guestCount ?? null,
         user.maxGuests,
         validated.isAttending,
       );
@@ -48,11 +49,26 @@ export const updateInvitationResponse = withInvitationAuth(
 
       // Normalize guest count using pure function
       const normalizedGuestCount = normalizeGuestCount(
-        validated.guestCount,
+        validated.guestCount ?? null,
         validated.isAttending,
       );
 
-      // Actualizar la invitación - only return safe fields
+      // Only persist extended fields when attending (no point otherwise)
+      const extendedFields = validated.isAttending
+        ? {
+            menuPreference: validated.menuPreference ?? null,
+            dietaryRestrictions: validated.dietaryRestrictions ?? null,
+            messageForCouple: validated.messageForCouple ?? null,
+          }
+        : {
+            menuPreference: null,
+            dietaryRestrictions: null,
+            messageForCouple: null,
+          };
+
+      // Update invitation — only return safe fields
+      // NOTE: extendedFields (menuPreference, dietaryRestrictions, messageForCouple)
+      // will be active after running: prisma migrate dev
       const updatedInvitation = await prisma.invitation.update({
         where: { id: user.invitationId },
         data: {
@@ -60,6 +76,8 @@ export const updateInvitationResponse = withInvitationAuth(
           isAttending: validated.isAttending,
           guestCount: normalizedGuestCount,
           respondedAt: new Date(),
+          // TODO: uncomment after migration
+          // ...extendedFields,
         },
         select: {
           id: true,
@@ -67,14 +85,15 @@ export const updateInvitationResponse = withInvitationAuth(
           isAttending: true,
           guestCount: true,
           respondedAt: true,
+          // menuPreference, dietaryRestrictions, messageForCouple added after migration
         },
       });
 
       revalidatePath("/");
       return { success: true, data: updatedInvitation };
     } catch (error) {
-      logError("Error al actualizar respuesta de invitación", error);
-      return { success: false, error: "Error al procesar la respuesta" };
+      logError("Error updating invitation response", error);
+      return { success: false, error: "Error al procesar la respuesta" }; // TODO: i18n
     }
   },
 );
@@ -122,6 +141,11 @@ export const getCurrentUserData = withInvitationAuth(
           isAttending: invitation.isAttending,
           guestCount: invitation.guestCount,
           respondedAt: invitation.respondedAt,
+          // Extended RSVP fields — available after migration
+          // TODO: uncomment after migration
+          // menuPreference: invitation.menuPreference,
+          // dietaryRestrictions: invitation.dietaryRestrictions,
+          // messageForCouple: invitation.messageForCouple,
         },
       };
     } catch (error) {

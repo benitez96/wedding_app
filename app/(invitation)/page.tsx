@@ -30,6 +30,11 @@ export default async function Home() {
     getRemindRestingDays(user.eventId),
   ]);
 
+  // Extraer setting del botón flotante desde la sección RSVP
+  const rsvpSection = sections.find((s) => s.key === "rsvp");
+  const showFloatingButton =
+    (rsvpSection?.settings?.showFloatingButton as boolean | undefined) ?? true;
+
   // Actualizar métricas de acceso (non-blocking)
   if (user.tokenId && typeof user.tokenId === "string") {
     // Fire and forget - no await
@@ -42,6 +47,7 @@ export default async function Home() {
       <InvitationClientWidgets
         weddingTimestamp={weddingDate.getTime()}
         remindRestingDays={remindRestingDays}
+        showFloatingButton={showFloatingButton}
       />
 
       {/* Renderizado dinámico de secciones basado en DB */}

@@ -71,17 +71,24 @@
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-accent) 30%, transparent);
   }
   50% {
-    box-shadow: 0 0 16px rgba(212, 175, 55, 0.5);
+    box-shadow: 0 0 16px
+      color-mix(in srgb, var(--color-accent) 50%, transparent);
   }
 }
 
 .attention-button {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(-45deg, #8b5a3c, #b8942e, #d19a86, #7a4f35);
+  background: linear-gradient(
+    -45deg,
+    hsl(var(--heroui-primary)),
+    var(--color-accent),
+    hsl(var(--heroui-secondary)),
+    hsl(var(--heroui-primary))
+  );
   background-size: 400% 400%;
   animation:
     gradient-shift 8s ease infinite,
@@ -97,7 +104,13 @@
   left: -1px;
   right: -1px;
   bottom: -1px;
-  background: linear-gradient(-45deg, #d4af37, #8b5a3c, #ba806c, #b8942e);
+  background: linear-gradient(
+    -45deg,
+    var(--color-accent),
+    hsl(var(--heroui-primary)),
+    hsl(var(--heroui-secondary)),
+    var(--color-accent)
+  );
   background-size: 400% 400%;
   animation: gradient-shift 8s ease infinite;
   border-radius: inherit;

@@ -1,31 +1,40 @@
 import { Heart, Edit, Frown } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Section } from "@/components/section";
-import Image from "next/image";
+import { RSVPDeclinedContent } from "@/components/sections/RSVPSection/RSVPSection.metadata";
+import { SectionIcon } from "@/components/ui/SectionIcon";
+import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
 interface DeclinedRSVPProps {
   onOpenModal: () => void;
+  content: RSVPDeclinedContent;
 }
 
-export default function DeclinedRSVP({ onOpenModal }: DeclinedRSVPProps) {
+export default function DeclinedRSVP({
+  onOpenModal,
+  content,
+}: DeclinedRSVPProps) {
   return (
     <>
       <Section.Icon>
-        <Image src="/icons/RSVP.gif" alt="Confirmar Asistencia" width={100} height={100} />
+        <SectionIcon
+          icon={content.icon as SectionIconType}
+          size={100}
+          alt="No asiste"
+        />
       </Section.Icon>
       <Section.Description isDecorative>
-        Entendemos que no puedas asistir
+        {content.decorativeText}
       </Section.Description>
       <div className="flex items-center gap-2 text-default-600 font-semibold text-lg">
         <Heart className="w-5 h-5" />
+        {/* TODO: i18n */}
         <span>NO PODRÁ ASISTIR</span>
       </div>
-      <Section.Description>
-        ¡Uff que triste! 😢 Nos hubiera encantado compartir este momento especial con vos.
-      </Section.Description>
+      <Section.Description>{content.description}</Section.Description>
       <div className="flex items-center gap-2 text-default-500">
         <Frown className="w-4 h-4" />
-        <span className="text-sm">¡Te vamos a extrañar mucho!</span>
+        <span className="text-sm">{content.footerText}</span>
       </div>
       <Button
         color="default"
@@ -34,7 +43,7 @@ export default function DeclinedRSVP({ onOpenModal }: DeclinedRSVPProps) {
         onPress={onOpenModal}
         className="mt-4"
       >
-        Cambié de opinión
+        {content.changeLabel}
       </Button>
     </>
   );

@@ -1,19 +1,25 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { Switch } from "@heroui/switch";
+import type { FormEvent, Key } from "react";
+import { Tabs, Tab } from "@heroui/tabs";
+
 import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
 import { useState } from "react";
-import { RSVPSectionSettings } from "./RSVPSection.metadata";
 import { Save } from "lucide-react";
+import { RSVPSectionSettings } from "./RSVPSection.metadata";
 import {
   SectionSettingsFormProps,
   createSettingsUpdater,
 } from "@/types/section-settings-form";
-import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
-import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 import { useToastFeedback } from "@/hooks/useToastFeedback";
+import { RSVPGeneralTab } from "./settings/RSVPGeneralTab";
+import { RSVPAttendanceStepTab } from "./settings/RSVPAttendanceStepTab";
+import { RSVPPendingContentTab } from "./settings/RSVPPendingContentTab";
+import { RSVPConfirmedContentTab } from "./settings/RSVPConfirmedContentTab";
+import { RSVPDeclinedContentTab } from "./settings/RSVPDeclinedContentTab";
+import { RSVPMenuStepTab } from "./settings/RSVPMenuStepTab";
+import { RSVPDietaryStepTab } from "./settings/RSVPDietaryStepTab";
+import { RSVPMessageStepTab } from "./settings/RSVPMessageStepTab";
 
 export function RSVPSectionSettingsForm({
   initialSettings,
@@ -22,11 +28,55 @@ export function RSVPSectionSettingsForm({
 }: SectionSettingsFormProps<RSVPSectionSettings>) {
   const [settings, setSettings] = useState<Partial<RSVPSectionSettings>>(
     () => ({
-      showForm: initialSettings.showForm ?? true,
+      showFloatingButton: initialSettings.showFloatingButton ?? true,
       hasAlternateBg: initialSettings.hasAlternateBg ?? false,
-      // Decoraciones
-      decorationSvg: initialSettings.decorationSvg || "none",
-      decorationPattern: initialSettings.decorationPattern || "none",
+
+      attendanceStep: initialSettings.attendanceStep ?? {
+        question: "¿Vas a asistir a nuestra boda?", // TODO: i18n
+        acceptLabel: "¡Sí, acepto!", // TODO: i18n
+        acceptSubtitle: "Voy a estar ahí", // TODO: i18n
+        declineLabel: "No puedo ir :(", // TODO: i18n
+        declineSubtitle: "Lo siento mucho", // TODO: i18n
+      },
+      pendingContent: initialSettings.pendingContent ?? {
+        icon: "rsvp" as const,
+        decorativeText: 'Decile "Si acepto" a nuestra invitacion', // TODO: i18n
+        ctaLabel: "CONFIRMAR ASISTENCIA", // TODO: i18n
+        footerText: "Tenes tiempo hasta el 10 de Enero!", // TODO: i18n
+      },
+      confirmedContent: initialSettings.confirmedContent ?? {
+        icon: "disco-ball" as const,
+        decorativeText: "¡Gracias por confirmar tu asistencia!", // TODO: i18n
+        description:
+          "¡Anda recargando baterías que vamos a bailar toda la noche! 🕺💃", // TODO: i18n
+        footerText: "¡Prepárate para una noche inolvidable!", // TODO: i18n
+        changeLabel: "Cambié de opinión", // TODO: i18n
+      },
+      declinedContent: initialSettings.declinedContent ?? {
+        icon: "rsvp" as const,
+        decorativeText: "Entendemos que no puedas asistir", // TODO: i18n
+        description:
+          "¡Uff que triste! 😢 Nos hubiera encantado compartir este momento especial con vos.", // TODO: i18n
+        footerText: "¡Te vamos a extrañar mucho!", // TODO: i18n
+        changeLabel: "Cambié de opinión", // TODO: i18n
+      },
+
+      menuStep: initialSettings.menuStep ?? {
+        enabled: false,
+        question: "¿Cuál es tu preferencia de menú?", // TODO: i18n
+        options: ["Carne", "Vegetariano", "Vegano"], // TODO: i18n
+      },
+      dietaryStep: initialSettings.dietaryStep ?? {
+        enabled: false,
+        question: "¿Tenés alguna alergia o restricción alimentaria?", // TODO: i18n
+      },
+      messageStep: initialSettings.messageStep ?? {
+        enabled: false,
+        question: "¿Querés dejarnos un mensaje?", // TODO: i18n
+      },
+
+      decorationSvg: initialSettings.decorationSvg ?? "none",
+      decorationPattern: initialSettings.decorationPattern ?? "none",
       decorationOpacity: initialSettings.decorationOpacity ?? 10,
       decorationSize: initialSettings.decorationSize ?? 60,
     }),
@@ -36,15 +86,35 @@ export function RSVPSectionSettingsForm({
 
   const updateSettings = createSettingsUpdater(setSettings, onSettingsChange);
 
+  // Maps each tab to the preview state it should show.
+  // "modal:stepId" tells the preview to render the modal content inline for that step.
+  const TAB_PREVIEW_STATE: Record<string, string> = {
+    general: "pending",
+    attendance: "modal:attendance",
+    pending: "pending",
+    confirmed: "confirmed",
+    declined: "declined",
+    menu: "modal:menu",
+    dietary: "modal:dietary",
+    message: "modal:message",
+  };
+
+  const handleTabChange = (key: Key) => {
+    const previewState = TAB_PREVIEW_STATE[String(key)] ?? "pending";
+    onSettingsChange?.({
+      ...settings,
+      _previewState: previewState,
+    } as RSVPSectionSettings);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-
     try {
       await onSave(settings as RSVPSectionSettings);
-      toastSuccess("Cambios guardados correctamente");
-    } catch (error) {
-      toastError("Error al guardar los cambios");
+      toastSuccess("Cambios guardados correctamente"); // TODO: i18n
+    } catch {
+      toastError("Error al guardar los cambios"); // TODO: i18n
     } finally {
       setIsSaving(false);
     }
@@ -52,62 +122,79 @@ export function RSVPSectionSettingsForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
-        <CardBody className="space-y-4">
-          {/* Switch para mostrar formulario */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Mostrar Formulario RSVP</p>
-              <p className="text-xs text-gray-600">
-                Habilitar o deshabilitar el formulario de confirmación
-              </p>
-            </div>
-            <Switch
-              isSelected={settings.showForm}
-              onValueChange={(val) =>
-                updateSettings((prev) => ({ ...prev, showForm: val }))
-              }
-              color="success"
+      <Tabs
+        aria-label="RSVP settings"
+        variant="underlined"
+        color="primary"
+        classNames={{
+          tabList:
+            "overflow-x-auto flex-nowrap w-full [mask-image:linear-gradient(to_right,transparent_0,black_16px,black_calc(100%-16px),transparent_100%)]",
+        }}
+        fullWidth
+        onSelectionChange={handleTabChange}
+      >
+        {/* TODO: i18n — all tab labels */}
+
+        <Tab key="general" title="General">
+          <div className="pt-2">
+            <RSVPGeneralTab settings={settings} onChange={updateSettings} />
+          </div>
+        </Tab>
+
+        <Tab key="pending" title="Pendiente">
+          <div className="pt-2">
+            <RSVPPendingContentTab
+              settings={settings}
+              onChange={updateSettings}
             />
           </div>
+        </Tab>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Background de Color</p>
-              <p className="text-xs text-gray-600">
-                Aplicar color de fondo a esta sección
-              </p>
-            </div>
-            <Switch
-              isSelected={settings.hasAlternateBg}
-              onValueChange={(val) =>
-                updateSettings((prev) => ({ ...prev, hasAlternateBg: val }))
-              }
-              color="success"
+        <Tab key="confirmed" title="Confirmado">
+          <div className="pt-2">
+            <RSVPConfirmedContentTab
+              settings={settings}
+              onChange={updateSettings}
             />
           </div>
-        </CardBody>
-      </Card>
+        </Tab>
 
-      {/* 🌸 Card de Decoraciones */}
-      <DecorationSettingsCard
-        decorationSvg={settings.decorationSvg as DecorationSvg}
-        decorationPattern={settings.decorationPattern as DecorationPattern}
-        decorationOpacity={settings.decorationOpacity ?? 10}
-        decorationSize={settings.decorationSize ?? 60}
-        onDecorationSvgChange={(value) =>
-          updateSettings((prev) => ({ ...prev, decorationSvg: value }))
-        }
-        onDecorationPatternChange={(value) =>
-          updateSettings((prev) => ({ ...prev, decorationPattern: value }))
-        }
-        onDecorationOpacityChange={(value) =>
-          updateSettings((prev) => ({ ...prev, decorationOpacity: value }))
-        }
-        onDecorationSizeChange={(value) =>
-          updateSettings((prev) => ({ ...prev, decorationSize: value }))
-        }
-      />
+        <Tab key="declined" title="No asiste">
+          <div className="pt-2">
+            <RSVPDeclinedContentTab
+              settings={settings}
+              onChange={updateSettings}
+            />
+          </div>
+        </Tab>
+
+        <Tab key="attendance" title="Asistencia">
+          <div className="pt-2">
+            <RSVPAttendanceStepTab
+              settings={settings}
+              onChange={updateSettings}
+            />
+          </div>
+        </Tab>
+
+        <Tab key="menu" title="Menú">
+          <div className="pt-2">
+            <RSVPMenuStepTab settings={settings} onChange={updateSettings} />
+          </div>
+        </Tab>
+
+        <Tab key="dietary" title="Alergias">
+          <div className="pt-2">
+            <RSVPDietaryStepTab settings={settings} onChange={updateSettings} />
+          </div>
+        </Tab>
+
+        <Tab key="message" title="Mensaje">
+          <div className="pt-2">
+            <RSVPMessageStepTab settings={settings} onChange={updateSettings} />
+          </div>
+        </Tab>
+      </Tabs>
 
       <div className="flex justify-end">
         <Button
@@ -118,6 +205,7 @@ export function RSVPSectionSettingsForm({
           isDisabled={isSaving}
         >
           {isSaving ? "Guardando..." : "Guardar Cambios"}
+          {/* TODO: i18n */}
         </Button>
       </div>
     </form>

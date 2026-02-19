@@ -1,28 +1,38 @@
 import { Check } from "lucide-react";
 import { Section } from "@/components/section";
-import Image from "next/image";
 import AttentionButton from "@/components/AttentionButton";
+import { RSVPPendingContent } from "@/components/sections/RSVPSection/RSVPSection.metadata";
+import { SectionIcon } from "@/components/ui/SectionIcon";
+import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
 interface PendingRSVPProps {
   onOpenModal: () => void;
+  content: RSVPPendingContent;
 }
 
-export default function PendingRSVP({ onOpenModal }: PendingRSVPProps) {
+export default function PendingRSVP({
+  onOpenModal,
+  content,
+}: PendingRSVPProps) {
   return (
     <>
       <Section.Icon>
-        <Image src="/icons/RSVP.gif" alt="Confirmar Asistencia" width={100} height={100} />
+        <SectionIcon
+          icon={content.icon as SectionIconType}
+          size={100}
+          alt="Confirmar Asistencia"
+        />
       </Section.Icon>
-      <Section.Description isDecorative>Decile &ldquo;Si acepto&rdquo; a nuestra invitacion</Section.Description>
+      <Section.Description isDecorative>
+        {content.decorativeText}
+      </Section.Description>
       <AttentionButton
         startContent={<Check className="w-4 h-4" />}
         onPress={onOpenModal}
       >
-        CONFIRMAR ASISTENCIA
+        {content.ctaLabel}
       </AttentionButton>
-      <Section.Description>
-        Tenes tiempo hasta el 10 de Enero!
-      </Section.Description>
+      <Section.Description>{content.footerText}</Section.Description>
     </>
   );
 }

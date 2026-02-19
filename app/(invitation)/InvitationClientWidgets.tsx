@@ -7,11 +7,13 @@ import RSVPReminderHandler from "@/components/RSVPReminderHandler";
 interface InvitationClientWidgetsProps {
   weddingTimestamp: number;
   remindRestingDays: number;
+  showFloatingButton?: boolean;
 }
 
 export default function InvitationClientWidgets({
   weddingTimestamp,
   remindRestingDays,
+  showFloatingButton = true,
 }: InvitationClientWidgetsProps) {
   return (
     <>
@@ -20,7 +22,7 @@ export default function InvitationClientWidgets({
         weddingTimestamp={weddingTimestamp}
         remindRestingDays={remindRestingDays}
       />
-      <FloatingRSVPButton />
+      {showFloatingButton && <FloatingRSVPButton />}
     </>
   );
 }

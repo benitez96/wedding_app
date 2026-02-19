@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useActionState } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import {
   Modal,
   ModalContent,
@@ -9,15 +9,26 @@ import {
   ModalFooter,
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
-import { Form } from "@heroui/form";
-import { Users, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import {
   getCurrentUserData,
   updateInvitationResponse,
 } from "@/app/actions/protected-invitations";
-import CustomRadioGroup from "./sections/RSVPStatus/CustomRadioGroup";
-import GuestCountSelector from "./GuestCountSelector";
 import SimpleConfetti from "./SimpleConfetti";
+import { RSVPStepConfig } from "./sections/RSVPSectionClient";
+import {
+  RSVPStepAttendance,
+  type AttendanceValue,
+} from "./RSVPModal/RSVPStepAttendance";
+import { RSVPStepGuestCount } from "./RSVPModal/RSVPStepGuestCount";
+import { RSVPStepMenu } from "./RSVPModal/RSVPStepMenu";
+import { RSVPStepDietary } from "./RSVPModal/RSVPStepDietary";
+import { RSVPStepMessage } from "./RSVPModal/RSVPStepMessage";
+import { RSVPStepProgress } from "./RSVPModal/RSVPStepProgress";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface InvitationUserData {
   invitationId: string;
@@ -31,67 +42,151 @@ interface InvitationUserData {
   respondedAt: Date | null;
 }
 
-interface RSVPModalProps {
+export interface RSVPModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  stepConfig: RSVPStepConfig;
 }
 
-// TODO i18n: All user-facing text in RSVPModal needs translation
+// Step identifiers — explicit union, no magic strings
+const STEP = {
+  ATTENDANCE: "attendance",
+  GUEST_COUNT: "guest_count",
+  MENU: "menu",
+  DIETARY: "dietary",
+  MESSAGE: "message",
+} as const;
+
+type StepId = (typeof STEP)[keyof typeof STEP];
+
+// ---------------------------------------------------------------------------
+// Step order builder — derives the active step list from config + user response
+// ---------------------------------------------------------------------------
+
+function buildSteps(
+  attending: AttendanceValue | null,
+  maxGuests: number,
+  stepConfig: RSVPStepConfig,
+): StepId[] {
+  const steps: StepId[] = [STEP.ATTENDANCE];
+
+  if (attending !== "attending") return steps;
+
+  if (maxGuests > 1) steps.push(STEP.GUEST_COUNT);
+  if (stepConfig.menuStep.enabled) steps.push(STEP.MENU);
+  if (stepConfig.dietaryStep.enabled) steps.push(STEP.DIETARY);
+  if (stepConfig.messageStep.enabled) steps.push(STEP.MESSAGE);
+
+  return steps;
+}
+
+// ---------------------------------------------------------------------------
+// Validation per step — returns true when it's safe to advance
+// ---------------------------------------------------------------------------
+
+function isStepValid(
+  stepId: StepId,
+  attendance: AttendanceValue | null,
+  menuPreference: string | null,
+  dietaryRestrictions: string | null,
+): boolean {
+  switch (stepId) {
+    case STEP.ATTENDANCE:
+      return attendance !== null;
+    case STEP.GUEST_COUNT:
+      return true; // always has a default value
+    case STEP.MENU:
+      return menuPreference !== null && menuPreference !== "";
+    case STEP.DIETARY:
+      // null = unanswered, "" = explicitly "no restrictions" (valid)
+      return dietaryRestrictions !== null;
+    case STEP.MESSAGE:
+      return true; // message is optional
+    default:
+      return true;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+// TODO: i18n — all user-facing strings in RSVPModal
 export default function RSVPModal({
   isOpen,
   onClose,
   onSuccess,
+  stepConfig,
 }: RSVPModalProps) {
   const [user, setUser] = useState<InvitationUserData | null>(null);
-  const [response, setResponse] = useState<"attending" | "declining" | null>(
-    null,
-  );
-  const [guestCount, setGuestCount] = useState<number>(1);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isProcessingRef = useRef(false);
 
-  // useActionState para manejar el estado del formulario
-  const [state, formAction, isPending] = useActionState(
-    async (prevState: { success: boolean; error?: string } | null) => {
-      if (!response || !user || isProcessingRef.current) return prevState;
+  // Form state
+  const [attendance, setAttendance] = useState<AttendanceValue | null>(null);
+  const [guestCount, setGuestCount] = useState(1);
+  const [menuPreference, setMenuPreference] = useState<string | null>(null);
+  const [dietaryRestrictions, setDietaryRestrictions] = useState<string | null>(
+    null,
+  );
+  const [messageForCouple, setMessageForCouple] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-      isProcessingRef.current = true;
+  // Derive active steps from current attendance answer
+  const steps = buildSteps(attendance, user?.maxGuests ?? 1, stepConfig);
+  const currentStep = steps[currentStepIndex] ?? STEP.ATTENDANCE;
+  const isLastStep = currentStepIndex === steps.length - 1;
+  const canAdvance = isStepValid(
+    currentStep,
+    attendance,
+    menuPreference,
+    dietaryRestrictions,
+  );
+
+  function handleSubmit() {
+    if (!attendance || !user || isProcessingRef.current) return;
+    setSubmitError(null);
+    isProcessingRef.current = true;
+
+    startTransition(async () => {
       try {
         const result = await updateInvitationResponse({
-          isAttending: response === "attending",
-          guestCount: response === "attending" ? guestCount : null,
+          isAttending: attendance === "attending",
+          guestCount: attendance === "attending" ? guestCount : null,
+          menuPreference: attendance === "attending" ? menuPreference : null,
+          dietaryRestrictions:
+            attendance === "attending" ? dietaryRestrictions : null,
+          messageForCouple:
+            attendance === "attending" ? messageForCouple || null : null,
         });
 
         if (result.success) {
-          // Mostrar confetis si está confirmando asistencia
-          if (response === "attending") {
+          if (attendance === "attending") {
             setShowConfetti(true);
-            if (confettiTimeoutRef.current) {
+            if (confettiTimeoutRef.current)
               clearTimeout(confettiTimeoutRef.current);
-            }
             confettiTimeoutRef.current = setTimeout(() => {
               setShowConfetti(false);
               confettiTimeoutRef.current = null;
             }, 4000);
           }
-
           onSuccess();
           onClose();
-          // Resetear el formulario
-          setResponse(null);
-          setGuestCount(1);
+          resetForm();
+        } else {
+          setSubmitError(result.error ?? "Error al procesar la respuesta"); // TODO: i18n
         }
-
-        return result;
       } finally {
         isProcessingRef.current = false;
       }
-    },
-    null,
-  );
+    });
+  }
 
+  // Load user data when modal opens
   useEffect(() => {
     if (!isOpen) return;
 
@@ -101,120 +196,197 @@ export default function RSVPModal({
         if (result.success && result.user) {
           setUser(result.user);
 
-          // Si ya respondió, cargar su respuesta actual
+          // Pre-fill with existing response if already responded
           if (result.user.hasResponded) {
-            setResponse(result.user.isAttending ? "attending" : "declining");
-            setGuestCount(result.user.guestCount || result.user.maxGuests);
+            setAttendance(result.user.isAttending ? "attending" : "declining");
+            setGuestCount(result.user.guestCount ?? result.user.maxGuests);
           } else {
-            setResponse(null);
             setGuestCount(result.user.maxGuests);
           }
         }
-      } catch (error) {
-        console.error("Error al cargar datos del usuario:", error);
+      } catch {
+        // Silent — modal shows gracefully without user data
       }
     };
 
     loadUserData();
 
     return () => {
-      if (confettiTimeoutRef.current) {
-        clearTimeout(confettiTimeoutRef.current);
-      }
+      if (confettiTimeoutRef.current) clearTimeout(confettiTimeoutRef.current);
     };
   }, [isOpen]);
 
-  const handleClose = () => {
-    if (!isPending) {
-      onClose();
-    }
-  };
+  // When attendance flips from "attending" to "declining", the step list shrinks.
+  // Clamp the index without putting currentStepIndex in deps (would cause a loop).
+  useEffect(() => {
+    const newSteps = buildSteps(attendance, user?.maxGuests ?? 1, stepConfig);
+    setCurrentStepIndex((prev) => Math.min(prev, newSteps.length - 1));
+    // stepConfig is intentionally excluded: it's stable after mount and its
+    // identity changes on every render of RSVPSection (object literal).
+    // Attendance and maxGuests are the only values that actually resize the list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attendance, user?.maxGuests]);
 
-  const getModalTitle = () => {
-    if (!user) return "Confirmar Asistencia";
-    return user.hasResponded ? "Cambiar Respuesta" : "Confirmar Asistencia";
-  };
+  function resetForm() {
+    setAttendance(null);
+    setGuestCount(1);
+    setMenuPreference(null);
+    setDietaryRestrictions(null);
+    setMessageForCouple("");
+    setCurrentStepIndex(0);
+  }
+
+  function handleClose() {
+    if (!isPending) onClose();
+  }
+
+  function handleNext() {
+    if (!isLastStep) setCurrentStepIndex((i) => i + 1);
+  }
+
+  function handleBack() {
+    if (currentStepIndex > 0) setCurrentStepIndex((i) => i - 1);
+  }
+
+  function handleAttendanceChange(value: AttendanceValue) {
+    setAttendance(value);
+    // Reset attending-only fields if switching to declining
+    if (value === "declining") {
+      setMenuPreference(null);
+      setDietaryRestrictions(null);
+      setMessageForCouple("");
+    }
+  }
+
+  function renderStep() {
+    switch (currentStep) {
+      case STEP.ATTENDANCE:
+        return (
+          <RSVPStepAttendance
+            value={attendance}
+            onValueChange={handleAttendanceChange}
+            attendanceStep={stepConfig.attendanceStep}
+          />
+        );
+
+      case STEP.GUEST_COUNT:
+        return (
+          <RSVPStepGuestCount
+            value={guestCount}
+            max={user?.maxGuests ?? 1}
+            onChange={setGuestCount}
+          />
+        );
+
+      case STEP.MENU:
+        return (
+          <RSVPStepMenu
+            question={stepConfig.menuStep.question}
+            options={stepConfig.menuStep.options}
+            value={menuPreference}
+            onValueChange={setMenuPreference}
+          />
+        );
+
+      case STEP.DIETARY:
+        return (
+          <RSVPStepDietary
+            question={stepConfig.dietaryStep.question}
+            value={dietaryRestrictions}
+            onValueChange={setDietaryRestrictions}
+          />
+        );
+
+      case STEP.MESSAGE:
+        return (
+          <RSVPStepMessage
+            question={stepConfig.messageStep.question}
+            value={messageForCouple}
+            onValueChange={setMessageForCouple}
+          />
+        );
+    }
+  }
+
+  const displayName = user?.guestNickname ?? user?.guestName;
+  const modalTitle = user?.hasResponded
+    ? "Cambiar Respuesta" // TODO: i18n
+    : "Confirmar Asistencia"; // TODO: i18n
 
   return (
     <>
       {showConfetti ? <SimpleConfetti /> : null}
+
       <Modal isOpen={isOpen} onClose={handleClose} size="lg">
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1 text-center">
             <div className="flex justify-center mb-2">
               <Heart className="text-pink-500" size={32} />
             </div>
-            <h3 className="text-xl font-bold">{getModalTitle()}</h3>
-            <p className="text-sm text-default-500">
-              {user?.guestNickname ? `${user.guestNickname}` : user?.guestName}
-            </p>
+            <h3 className="text-xl font-bold">{modalTitle}</h3>
+            {displayName && (
+              <p className="text-sm text-default-500">{displayName}</p>
+            )}
+            <RSVPStepProgress current={currentStepIndex} total={steps.length} />
           </ModalHeader>
 
-          <Form action={formAction} className="contents">
+          <>
             <ModalBody className="space-y-6">
-              {state?.error ? (
+              {submitError ? (
                 <div className="bg-danger-50 border border-danger-200 rounded-lg p-3">
-                  <p className="text-danger-600 text-sm">{state.error}</p>
+                  <p className="text-danger-600 text-sm">{submitError}</p>
                 </div>
               ) : null}
 
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-semibold mb-4 text-center">
-                    ¿Vas a asistir a nuestra boda?
-                  </h4>
-                  <CustomRadioGroup
-                    value={response}
-                    onValueChange={setResponse}
-                  />
-                </div>
-
-                {response === "attending" && (user?.maxGuests ?? 0) > 1 ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-center gap-2">
-                      <Users className="w-4 h-4 text-primary" />
-                      <span className="font-medium">
-                        ¿Cuántas personas van a asistir?
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-center gap-3">
-                      <GuestCountSelector
-                        value={guestCount}
-                        onChange={setGuestCount}
-                        min={1}
-                        max={user?.maxGuests || 1}
-                      />
-                      <span className="text-sm text-default-500">
-                        de {user?.maxGuests} máximo
-                      </span>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
+              {renderStep()}
             </ModalBody>
 
-            <ModalFooter>
-              <Button
-                variant="light"
-                onPress={handleClose}
-                isDisabled={isPending}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                color="primary"
-                isLoading={isPending}
-                isDisabled={!response || isPending}
-              >
-                {user?.hasResponded
-                  ? "Actualizar Respuesta"
-                  : response === "attending"
-                    ? "Confirmar Asistencia"
-                    : "Enviar Respuesta"}
-              </Button>
+            <ModalFooter className="flex justify-between">
+              {/* Back button — hidden on first step */}
+              {currentStepIndex > 0 ? (
+                <Button
+                  variant="light"
+                  onPress={handleBack}
+                  isDisabled={isPending}
+                >
+                  Atrás {/* TODO: i18n */}
+                </Button>
+              ) : (
+                <Button
+                  variant="light"
+                  onPress={handleClose}
+                  isDisabled={isPending}
+                >
+                  Cancelar {/* TODO: i18n */}
+                </Button>
+              )}
+
+              {isLastStep ? (
+                <Button
+                  color="primary"
+                  onPress={handleSubmit}
+                  isLoading={isPending}
+                  isDisabled={!canAdvance || isPending}
+                >
+                  {/* TODO: i18n */}
+                  {user?.hasResponded
+                    ? "Actualizar Respuesta"
+                    : attendance === "attending"
+                      ? "Confirmar Asistencia"
+                      : "Enviar Respuesta"}
+                </Button>
+              ) : (
+                // Next on intermediate steps
+                <Button
+                  color="primary"
+                  onPress={handleNext}
+                  isDisabled={!canAdvance}
+                >
+                  Siguiente {/* TODO: i18n */}
+                </Button>
+              )}
             </ModalFooter>
-          </Form>
+          </>
         </ModalContent>
       </Modal>
     </>
