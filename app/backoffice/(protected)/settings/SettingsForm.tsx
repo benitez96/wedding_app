@@ -83,10 +83,10 @@ export default function SettingsForm({
           <CardBody>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   Fecha y Hora de la Boda
                 </label>
-                <p className="text-sm text-gray-500 mb-3">
+                <p className="text-sm text-foreground/50 mb-3">
                   Fecha y hora de la ceremonia
                 </p>
               </div>

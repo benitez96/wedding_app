@@ -269,7 +269,6 @@ function getCenterPosition(): DecorationPosition[] {
  */
 export function getPatternLabel(pattern: DecorationPattern): string {
   const labels: Record<DecorationPattern, string> = {
-    [DecorationPatterns.NONE]: "Sin patrón",
     [DecorationPatterns.CORNERS]: "Esquinas (4 elementos)",
     [DecorationPatterns.SCATTERED_GRID_ALT]: "Grilla alternada (ajedrez)",
     [DecorationPatterns.SCATTERED_GRID_PROGRESSIVE]:

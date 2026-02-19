@@ -144,7 +144,7 @@ export default function QRScanner({ eventId }: QRScannerProps) {
             {/* Indicador de validación */}
             {isValidating && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                <div className="bg-white rounded-lg p-6 text-center">
+                <div className="bg-content1 rounded-lg p-6 text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-3" />
                   <p className="text-sm font-medium">Validando código...</p>
                 </div>

@@ -86,8 +86,8 @@ export default async function Backoffice() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-foreground/60 mt-2">
           Resumen de invitaciones y respuestas
         </p>
       </div>
@@ -98,10 +98,10 @@ export default async function Backoffice() {
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-foreground/60">
                   Total Invitaciones
                 </p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-foreground">
                   {stats.totalInvitations}
                 </p>
               </div>
@@ -117,13 +117,13 @@ export default async function Backoffice() {
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-foreground/60">
                   Han Respondido
                 </p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-foreground">
                   {stats.respondedInvitations}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground/50">
                   {stats.responseRate}% de respuesta
                 </p>
               </div>
@@ -139,13 +139,13 @@ export default async function Backoffice() {
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-foreground/60">
                   Total Invitados
                 </p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-success">
                   {stats.totalConfirmedGuests}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-foreground/50">
                   de {stats.totalMaxGuests} máx.
                 </p>
               </div>
@@ -161,10 +161,10 @@ export default async function Backoffice() {
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-sm font-medium text-foreground/60">
                   No Asistirán
                 </p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-2xl font-bold text-danger">
                   {stats.notAttendingInvitations}
                 </p>
               </div>
@@ -185,21 +185,21 @@ export default async function Backoffice() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link
               href="/backoffice/invitations"
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="p-4 border border-divider rounded-lg hover:bg-content2 transition-colors"
             >
-              <h4 className="font-medium text-gray-900">
+              <h4 className="font-medium text-foreground">
                 Gestionar Invitaciones
               </h4>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-foreground/60 mt-1">
                 Ver y editar todas las invitaciones
               </p>
             </Link>
 
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">
+            <div className="p-4 border border-divider rounded-lg">
+              <h4 className="font-medium text-foreground mb-2">
                 Exportar Confirmados
               </h4>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-foreground/60 mb-3">
                 Descargar Excel con invitados confirmados
               </p>
               <ExportConfirmedGuestsButton />

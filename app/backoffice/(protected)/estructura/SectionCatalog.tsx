@@ -86,7 +86,7 @@ export default function SectionCatalog({
                   <div className="text-4xl">{metadata.icon}</div>
 
                   {/* Name */}
-                  <h4 className="font-medium text-sm text-gray-900 flex items-center gap-1">
+                  <h4 className="font-medium text-sm text-foreground flex items-center gap-1">
                     {metadata.name}
                     {isActive ? (
                       <CheckCircle className="w-3 h-3 text-success" />
@@ -94,7 +94,7 @@ export default function SectionCatalog({
                   </h4>
 
                   {/* Description */}
-                  <p className="text-xs text-gray-600 line-clamp-2">
+                  <p className="text-xs text-foreground/60 line-clamp-2">
                     {metadata.description}
                   </p>
 
@@ -110,7 +110,7 @@ export default function SectionCatalog({
                       {isPending ? (
                         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <div className="bg-primary text-white rounded-full p-2">
+                        <div className="bg-primary text-primary-foreground rounded-full p-2">
                           <Plus className="w-4 h-4" />
                         </div>
                       )}

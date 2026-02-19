@@ -4,7 +4,11 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
-import { DecorationPatterns, DecorationSVGs } from "@/types/decoration";
+import {
+  DecorationPatterns,
+  DecorationSVGs,
+  type DecorationPattern,
+} from "@/types/decoration";
 
 // Mock DecorationSvgSelector component
 const mockDecorationSvgSelector = vi.hoisted(() => vi.fn());
@@ -516,18 +520,20 @@ describe("DecorationSettingsCard", () => {
       expect(screen.getByText("200px")).toBeInTheDocument();
     });
 
-    it("handles pattern='none' in selectedKeys", () => {
+    it("falls back to CORNERS pattern when decorationPattern is undefined", () => {
+      // DecorationPatterns.NONE was removed — the component falls back to CORNERS
+      // when no pattern is provided (decorationPattern || DecorationPatterns.CORNERS)
       render(
         <DecorationSettingsCard
           {...defaultProps}
-          decorationPattern={DecorationPatterns.NONE}
+          decorationPattern={undefined as unknown as DecorationPattern}
         />,
       );
 
       const select = screen.getByTestId("select").querySelector("select");
       expect(select).toHaveAttribute(
         "data-selected-keys",
-        JSON.stringify([DecorationPatterns.NONE]),
+        JSON.stringify([DecorationPatterns.CORNERS]),
       );
     });
   });

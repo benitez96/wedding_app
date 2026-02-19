@@ -24,7 +24,10 @@ export default function BackofficeNavbar({
   activeEventId,
 }: BackofficeNavbarProps) {
   return (
-    <Navbar className="bg-white shadow-sm border-b" maxWidth="2xl">
+    <Navbar
+      className="bg-content1 shadow-sm border-b border-divider"
+      maxWidth="2xl"
+    >
       <NavbarBrand>
         <Link href="/backoffice/dashboard" className="flex items-center gap-2">
           <Heart className="text-red-500 md:text-2xl text-xl" size={24} />

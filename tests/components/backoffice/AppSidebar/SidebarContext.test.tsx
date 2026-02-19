@@ -7,17 +7,18 @@ import {
   SidebarProvider,
   useSidebar,
 } from "@/components/backoffice/AppSidebar/SidebarContext";
+import type { SidebarThemeData } from "@/components/backoffice/AppSidebar/types";
 import type { ReactNode } from "react";
 
 // Helper: consumer component to read context values
 function SidebarConsumer() {
-  const { isExpanded, toggleSidebar, events, activeEventId, tier, themeId } =
+  const { isExpanded, toggleSidebar, events, activeEventId, tier, themeData } =
     useSidebar();
   return (
     <div>
       <span data-testid="isExpanded">{String(isExpanded)}</span>
       <span data-testid="tier">{tier}</span>
-      <span data-testid="themeId">{themeId}</span>
+      <span data-testid="themeId">{themeData.themeId}</span>
       <span data-testid="activeEventId">{activeEventId ?? "null"}</span>
       <span data-testid="eventCount">{events.length}</span>
       <button onClick={toggleSidebar}>toggle</button>
@@ -26,6 +27,10 @@ function SidebarConsumer() {
 }
 
 const DEFAULT_EVENTS = [{ id: "evt-1", name: "Boda Test", isOwner: true }];
+const DEFAULT_THEME_DATA: SidebarThemeData = {
+  themeId: "classic",
+  customColors: null,
+};
 
 function renderWithProvider(
   props: Partial<React.ComponentProps<typeof SidebarProvider>> = {},
@@ -35,7 +40,7 @@ function renderWithProvider(
       events={DEFAULT_EVENTS}
       activeEventId="evt-1"
       tier="FREE"
-      themeId="classic"
+      themeData={DEFAULT_THEME_DATA}
       {...props}
     >
       <SidebarConsumer />
@@ -59,8 +64,10 @@ describe("SidebarContext", () => {
       expect(screen.getByTestId("tier").textContent).toBe("COMPANY");
     });
 
-    it("provides the themeId passed as prop", () => {
-      renderWithProvider({ themeId: "warm" });
+    it("provides the themeId passed via themeData", () => {
+      renderWithProvider({
+        themeData: { themeId: "warm", customColors: null },
+      });
       expect(screen.getByTestId("themeId").textContent).toBe("warm");
     });
 

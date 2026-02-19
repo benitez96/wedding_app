@@ -10,6 +10,7 @@ import {
 } from "@/lib/event-context-prisma";
 import { getEventTheme } from "@/app/actions/theme";
 import { THEME_IDS } from "@/types/theme";
+import type { EventThemeData } from "@/app/actions/theme";
 
 interface ProtectedLayoutProps {
   children: ReactNode;
@@ -41,18 +42,18 @@ export default async function ProtectedLayout({
   }));
 
   // Obtener theme del evento activo
-  const themeId = eventContext?.eventId
+  const themeData: EventThemeData = eventContext?.eventId
     ? await getEventTheme(eventContext.eventId)
-    : THEME_IDS.CLASSIC;
+    : { themeId: THEME_IDS.CLASSIC, customColors: null };
 
   return (
     <AppSidebar
       events={events}
       activeEventId={eventContext?.eventId || null}
       tier={tierContext.tier}
-      themeId={themeId}
+      themeData={themeData}
     >
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="container mx-auto max-w-screen-xl px-2 md:px-4 py-4 md:py-6">
           {children}
         </div>

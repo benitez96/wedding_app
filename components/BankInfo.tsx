@@ -47,19 +47,19 @@ export default function BankInfo({
         <h3 className="text-lg font-semibold">Datos Bancarios</h3>
 
         <div className="space-y-2">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-foreground/70">
             <span className="font-medium">Banco:</span> {bankName}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-foreground/70">
             <span className="font-medium">Tipo de cuenta:</span> {accountType}
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-foreground/70">
             <span className="font-medium">Titular:</span> {accountHolder}
           </div>
         </div>
 
         <div className="bg-background rounded-md p-3 border">
-          <div className="text-sm text-muted-foreground mb-1">ALIAS</div>
+          <div className="text-sm text-foreground/60 mb-1">ALIAS</div>
           <div className="font-mono text-lg font-bold break-all">{alias}</div>
         </div>
 

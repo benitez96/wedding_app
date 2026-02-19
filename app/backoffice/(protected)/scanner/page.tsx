@@ -81,7 +81,7 @@ export default async function ScannerPage() {
       <QRScanner eventId={eventContext.eventId} />
 
       {/* Instrucciones */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+      <div className="bg-content1 rounded-lg shadow-sm p-6">
         <h2 className="text-lg font-semibold mb-4">¿Cómo funciona?</h2>
         <ol className="space-y-3 text-sm text-default-600">
           <li className="flex gap-3">

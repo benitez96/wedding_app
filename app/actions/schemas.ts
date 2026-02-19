@@ -82,8 +82,25 @@ export const getInvitationsCacheSchema = z.object({
 // THEME SCHEMAS
 // ============================================================================
 
-export const themeIdSchema = z.enum([
-  THEME_IDS.CLASSIC,
-  THEME_IDS.WARM,
-  THEME_IDS.PASTEL_GREEN,
-]);
+// Derived from THEME_IDS so adding a new theme never requires touching this file
+export const themeIdSchema = z.enum(
+  Object.values(THEME_IDS) as [string, ...string[]],
+);
+
+// Regex que acepta exactamente #RRGGBB (6 dígitos hex, mayúsculas o minúsculas)
+// No acepta: shorthand (#RGB), rgba, hsl, nombres CSS, ni var() → sin inyecciones
+const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
+
+const hexColorSchema = z.string().regex(HEX_COLOR_REGEX, {
+  error: "Debe ser un color hex válido (ej: #A1B2C3)",
+});
+
+export const customThemeColorsSchema = z.object({
+  background: hexColorSchema,
+  foreground: hexColorSchema,
+  primary: hexColorSchema,
+  secondary: hexColorSchema,
+  accent: hexColorSchema,
+});
+
+export type CustomThemeColorsInput = z.infer<typeof customThemeColorsSchema>;

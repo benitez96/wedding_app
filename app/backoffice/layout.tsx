@@ -6,8 +6,10 @@ import { siteConfig } from "@/config/site";
 import { auth } from "@/lib/auth";
 import { getUserEventContext } from "@/lib/event-context-prisma";
 import { getEventTheme } from "@/app/actions/theme";
-import { THEME_IDS, type ThemeId } from "@/types/theme";
+import { THEME_IDS } from "@/types/theme";
+import type { EventThemeData } from "@/app/actions/theme";
 import { ThemeSync } from "@/components/providers/ThemeSync";
+import ThemeStyleTag from "@/components/providers/ThemeStyleTag";
 import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
@@ -33,8 +35,10 @@ export default async function BackofficeLayout({
 }: {
   children: ReactNode;
 }) {
-  // Obtener theme del evento activo del usuario (Better Auth)
-  let themeId: ThemeId = THEME_IDS.CLASSIC;
+  let themeData: EventThemeData = {
+    themeId: THEME_IDS.CLASSIC,
+    customColors: null,
+  };
 
   try {
     const session = await auth.api.getSession({
@@ -44,7 +48,7 @@ export default async function BackofficeLayout({
     if (session?.user?.id) {
       const eventContext = await getUserEventContext(session.user.id);
       if (eventContext?.eventId) {
-        themeId = await getEventTheme(eventContext.eventId);
+        themeData = await getEventTheme(eventContext.eventId);
       }
     }
   } catch {
@@ -54,7 +58,11 @@ export default async function BackofficeLayout({
   return (
     <>
       <ServiceWorkerRegistration />
-      <ThemeSync themeId={themeId} />
+      <ThemeStyleTag
+        themeId={themeData.themeId}
+        customColors={themeData.customColors}
+      />
+      <ThemeSync themeId={themeData.themeId} />
       {children}
     </>
   );

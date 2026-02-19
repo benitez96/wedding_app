@@ -54,7 +54,7 @@ export function DecorationSettingsCard({
             <Select
               label="Patrón de Repetición"
               description="Elegí cómo se distribuyen los elementos"
-              selectedKeys={[decorationPattern || "none"]}
+              selectedKeys={[decorationPattern || DecorationPatterns.CORNERS]}
               onChange={(e) =>
                 onDecorationPatternChange(e.target.value as DecorationPattern)
               }

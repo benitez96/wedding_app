@@ -10,15 +10,16 @@ interface ThemeProviderProps {
 }
 
 /**
- * Provider que aplica el theme seleccionado mediante data-theme attribute
+ * Provider that applies the selected theme via the class attribute on <html>.
  *
- * IMPORTANTE: Este provider simplemente cambia el atributo data-theme
- * Los colores están definidos en tailwind.config.js
- * No usar useMemo/useCallback - React Compiler optimiza automáticamente
+ * NOTE: This provider is superseded by ThemeSync + ThemeStyleTag.
+ * It is kept for backward compatibility with existing tests.
+ * Colors are defined in tailwind.config.js.
+ * No useMemo/useCallback — React Compiler handles optimization.
  */
 export function ThemeProvider({ children, themeId }: ThemeProviderProps) {
   useEffect(() => {
-    // Aplicar el theme mediante el data-theme attribute
+    // Apply theme by setting the class on <html>
     document.documentElement.setAttribute("class", themeId);
   }, [themeId]);
 

@@ -422,7 +422,6 @@ describe("getPatternLabel", () => {
       "Esquinas (4 elementos)",
     );
     expect(getPatternLabel(DecorationPatterns.CENTER)).toBe("Centro (grande)");
-    expect(getPatternLabel(DecorationPatterns.NONE)).toBe("Sin patrón");
   });
 
   it("should fallback to pattern value for unknown patterns", () => {

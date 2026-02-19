@@ -12,8 +12,10 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Configuraciones</h1>
-        <p className="text-gray-600 mt-2">Configurar variables del sitio web</p>
+        <h1 className="text-3xl font-bold text-foreground">Configuraciones</h1>
+        <p className="text-foreground/60 mt-2">
+          Configurar variables del sitio web
+        </p>
       </div>
 
       <Card>

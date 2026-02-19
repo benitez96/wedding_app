@@ -5,9 +5,8 @@ import { SidebarProvider, useSidebar } from "./SidebarContext";
 import EventSwitcher from "./EventSwitcher";
 import NavigationSidebar from "./NavigationSidebar";
 import MobileMenu from "./MobileMenu";
-import type { EventOption } from "./types";
+import type { EventOption, SidebarThemeData } from "./types";
 import type { SubscriptionTier } from "@/types/subscription";
-import type { ThemeId } from "@/types/theme";
 import clsx from "clsx";
 
 interface AppSidebarProps {
@@ -15,14 +14,14 @@ interface AppSidebarProps {
   events: EventOption[];
   activeEventId: string | null;
   tier: SubscriptionTier;
-  themeId: ThemeId;
+  themeData: SidebarThemeData;
 }
 
 function AppSidebarContent({ children }: { children: ReactNode }) {
-  const { isExpanded, themeId } = useSidebar();
+  const { isExpanded, themeData } = useSidebar();
 
   return (
-    <div className={themeId}>
+    <div className={clsx(themeData.themeId, "bg-background text-foreground")}>
       {/* Mobile Menu - solo visible en mobile/tablet */}
       <MobileMenu />
 
@@ -58,14 +57,14 @@ export default function AppSidebar({
   events,
   activeEventId,
   tier,
-  themeId,
+  themeData,
 }: AppSidebarProps) {
   return (
     <SidebarProvider
       events={events}
       activeEventId={activeEventId}
       tier={tier}
-      themeId={themeId}
+      themeData={themeData}
     >
       <AppSidebarContent>{children}</AppSidebarContent>
     </SidebarProvider>

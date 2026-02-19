@@ -202,7 +202,7 @@ export default async function CheckInsPage() {
                 return (
                   <div
                     key={checkIn.id}
-                    className="flex items-center justify-between p-4 bg-default-100 dark:bg-gray-800 rounded-lg hover:bg-default-200 dark:hover:bg-gray-700 transition-colors"
+                    className="flex items-center justify-between p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors"
                   >
                     <div className="flex-1">
                       <p className="font-medium">{displayName}</p>

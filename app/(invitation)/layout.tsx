@@ -4,8 +4,10 @@ import type { ReactNode } from "react";
 import { siteConfig } from "@/config/site";
 import { getCurrentUser } from "@/app/actions/invitations";
 import { getEventTheme } from "@/app/actions/theme";
-import { THEME_IDS, type ThemeId } from "@/types/theme";
+import { THEME_IDS } from "@/types/theme";
+import type { EventThemeData } from "@/app/actions/theme";
 import { ThemeSync } from "@/components/providers/ThemeSync";
+import ThemeStyleTag from "@/components/providers/ThemeStyleTag";
 
 export const metadata: Metadata = {
   title: {
@@ -22,7 +24,6 @@ export const viewport: Viewport = {
   themeColor: [{ media: "(prefers-color-scheme: light)", color: "white" }],
 };
 
-// Force dynamic rendering to read JWT from cookies
 export const dynamic = "force-dynamic";
 
 export default async function InvitationLayout({
@@ -30,13 +31,15 @@ export default async function InvitationLayout({
 }: {
   children: ReactNode;
 }) {
-  // Obtener theme del evento de la invitación (JWT)
-  let themeId: ThemeId = THEME_IDS.CLASSIC;
+  let themeData: EventThemeData = {
+    themeId: THEME_IDS.CLASSIC,
+    customColors: null,
+  };
 
   try {
     const userResult = await getCurrentUser();
     if (userResult.success && userResult.user?.eventId) {
-      themeId = await getEventTheme(userResult.user.eventId);
+      themeData = await getEventTheme(userResult.user.eventId);
     }
   } catch {
     // Theme fetch failed, using default
@@ -44,7 +47,13 @@ export default async function InvitationLayout({
 
   return (
     <>
-      <ThemeSync themeId={themeId} />
+      {/* Inject custom theme CSS vars into <head> before first paint */}
+      <ThemeStyleTag
+        themeId={themeData.themeId}
+        customColors={themeData.customColors}
+      />
+      {/* Sync class on <html> for HeroUI (predefined themes) and client-side navigation */}
+      <ThemeSync themeId={themeData.themeId} />
       <main className="container mx-auto max-w-screen-sm">{children}</main>
     </>
   );

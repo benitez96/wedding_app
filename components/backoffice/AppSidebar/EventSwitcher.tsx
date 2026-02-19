@@ -45,7 +45,7 @@ export default function EventSwitcher() {
           <Heart className="text-red-500 w-8 h-8" />
         </div>
 
-        <Divider className="bg-slate-700 w-12" />
+        <Divider className="w-12" />
 
         {/* Event Avatars */}
         <div className="flex flex-col items-center gap-2 flex-1 overflow-y-auto py-2 w-full">

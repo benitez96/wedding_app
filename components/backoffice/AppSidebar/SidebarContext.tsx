@@ -2,9 +2,12 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import type { SidebarContextValue, EventOption } from "./types";
+import type {
+  SidebarContextValue,
+  SidebarThemeData,
+  EventOption,
+} from "./types";
 import type { SubscriptionTier } from "@/types/subscription";
-import type { ThemeId } from "@/types/theme";
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
 
@@ -15,7 +18,7 @@ interface SidebarProviderProps {
   events: EventOption[];
   activeEventId: string | null;
   tier: SubscriptionTier;
-  themeId: ThemeId;
+  themeData: SidebarThemeData;
 }
 
 export function SidebarProvider({
@@ -23,7 +26,7 @@ export function SidebarProvider({
   events,
   activeEventId,
   tier,
-  themeId,
+  themeData,
 }: SidebarProviderProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -54,7 +57,7 @@ export function SidebarProvider({
     events,
     activeEventId,
     tier,
-    themeId,
+    themeData,
   };
 
   return (

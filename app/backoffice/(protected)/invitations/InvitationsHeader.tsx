@@ -72,7 +72,7 @@ export default function InvitationsHeader() {
           startContent={<Search size={18} className="text-default-400" />}
           endContent={isPending ? <Spinner size="sm" /> : null}
           variant="bordered"
-          className="max-w-xs bg-white"
+          className="max-w-xs"
         />
       </div>
 

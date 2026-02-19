@@ -15,6 +15,7 @@ import {
   scanQRSchema,
   getInvitationsCacheSchema,
   themeIdSchema,
+  customThemeColorsSchema,
 } from "@/app/actions/schemas";
 import { THEME_IDS } from "@/types/theme";
 
@@ -334,20 +335,8 @@ describe("action schemas", () => {
   });
 
   describe("themeIdSchema", () => {
-    it("should accept CLASSIC theme", () => {
-      const result = themeIdSchema.safeParse(THEME_IDS.CLASSIC);
-
-      expect(result.success).toBe(true);
-    });
-
-    it("should accept WARM theme", () => {
-      const result = themeIdSchema.safeParse(THEME_IDS.WARM);
-
-      expect(result.success).toBe(true);
-    });
-
-    it("should accept PASTEL_GREEN theme", () => {
-      const result = themeIdSchema.safeParse(THEME_IDS.PASTEL_GREEN);
+    it.each(Object.values(THEME_IDS))("should accept theme '%s'", (themeId) => {
+      const result = themeIdSchema.safeParse(themeId);
 
       expect(result.success).toBe(true);
     });
@@ -360,6 +349,103 @@ describe("action schemas", () => {
 
     it("should reject empty string", () => {
       const result = themeIdSchema.safeParse("");
+
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("customThemeColorsSchema", () => {
+    it("should accept valid 5-color custom theme", () => {
+      const result = customThemeColorsSchema.safeParse({
+        background: "#1e1e2e",
+        foreground: "#cdd6f4",
+        primary: "#cba6f7",
+        secondary: "#313244",
+        accent: "#f38ba8",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should accept uppercase hex", () => {
+      const result = customThemeColorsSchema.safeParse({
+        background: "#FFFFFF",
+        foreground: "#000000",
+        primary: "#A1B2C3",
+        secondary: "#D4E5F6",
+        accent: "#123ABC",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject shorthand hex (#RGB)", () => {
+      const result = customThemeColorsSchema.safeParse({
+        background: "#fff",
+        foreground: "#000",
+        primary: "#abc",
+        secondary: "#def",
+        accent: "#123",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject hex without hash", () => {
+      const result = customThemeColorsSchema.safeParse({
+        background: "ffffff",
+        foreground: "#000000",
+        primary: "#cba6f7",
+        secondary: "#313244",
+        accent: "#f38ba8",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject CSS color names", () => {
+      const result = customThemeColorsSchema.safeParse({
+        background: "white",
+        foreground: "#000000",
+        primary: "#cba6f7",
+        secondary: "#313244",
+        accent: "#f38ba8",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject when missing fields", () => {
+      // Missing foreground
+      const result = customThemeColorsSchema.safeParse({
+        background: "#ffffff",
+        primary: "#cba6f7",
+        secondary: "#313244",
+        accent: "#f38ba8",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject when missing background", () => {
+      const result = customThemeColorsSchema.safeParse({
+        foreground: "#cdd6f4",
+        primary: "#cba6f7",
+        secondary: "#313244",
+        accent: "#f38ba8",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject var() injection attempt", () => {
+      const result = customThemeColorsSchema.safeParse({
+        background: "var(--some-var)",
+        foreground: "#000000",
+        primary: "#cba6f7",
+        secondary: "#313244",
+        accent: "#f38ba8",
+      });
 
       expect(result.success).toBe(false);
     });

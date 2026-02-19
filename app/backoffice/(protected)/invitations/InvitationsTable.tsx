@@ -61,12 +61,7 @@ export default function InvitationsTable({
     // Si no tiene tokens, está en estado "No enviado"
     if (!invitation.tokens || invitation.tokens.length === 0) {
       return (
-        <Chip
-          color="default"
-          variant="flat"
-          size="sm"
-          className="bg-gray-100 text-gray-600"
-        >
+        <Chip color="default" variant="flat" size="sm">
           No enviado
         </Chip>
       );
@@ -78,12 +73,7 @@ export default function InvitationsTable({
     // Si no hay tokens activos, está en estado "No enviado"
     if (activeTokens.length === 0) {
       return (
-        <Chip
-          color="default"
-          variant="flat"
-          size="sm"
-          className="bg-gray-100 text-gray-600"
-        >
+        <Chip color="default" variant="flat" size="sm">
           No enviado
         </Chip>
       );

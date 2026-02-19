@@ -54,27 +54,25 @@ export default function Countdown({ targetTimestamp }: CountdownProps) {
         <div className="text-3xl font-decorative text-primary">
           {formatNumber(timeLeft.days)}
         </div>
-        <div className="text-sm text-muted-foreground font-medium">Días</div>
+        <div className="text-sm text-foreground/60 font-medium">Días</div>
       </div>
       <div className="flex flex-col items-center">
         <div className="text-3xl font-decorative text-primary">
           {formatNumber(timeLeft.hours)}
         </div>
-        <div className="text-sm text-muted-foreground font-medium">Horas</div>
+        <div className="text-sm text-foreground/60 font-medium">Horas</div>
       </div>
       <div className="flex flex-col items-center">
         <div className="text-3xl font-decorative text-primary">
           {formatNumber(timeLeft.minutes)}
         </div>
-        <div className="text-sm text-muted-foreground font-medium">Minutos</div>
+        <div className="text-sm text-foreground/60 font-medium">Minutos</div>
       </div>
       <div className="flex flex-col items-center">
         <div className="text-3xl font-decorative text-primary">
           {formatNumber(timeLeft.seconds)}
         </div>
-        <div className="text-sm text-muted-foreground font-medium">
-          Segundos
-        </div>
+        <div className="text-sm text-foreground/60 font-medium">Segundos</div>
       </div>
     </div>
   );

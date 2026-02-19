@@ -242,7 +242,7 @@ export default function BackofficeMenu({
                         "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary",
                         isActive
                           ? "bg-primary text-primary-foreground font-medium"
-                          : "text-gray-700 hover:bg-gray-100",
+                          : "text-foreground/70 hover:bg-content2",
                       )}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {

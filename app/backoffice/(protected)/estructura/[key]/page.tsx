@@ -70,7 +70,7 @@ export default async function EditSectionPage({
       <div className="flex items-center gap-4">
         <Link
           href="/backoffice/estructura"
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+          className="flex items-center gap-2 text-sm text-foreground/60 hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4" />
           Volver
@@ -78,11 +78,11 @@ export default async function EditSectionPage({
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
           <span className="text-4xl">{metadata.icon}</span>
           {metadata.name}
         </h1>
-        <p className="text-gray-600 mt-2">{metadata.description}</p>
+        <p className="text-foreground/60 mt-2">{metadata.description}</p>
       </div>
 
       {/* Editor con formulario y preview */}

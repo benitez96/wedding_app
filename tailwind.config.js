@@ -24,12 +24,20 @@ const config = {
           "100%": { opacity: "1" },
         },
       },
+      // accent: token temático para decoraciones y gradientes.
+      // El valor real lo setea cada clase de tema en globals.css via --color-accent,
+      // y ThemeSync.tsx para el tema custom.
+      colors: {
+        accent: "var(--color-accent)",
+      },
     },
   },
   darkMode: "class",
   plugins: [
     heroui({
       themes: {
+        // ── CLASSIC ─────────────────────────────────────────────────────────
+        // Blanco, negro y grises elegantes
         classic: {
           extend: "light",
           colors: {
@@ -51,10 +59,15 @@ const config = {
               DEFAULT: "#2C2C2C",
               foreground: "#FFFFFF",
             },
+            // Usado en: text-accent (dividers), from-primary to-accent (música)
+            // border-accent/* (music button rings)
             background: "#FFFFFF",
             foreground: "#000000",
           },
         },
+
+        // ── WARM ────────────────────────────────────────────────────────────
+        // Marrón dorado — tonos tierra cálidos
         warm: {
           extend: "light",
           colors: {
@@ -74,12 +87,16 @@ const config = {
             },
             secondary: {
               DEFAULT: "#B89A7A",
-              foreground: "#FFFFFF",
+              // #3D2B1F sobre #B89A7A → contraste ~5.2:1 ✓ WCAG AA
+              foreground: "#3D2B1F",
             },
-            background: "#FFFFFF",
+            background: "#FFFFF0",
             foreground: "#1A1A1A",
           },
         },
+
+        // ── PASTEL GREEN ─────────────────────────────────────────────────────
+        // Verde menta suave
         "pastel-green": {
           extend: "light",
           colors: {
@@ -99,10 +116,39 @@ const config = {
             },
             secondary: {
               DEFAULT: "#A8DADC",
+              // #1D3557 sobre #A8DADC → contraste ~5.8:1 ✓ WCAG AA
               foreground: "#1D3557",
             },
             background: "#F1FAEE",
             foreground: "#1D3557",
+          },
+        },
+
+        // ── MOCHA ────────────────────────────────────────────────────────────
+        // Catppuccin Mocha — dark, cozy, purple-tinted
+        mocha: {
+          extend: "dark",
+          colors: {
+            primary: {
+              DEFAULT: "#cba6f7", // Mauve
+              foreground: "#1e1e2e", // Base — dark text on lavender button
+              50: "#f5f0fe",
+              100: "#ede4fd",
+              200: "#d9c5fb",
+              300: "#cba6f7",
+              400: "#b387f3",
+              500: "#9a68ef",
+              600: "#7c49d6",
+              700: "#6337b0",
+              800: "#4e2c8a",
+              900: "#3b2169",
+            },
+            secondary: {
+              DEFAULT: "#313244", // Surface0
+              foreground: "#cdd6f4", // Text — light text on surface
+            },
+            background: "#1e1e2e", // Base
+            foreground: "#cdd6f4", // Text
           },
         },
       },

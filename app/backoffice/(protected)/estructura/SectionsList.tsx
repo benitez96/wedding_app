@@ -73,15 +73,15 @@ function SortableSection({
               <div
                 {...attributes}
                 {...listeners}
-                className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                className="cursor-grab active:cursor-grabbing text-foreground/40 hover:text-foreground/70"
               >
                 <GripVertical className="w-5 h-5" />
               </div>
               <div className="flex items-center gap-3 flex-1">
                 <div className="text-2xl">📄</div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{section.key}</h4>
-                  <p className="text-sm text-gray-400">
+                  <h4 className="font-medium text-foreground">{section.key}</h4>
+                  <p className="text-sm text-foreground/40">
                     Sección sin metadata registrada
                   </p>
                 </div>
@@ -116,7 +116,7 @@ function SortableSection({
             <div
               {...attributes}
               {...listeners}
-              className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+              className="cursor-grab active:cursor-grabbing text-foreground/40 hover:text-foreground/70"
             >
               <GripVertical className="w-5 h-5" />
             </div>
@@ -125,8 +125,10 @@ function SortableSection({
             <div className="flex items-center gap-3 flex-1">
               <div className="text-2xl">{metadata.icon}</div>
               <div className="flex-1">
-                <h4 className="font-medium text-gray-900">{metadata.name}</h4>
-                <p className="text-sm text-gray-600">{metadata.description}</p>
+                <h4 className="font-medium text-foreground">{metadata.name}</h4>
+                <p className="text-sm text-foreground/60">
+                  {metadata.description}
+                </p>
               </div>
             </div>
 

@@ -180,7 +180,7 @@ export default function MobileMenu() {
                   )}
                 </div>
 
-                <Divider className="bg-slate-700" />
+                <Divider />
 
                 {/* Events List */}
                 {isCompany && events.length > 0 && (

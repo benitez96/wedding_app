@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { SubscriptionTier } from "@/types/subscription";
-import type { ThemeId } from "@/types/theme";
+import type { ThemeId, CustomThemeColors } from "@/types/theme";
 
 export interface EventOption {
   id: string;
@@ -15,11 +15,16 @@ export interface MenuItem {
   tierRequired?: SubscriptionTier;
 }
 
+export interface SidebarThemeData {
+  themeId: ThemeId;
+  customColors: CustomThemeColors | null;
+}
+
 export interface SidebarContextValue {
   isExpanded: boolean;
   toggleSidebar: () => void;
   events: EventOption[];
   activeEventId: string | null;
   tier: SubscriptionTier;
-  themeId: ThemeId;
+  themeData: SidebarThemeData;
 }

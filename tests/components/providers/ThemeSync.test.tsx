@@ -32,17 +32,19 @@ describe("ThemeSync", () => {
     expect(document.documentElement.classList.contains("classic")).toBe(false);
   });
 
-  it("preserves 'light' class when switching themes", () => {
+  it("replaces 'light' class with the active theme class", () => {
+    // ThemeSync intentionally removes 'light' to prevent HeroUI's .light variables
+    // from overriding the custom theme CSS variables set by ThemeStyleTag.
     document.documentElement.classList.add("light");
     render(<ThemeSync themeId="classic" />);
-    expect(document.documentElement.classList.contains("light")).toBe(true);
+    expect(document.documentElement.classList.contains("light")).toBe(false);
     expect(document.documentElement.classList.contains("classic")).toBe(true);
   });
 
-  it("preserves 'dark' class when switching themes", () => {
+  it("replaces 'dark' class with the active theme class", () => {
     document.documentElement.classList.add("dark");
     render(<ThemeSync themeId="warm" />);
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
     expect(document.documentElement.classList.contains("warm")).toBe(true);
   });
 

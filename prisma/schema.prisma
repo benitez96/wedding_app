@@ -180,6 +180,7 @@ model Event {
   description String?
   // Configuración visual (cada evento tiene su propio theme)
   activeTheme String                 @default("classic")
+  customTheme Json?                  // CustomThemeColors (solo usado cuando activeTheme = "custom")
   // Owner (quien creó el evento)
   ownerId     String
   owner       User                   @relation("EventOwner", fields: [ownerId], references: [id], onDelete: Cascade)

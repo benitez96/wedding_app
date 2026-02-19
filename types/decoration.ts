@@ -19,7 +19,6 @@ export type DecorationSvg =
 
 // Patrones de repetición disponibles
 export const DecorationPatterns = {
-  NONE: "none",
   CORNERS: "corners",
   SCATTERED_GRID_ALT: "scattered-grid-alt",
   SCATTERED_GRID_PROGRESSIVE: "scattered-grid-progressive",
