@@ -13,7 +13,7 @@ import {
 } from "@/types/section-settings-form";
 import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
-import FeedbackMessage, { MessageTypes } from "@/components/ui/FeedbackMessage";
+import { useToastFeedback } from "@/hooks/useToastFeedback";
 
 export function RSVPSectionSettingsForm({
   initialSettings,
@@ -32,22 +32,19 @@ export function RSVPSectionSettingsForm({
     }),
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const { toastSuccess, toastError } = useToastFeedback();
 
   const updateSettings = createSettingsUpdater(setSettings, onSettingsChange);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setMessage(null);
 
     try {
       await onSave(settings as RSVPSectionSettings);
-      setMessage("Cambios guardados correctamente");
-      setTimeout(() => setMessage(null), 3000);
+      toastSuccess("Cambios guardados correctamente");
     } catch (error) {
-      setMessage("Error al guardar los cambios");
-      setTimeout(() => setMessage(null), 3000);
+      toastError("Error al guardar los cambios");
     } finally {
       setIsSaving(false);
     }
@@ -55,18 +52,6 @@ export function RSVPSectionSettingsForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Mensaje de feedback */}
-      {message && (
-        <FeedbackMessage
-          type={
-            message.includes("Error")
-              ? MessageTypes.ERROR
-              : MessageTypes.SUCCESS
-          }
-          message={message}
-        />
-      )}
-
       <Card>
         <CardBody className="space-y-4">
           {/* Switch para mostrar formulario */}

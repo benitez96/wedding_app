@@ -113,7 +113,7 @@ export default function TokensTable({
 
         {/* Empty state */}
         {tokens.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-default-400">
             <p>{STRINGS.noTokens}</p>
             <p className="text-sm mt-1">{STRINGS.noTokensHint}</p>
           </div>
@@ -138,7 +138,7 @@ export default function TokensTable({
                     {/* Token ID with copy button */}
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded text-xs font-mono">
+                        <code className="bg-default-100 text-default-700 px-2 py-1 rounded text-xs font-mono">
                           {token.id}
                         </code>
                         <Tooltip content={STRINGS.copyLink}>

@@ -188,3 +188,76 @@
 .animate-fade-in {
   animation: fade-in 0.8s ease-out both;
 }
+
+/* Loading mask effect — invitation public only */
+#invitation-content-mask {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+
+  mask-image: url("/tramas/svgs/heart.svg");
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: 50px;
+
+  animation: loading-reveal 3s forwards ease-in-out;
+}
+
+@keyframes loading-reveal {
+  0% {
+    mask-size: 50px;
+  }
+  100% {
+    mask-size: 300vmax;
+  }
+}
+
+/* Heart loader — ondas con color accent */
+.heart-loader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+}
+
+.heart-loader__icon {
+  position: relative;
+  z-index: 1;
+  animation: heart-beat 1.2s ease-in-out infinite;
+}
+
+.heart-loader__ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: #f5c2e7;
+  opacity: 0;
+  animation: heart-ripple 2s ease-out infinite;
+}
+
+.heart-loader__ripple--delay {
+  animation-delay: 1s;
+}
+
+@keyframes heart-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes heart-ripple {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}

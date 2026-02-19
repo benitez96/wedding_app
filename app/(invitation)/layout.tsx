@@ -54,7 +54,10 @@ export default async function InvitationLayout({
       />
       {/* Sync class on <html> for HeroUI (predefined themes) and client-side navigation */}
       <ThemeSync themeId={themeData.themeId} />
-      <main className="container mx-auto max-w-screen-sm">{children}</main>
+      {/* Wrapper full-screen con mask del corazón — revela el contenido */}
+      <div id="invitation-content-mask">
+        <main className="container mx-auto max-w-screen-sm">{children}</main>
+      </div>
     </>
   );
 }

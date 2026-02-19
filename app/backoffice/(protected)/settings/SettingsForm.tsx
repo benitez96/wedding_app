@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody } from "@heroui/card";
 import { Save } from "lucide-react";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import { updateConfigurations } from "@/app/actions/settings";
-import FeedbackMessage, { MessageTypes } from "@/components/ui/FeedbackMessage";
+import { useToastFeedback } from "@/hooks/useToastFeedback";
 
 interface ConfigurationItem {
   id: string;
@@ -33,6 +33,14 @@ export default function SettingsForm({
     updateConfigurations,
     null,
   );
+  const { toastSuccess, toastError } = useToastFeedback();
+
+  // Reaccionar al resultado del server action via toast
+  useEffect(() => {
+    if (!state) return;
+    if (state.error) toastError(state.error);
+    if (state.success && state.message) toastSuccess(state.message);
+  }, [state]);
 
   // Obtener valores iniciales (solo lectura, sin estado)
   const photoUploadUrl = getConfigValue(
@@ -55,13 +63,6 @@ export default function SettingsForm({
 
   return (
     <form action={formAction} className="space-y-6">
-      {state?.error && (
-        <FeedbackMessage type={MessageTypes.ERROR} message={state.error} />
-      )}
-      {state?.success && (
-        <FeedbackMessage type={MessageTypes.SUCCESS} message={state.message} />
-      )}
-
       <div className="grid gap-4">
         {/* PHOTO_UPLOAD_URL */}
         <Card>

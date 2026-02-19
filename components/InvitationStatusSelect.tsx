@@ -63,7 +63,7 @@ export default function InvitationStatusSelect({
     <div className="flex flex-col gap-4">
       <Select
         label="Estado de la Invitación"
-        value={localStatus}
+        selectedKeys={new Set([localStatus])}
         onSelectionChange={(keys) => {
           const selectedKey = Array.from(keys)[0] as string;
           handleStatusChange(selectedKey);

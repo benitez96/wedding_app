@@ -14,7 +14,7 @@ import {
   type CustomThemeColors,
 } from "@/types/theme";
 import { useRouter } from "next/navigation";
-import FeedbackMessage, { MessageTypes } from "@/components/ui/FeedbackMessage";
+import { useToastFeedback } from "@/hooks/useToastFeedback";
 import CustomThemePicker from "./CustomThemePicker";
 
 interface ThemingFormProps {
@@ -31,10 +31,7 @@ export default function ThemingForm({
   const [customColors, setCustomColors] =
     useState<CustomThemeColors>(initialCustomColors);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const { toastSuccess, toastError } = useToastFeedback();
 
   const isCustomSelected = selectedTheme === THEME_IDS.CUSTOM;
 
@@ -48,7 +45,6 @@ export default function ThemingForm({
     if (!hasChanges) return;
 
     setIsSaving(true);
-    setMessage(null);
 
     try {
       let result: { success: boolean; error?: string };
@@ -61,25 +57,16 @@ export default function ThemingForm({
       }
 
       if (result.success) {
-        setMessage({
-          type: "success",
-          text: "Theme actualizado correctamente",
-        });
+        toastSuccess("Theme actualizado correctamente");
 
         setTimeout(() => {
           router.refresh();
         }, 500);
       } else {
-        setMessage({
-          type: "error",
-          text: result.error || "Error al actualizar el theme",
-        });
+        toastError(result.error || "Error al actualizar el theme");
       }
     } catch {
-      setMessage({
-        type: "error",
-        text: "Error inesperado al actualizar el theme",
-      });
+      toastError("Error inesperado al actualizar el theme");
     } finally {
       setIsSaving(false);
     }
@@ -161,18 +148,6 @@ export default function ThemingForm({
       {/* Picker outside RadioGroup so its events are not captured by the radio */}
       {isCustomSelected && (
         <CustomThemePicker colors={customColors} onChange={setCustomColors} />
-      )}
-
-      {/* Feedback message */}
-      {message && (
-        <FeedbackMessage
-          type={
-            message.type === "success"
-              ? MessageTypes.SUCCESS
-              : MessageTypes.ERROR
-          }
-          message={message.text}
-        />
       )}
 
       {/* Save button */}

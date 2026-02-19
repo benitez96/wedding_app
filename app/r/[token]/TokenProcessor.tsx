@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { processInvitationToken } from "@/app/actions/invitations";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import HeartLoader from "@/components/HeartLoader";
 
 interface TokenProcessorProps {
   token: string;
@@ -64,5 +64,5 @@ export default function TokenProcessor({ token }: TokenProcessorProps) {
     };
   }, [token, router]);
 
-  return <LoadingSpinner />;
+  return <HeartLoader />;
 }

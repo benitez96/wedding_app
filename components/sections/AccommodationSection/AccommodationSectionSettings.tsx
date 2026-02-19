@@ -16,7 +16,7 @@ import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 import { SectionIconSelector } from "@/components/ui/SectionIconSelector";
 import { SectionIcon } from "@/types/section-icon";
-import FeedbackMessage, { MessageTypes } from "@/components/ui/FeedbackMessage";
+import { useToastFeedback } from "@/hooks/useToastFeedback";
 
 export function AccommodationSectionSettingsForm({
   initialSettings,
@@ -39,22 +39,19 @@ export function AccommodationSectionSettingsForm({
     decorationSize: initialSettings.decorationSize ?? 60,
   }));
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const { toastSuccess, toastError } = useToastFeedback();
 
   const updateSettings = createSettingsUpdater(setSettings, onSettingsChange);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setMessage(null);
 
     try {
       await onSave(settings as AccommodationSectionSettings);
-      setMessage("Cambios guardados correctamente");
-      setTimeout(() => setMessage(null), 3000);
+      toastSuccess("Cambios guardados correctamente");
     } catch (error) {
-      setMessage("Error al guardar los cambios");
-      setTimeout(() => setMessage(null), 3000);
+      toastError("Error al guardar los cambios");
     } finally {
       setIsSaving(false);
     }
@@ -62,18 +59,6 @@ export function AccommodationSectionSettingsForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Mensaje de feedback */}
-      {message && (
-        <FeedbackMessage
-          type={
-            message.includes("Error")
-              ? MessageTypes.ERROR
-              : MessageTypes.SUCCESS
-          }
-          message={message}
-        />
-      )}
-
       <Card>
         <CardBody className="space-y-4">
           {/* Title */}
