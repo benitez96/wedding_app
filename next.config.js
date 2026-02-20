@@ -37,6 +37,7 @@ const nextConfig = {
                 ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
                 : "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
+              "worker-src 'self' blob:", //TODO: keep blob?
               "img-src 'self' data: https:",
               "font-src 'self'",
               "connect-src 'self'",
@@ -53,7 +54,7 @@ const nextConfig = {
           // Permissions Policy
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), payment=()",
+            value: "camera=(self), microphone=(), geolocation=(), payment=()",
           },
           // HSTS (solo en producción)
           ...(process.env.NODE_ENV === "production"

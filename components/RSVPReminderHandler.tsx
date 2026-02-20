@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { getCurrentUserData } from "@/app/actions/protected-invitations";
 import RSVPReminderModal from "./RSVPReminderModal";
+import { shouldShowReminder } from "@/lib/rsvp-reminder-utils";
 
 interface RSVPReminderHandlerProps {
   weddingTimestamp: number;
@@ -30,20 +31,14 @@ export default function RSVPReminderHandler({
           return;
         }
 
-        // Verificar si el usuario ya respondió
-        if (userResult.user.hasResponded) {
-          return;
-        }
+        // Verificar si debe mostrar el recordatorio (lógica pura en utils)
+        const { shouldShow } = shouldShowReminder({
+          weddingTimestamp,
+          remindRestingDays,
+          hasResponded: userResult.user.hasResponded,
+        });
 
-        // Calcular días restantes
-        // Como el contenedor Docker está configurado con timezone Argentina,
-        // new Date() ya devuelve la hora correcta de Argentina
-        const today = new Date();
-        const diffTime = weddingTimestamp - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        // Mostrar modal si faltan menos de los días configurados
-        if (diffDays < remindRestingDays && diffDays > 0 && isActive) {
+        if (shouldShow && isActive) {
           setShowModal(true);
         }
       } catch (error) {

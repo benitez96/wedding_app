@@ -124,6 +124,7 @@ export default function QRScanner({ eventId }: QRScannerProps) {
               ref={videoRef}
               className="w-full h-full object-cover"
               playsInline
+              autoPlay
               muted
             />
 

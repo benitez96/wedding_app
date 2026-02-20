@@ -370,20 +370,148 @@ describe("invitationResponseSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("should reject very long messages", () => {
-    const data = {
-      isAttending: true,
-      message: "a".repeat(501),
-    };
-    const result = invitationResponseSchema.safeParse(data);
-    expect(result.success).toBe(false);
-  });
-
   it("should accept declining without guest count", () => {
     const result = invitationResponseSchema.safeParse({
       isAttending: false,
     });
     expect(result.success).toBe(true);
+  });
+
+  describe("extended RSVP fields", () => {
+    const base = { isAttending: true, guestCount: 2 };
+
+    describe("menuPreference", () => {
+      it("should accept a valid menu preference", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          menuPreference: "Vegetariano",
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it("should accept null", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          menuPreference: null,
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it("should accept when omitted", () => {
+        const result = invitationResponseSchema.safeParse(base);
+        expect(result.success).toBe(true);
+      });
+
+      it("should reject when exceeds 100 characters", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          menuPreference: "a".repeat(101),
+        });
+        expect(result.success).toBe(false);
+      });
+
+      it("should reject HTML injection attempt with <script>", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          menuPreference: "<script>alert('xss')</script>",
+        });
+        expect(result.success).toBe(false);
+      });
+
+      it("should reject < character", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          menuPreference: "Vegano <especial>",
+        });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe("dietaryRestrictions", () => {
+      it("should accept a valid dietary restriction", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          dietaryRestrictions: "Sin gluten, sin lactosa",
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it("should accept null", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          dietaryRestrictions: null,
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it("should reject when exceeds 500 characters", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          dietaryRestrictions: "a".repeat(501),
+        });
+        expect(result.success).toBe(false);
+      });
+
+      it("should reject HTML injection attempt", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          dietaryRestrictions: "<img src=x onerror=alert(1)>",
+        });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    describe("messageForCouple", () => {
+      it("should accept a valid message", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          messageForCouple: "¡Felicidades! Los queremos mucho.",
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it("should accept null", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          messageForCouple: null,
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it("should reject when exceeds 1000 characters", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          messageForCouple: "a".repeat(1001),
+        });
+        expect(result.success).toBe(false);
+      });
+
+      it("should reject HTML injection attempt", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          messageForCouple: '<a href="javascript:void(0)">click</a>',
+        });
+        expect(result.success).toBe(false);
+      });
+
+      it("should accept exactly 1000 characters", () => {
+        const result = invitationResponseSchema.safeParse({
+          ...base,
+          messageForCouple: "a".repeat(1000),
+        });
+        expect(result.success).toBe(true);
+      });
+    });
+
+    it("should accept all three fields together", () => {
+      const result = invitationResponseSchema.safeParse({
+        ...base,
+        menuPreference: "Vegano",
+        dietaryRestrictions: "Sin gluten",
+        messageForCouple: "¡Nos vemos en la fiesta!",
+      });
+      expect(result.success).toBe(true);
+    });
   });
 });
 

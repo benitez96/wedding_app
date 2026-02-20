@@ -89,6 +89,49 @@ export default defineConfig({
         // Excluir archivos de configuración de Better Auth (se testea con E2E)
         "**/lib/auth.ts",
         "**/lib/auth-client.ts",
+
+        // ── UI-only components (no testable logic, E2E coverage only) ──
+        // Loaders & animations
+        "components/HeartLoader.tsx",
+        "components/SimpleConfetti.tsx",
+        "components/LoadingSpinner.tsx",
+        "components/AnimatedDividerCSS.tsx",
+        "components/AnimatedSectionCSS.tsx",
+        // Modals (composition only, no logic)
+        "components/InvitationDetailModal.tsx",
+        "components/RSVPModal.tsx", // Logic extracted to lib/rsvp-modal-utils.ts
+        "components/RSVPReminderModal.tsx", // Uses lib/rsvp-reminder-utils.ts
+        "components/RSVPReminderHandler.tsx", // Logic extracted to lib/rsvp-reminder-utils.ts
+        "components/DeleteConfirmationModal.tsx",
+        "components/EditInvitationModal.tsx",
+        "components/CreateInvitationModal.tsx",
+        // Music buttons (UI-only with scroll listeners + audio hook)
+        "components/FloatingMusicButton.tsx",
+        "components/HeroMusicButton.tsx",
+        // Cards/tables (simple rendering, logic tested elsewhere)
+        "components/InvitationDetailModal/TokensTable.tsx",
+        "components/InvitationDetailModal/RSVPResponseCard.tsx",
+        "components/InvitationDetailModal/InvitationInfoCard.tsx",
+        // RSVP modal steps (form fields, no logic)
+        "components/RSVPModal/RSVPStepAttendance.tsx",
+        "components/RSVPModal/RSVPStepGuestCount.tsx",
+        "components/RSVPModal/RSVPStepMenu.tsx",
+        "components/RSVPModal/RSVPStepDietary.tsx",
+        "components/RSVPModal/RSVPStepMessage.tsx",
+        "components/RSVPModal/RSVPStepProgress.tsx",
+        "components/RSVPModal/RSVPModalPreview.tsx",
+        // Section settings (forms, no logic)
+        "components/sections/**/settings/**",
+        "components/sections/PreviewPlaceholder.tsx",
+        "components/sections/AccommodationList.tsx",
+        // RSVP status components (already tested via RSVPSection)
+        "components/sections/RSVPStatus/**",
+        // Section utilities (layout only)
+        "components/section/**",
+        // UI utilities
+        "components/ui/FeedbackMessage.tsx",
+        "components/ui/DecorationLayer.tsx",
+        "components/ui/DecorationPreview.tsx",
       ],
 
       // Thresholds de coverage

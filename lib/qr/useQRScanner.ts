@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseQRScannerOptions {
   onScan: (data: string) => void;
@@ -17,162 +17,164 @@ interface UseQRScannerReturn {
   stopScanning: () => void;
 }
 
-/**
- * Hook para escanear QR usando BarcodeDetector API nativa
- *
- * Requisitos:
- * - Chrome/Edge en Android (nativo)
- * - Para iOS: necesitaría polyfill (no implementado)
- *
- * @example
- * ```tsx
- * const { videoRef, isScanning, startScanning } = useQRScanner({
- *   onScan: (tokenId) => {
- *     console.log('QR escaneado:', tokenId);
- *   }
- * });
- *
- * return <video ref={videoRef} />;
- * ```
- */
+// Tipado mínimo del constructor (no dependemos del paquete npm)
+type QrScannerCtor = new (
+  video: HTMLVideoElement,
+  onDecode: (result: any) => void,
+  options?: {
+    onDecodeError?: (error: any) => void;
+    preferredCamera?: "environment" | "user" | string;
+    maxScansPerSecond?: number;
+    returnDetailedScanResult?: boolean;
+  },
+) => {
+  start: () => Promise<void>;
+  stop: () => void;
+  destroy: () => void;
+};
+
+function toError(err: unknown): Error {
+  if (err instanceof Error) return err;
+  if (typeof err === "string") return new Error(err);
+  if (err && typeof err === "object" && "message" in err) {
+    return new Error(String((err as any).message));
+  }
+  try {
+    return new Error(JSON.stringify(err));
+  } catch {
+    return new Error("Error desconocido");
+  }
+}
+
 export function useQRScanner({
   onScan,
   onError,
   enabled = true,
 }: UseQRScannerOptions): UseQRScannerReturn {
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const scannerRef = useRef<InstanceType<QrScannerCtor> | null>(null);
+
+  // Locks/flags (evita start/stop simultáneo y AbortError)
+  const startingRef = useRef(false);
+  const scanningRef = useRef(false);
+
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Referencias para cleanup
-  const streamRef = useRef<MediaStream | null>(null);
-  const animationIdRef = useRef<number | null>(null);
-  const detectorRef = useRef<BarcodeDetector | null>(null);
+  const stopScanning = useCallback(() => {
+    // Cortar cualquier “start” en curso
+    startingRef.current = false;
+    scanningRef.current = false;
 
-  /**
-   * Detener escaneo y liberar recursos
-   * React Compiler optimiza esto automáticamente
-   */
-  const stopScanning = () => {
-    // Cancelar animation frame
-    if (animationIdRef.current !== null) {
-      cancelAnimationFrame(animationIdRef.current);
-      animationIdRef.current = null;
+    try {
+      if (scannerRef.current) {
+        scannerRef.current.stop();
+        scannerRef.current.destroy();
+        scannerRef.current = null;
+      }
+
+      const video = videoRef.current;
+      if (video) {
+        const stream = video.srcObject as MediaStream | null;
+        if (stream) stream.getTracks().forEach((t) => t.stop());
+        video.srcObject = null;
+      }
+    } finally {
+      setIsScanning(false);
+    }
+  }, []);
+
+  const startScanning = useCallback(async () => {
+    // Evitar starts concurrentes (StrictMode / fast refresh)
+    if (startingRef.current || scanningRef.current) return;
+
+    const video = videoRef.current;
+    if (!video) {
+      const e = new Error("No se encontró el elemento <video>.");
+      setError(e.message);
+      onError?.(e);
+      return;
     }
 
-    // Detener stream de video
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
+    startingRef.current = true;
 
-    // Limpiar video element
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-
-    setIsScanning(false);
-  };
-
-  /**
-   * Iniciar escaneo
-   * React Compiler optimiza esto automáticamente
-   */
-  const startScanning = async () => {
     try {
       setError(null);
 
-      // 1. Verificar soporte de BarcodeDetector
-      if (!("BarcodeDetector" in window)) {
-        throw new Error(
-          "BarcodeDetector no soportado. Usa Chrome/Edge en Android.",
-        );
-      }
+      // Si hay un scanner activo previo, limpiá antes (pero no siempre)
+      if (scannerRef.current) stopScanning();
 
-      // 2. Solicitar permiso de cámara
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "environment", // Cámara trasera
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      });
+      // iOS/Safari: inline y sin audio
+      video.setAttribute("playsinline", "true");
+      video.muted = true;
 
-      streamRef.current = stream;
-      setHasPermission(true);
+      // Cargar el módulo ES desde /public SIN bundle (webpackIgnore)
+      const mod = await import(
+        /* webpackIgnore: true */ "/vendor/qr-scanner/qr-scanner.min.js"
+      );
 
-      // 3. Conectar stream al video element
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
+      const QrScanner = (mod as any).default as QrScannerCtor;
 
-      // 4. Crear detector de QR
-      const detector = new BarcodeDetector({
-        formats: ["qr_code"],
-      });
-      detectorRef.current = detector;
+      const scanner = new QrScanner(
+        video,
+        (result: any) => {
+          const data =
+            typeof result === "string"
+              ? result
+              : String(result?.data ?? result?.rawValue ?? "");
 
-      setIsScanning(true);
-
-      // 5. Loop de detección
-      const detect = async () => {
-        if (
-          !videoRef.current ||
-          videoRef.current.readyState !== videoRef.current.HAVE_ENOUGH_DATA
-        ) {
-          animationIdRef.current = requestAnimationFrame(detect);
-          return;
-        }
-
-        try {
-          const barcodes = await detector.detect(videoRef.current);
-
-          if (barcodes.length > 0) {
-            const qrData = barcodes[0].rawValue;
-
-            // Escaneo exitoso
-            onScan(qrData);
-
-            // Detener automáticamente después de escanear
-            stopScanning();
-            return;
+          if (data) {
+            onScan(data);
+            stopScanning(); // mismo comportamiento: parar al primer scan
           }
-        } catch (err) {
-          console.error("[Scanner] Error detectando código:", err);
-        }
+        },
+        {
+          preferredCamera: "environment",
+          maxScansPerSecond: 10,
+          onDecodeError: () => {
+            // opcional: no spamear consola
+          },
+        },
+      );
 
-        animationIdRef.current = requestAnimationFrame(detect);
-      };
+      scannerRef.current = scanner;
 
-      detect();
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error desconocido";
+      // Arranca cámara + decode loop
+      await scanner.start();
 
-      setError(errorMessage);
+      scanningRef.current = true;
+      setHasPermission(true);
+      setIsScanning(true);
+    } catch (err: unknown) {
+      const e = toError(err);
+
+      // AbortError = típico cuando un play/start se interrumpe por stop/remount
+      // En dev es común. No lo trates como fallo “real”.
+      if ((e as any).name === "AbortError") {
+        console.warn("[QR] AbortError (start interrumpido por un reload/stop).");
+        return;
+      }
+
+      console.error("[QR] startScanning error:", err);
+
+      setError(e.message);
       setHasPermission(false);
       setIsScanning(false);
+      onError?.(e);
 
-      onError?.(err instanceof Error ? err : new Error(errorMessage));
+      stopScanning();
+    } finally {
+      startingRef.current = false;
     }
-  };
+  }, [onScan, onError, stopScanning]);
 
-  /**
-   * Efecto principal: iniciar/detener según enabled
-   */
   useEffect(() => {
-    if (enabled) {
-      startScanning();
-    } else {
-      stopScanning();
-    }
+    if (enabled) startScanning();
+    else stopScanning();
 
-    // Cleanup al desmontar
-    return () => {
-      stopScanning();
-    };
+    return () => stopScanning();
   }, [enabled, startScanning, stopScanning]);
 
   return {

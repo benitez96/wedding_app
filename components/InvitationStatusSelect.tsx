@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import { Select, SelectItem } from "@heroui/select";
 import { Input as NumberInput } from "@heroui/input";
+import {
+  getGuestCountForStatusChange,
+  parseGuestCountInput,
+  validateGuestCountForMaxGuests,
+} from "@/lib/invitation-status-utils";
 
 interface InvitationStatusSelectProps {
   status: string;
@@ -31,10 +36,15 @@ export default function InvitationStatusSelect({
 
   // Validar guestCount cuando cambie maxGuests
   useEffect(() => {
-    if (localStatus === "attending" && localGuestCount > maxGuests) {
-      const newCount = maxGuests;
-      setLocalGuestCount(newCount);
-      onGuestCountChange(newCount);
+    const { needsAdjustment, adjustedCount } = validateGuestCountForMaxGuests(
+      localStatus,
+      localGuestCount,
+      maxGuests,
+    );
+
+    if (needsAdjustment) {
+      setLocalGuestCount(adjustedCount);
+      onGuestCountChange(adjustedCount);
     }
   }, [maxGuests, localStatus, localGuestCount, onGuestCountChange]);
 
@@ -42,19 +52,17 @@ export default function InvitationStatusSelect({
     setLocalStatus(newStatus);
     onStatusChange(newStatus);
 
-    // Resetear guestCount cuando no es "attending"
-    if (newStatus !== "attending") {
-      setLocalGuestCount(1);
-      onGuestCountChange(1);
-    } else {
-      // Si es "attending", establecer el valor mínimo
-      const newCount = Math.max(1, Math.min(localGuestCount, maxGuests));
-      setLocalGuestCount(newCount);
-      onGuestCountChange(newCount);
-    }
+    const newCount = getGuestCountForStatusChange(
+      newStatus,
+      localGuestCount,
+      maxGuests,
+    );
+    setLocalGuestCount(newCount);
+    onGuestCountChange(newCount);
   };
 
-  const handleGuestCountChange = (newCount: number) => {
+  const handleGuestCountChange = (value: string) => {
+    const newCount = parseGuestCountInput(value);
     setLocalGuestCount(newCount);
     onGuestCountChange(newCount);
   };
@@ -83,9 +91,7 @@ export default function InvitationStatusSelect({
           type="number"
           label="Número de Asistentes"
           value={localGuestCount.toString()}
-          onChange={(e) =>
-            handleGuestCountChange(parseInt(e.target.value) || 1)
-          }
+          onChange={(e) => handleGuestCountChange(e.target.value)}
           min={1}
           max={maxGuests}
           variant="bordered"

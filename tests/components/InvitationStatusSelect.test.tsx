@@ -46,7 +46,9 @@ describe("InvitationStatusSelect", () => {
         />,
       );
 
-      expect(screen.getByText("Pendiente")).toBeInTheDocument();
+      // HeroUI renders selected value in both the hidden <option> and the
+      // visible trigger <span> — use getAllByText to handle both occurrences
+      expect(screen.getAllByText("Pendiente").length).toBeGreaterThan(0);
       expect(screen.getByText("Asistirá")).toBeInTheDocument();
       expect(screen.getByText("No asistirá")).toBeInTheDocument();
     });

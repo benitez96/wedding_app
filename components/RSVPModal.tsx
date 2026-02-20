@@ -25,6 +25,12 @@ import { RSVPStepMenu } from "./RSVPModal/RSVPStepMenu";
 import { RSVPStepDietary } from "./RSVPModal/RSVPStepDietary";
 import { RSVPStepMessage } from "./RSVPModal/RSVPStepMessage";
 import { RSVPStepProgress } from "./RSVPModal/RSVPStepProgress";
+import {
+  buildSteps,
+  isStepValid,
+  STEP,
+  type StepId,
+} from "@/lib/rsvp-modal-utils";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,65 +53,6 @@ export interface RSVPModalProps {
   onClose: () => void;
   onSuccess: () => void;
   stepConfig: RSVPStepConfig;
-}
-
-// Step identifiers — explicit union, no magic strings
-const STEP = {
-  ATTENDANCE: "attendance",
-  GUEST_COUNT: "guest_count",
-  MENU: "menu",
-  DIETARY: "dietary",
-  MESSAGE: "message",
-} as const;
-
-type StepId = (typeof STEP)[keyof typeof STEP];
-
-// ---------------------------------------------------------------------------
-// Step order builder — derives the active step list from config + user response
-// ---------------------------------------------------------------------------
-
-function buildSteps(
-  attending: AttendanceValue | null,
-  maxGuests: number,
-  stepConfig: RSVPStepConfig,
-): StepId[] {
-  const steps: StepId[] = [STEP.ATTENDANCE];
-
-  if (attending !== "attending") return steps;
-
-  if (maxGuests > 1) steps.push(STEP.GUEST_COUNT);
-  if (stepConfig.menuStep.enabled) steps.push(STEP.MENU);
-  if (stepConfig.dietaryStep.enabled) steps.push(STEP.DIETARY);
-  if (stepConfig.messageStep.enabled) steps.push(STEP.MESSAGE);
-
-  return steps;
-}
-
-// ---------------------------------------------------------------------------
-// Validation per step — returns true when it's safe to advance
-// ---------------------------------------------------------------------------
-
-function isStepValid(
-  stepId: StepId,
-  attendance: AttendanceValue | null,
-  menuPreference: string | null,
-  dietaryRestrictions: string | null,
-): boolean {
-  switch (stepId) {
-    case STEP.ATTENDANCE:
-      return attendance !== null;
-    case STEP.GUEST_COUNT:
-      return true; // always has a default value
-    case STEP.MENU:
-      return menuPreference !== null && menuPreference !== "";
-    case STEP.DIETARY:
-      // null = unanswered, "" = explicitly "no restrictions" (valid)
-      return dietaryRestrictions !== null;
-    case STEP.MESSAGE:
-      return true; // message is optional
-    default:
-      return true;
-  }
 }
 
 // ---------------------------------------------------------------------------

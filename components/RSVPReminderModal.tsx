@@ -10,6 +10,7 @@ import {
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
 import { Calendar } from "lucide-react";
+import { calculateDaysRemaining } from "@/lib/rsvp-reminder-utils";
 
 interface RSVPReminderModalProps {
   isOpen: boolean;
@@ -29,18 +30,14 @@ export default function RSVPReminderModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    const calculateDaysRemaining = () => {
-      // Como el contenedor Docker está configurado con timezone Argentina,
-      // new Date() ya devuelve la hora correcta de Argentina
-      const today = new Date();
-      const diffTime = weddingTimestamp - today.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      setDaysRemaining(Math.max(0, diffDays));
+    const updateDaysRemaining = () => {
+      const days = calculateDaysRemaining(weddingTimestamp);
+      setDaysRemaining(Math.max(0, days));
     };
 
-    calculateDaysRemaining();
+    updateDaysRemaining();
     // Actualizar cada minuto para mantener el contador actualizado
-    const interval = setInterval(calculateDaysRemaining, 60000);
+    const interval = setInterval(updateDaysRemaining, 60000);
     return () => clearInterval(interval);
   }, [isOpen, weddingTimestamp]);
 

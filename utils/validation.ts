@@ -47,16 +47,19 @@ export const invitationResponseSchema = z.object({
   menuPreference: z
     .string()
     .max(100, "Menu preference cannot exceed 100 characters")
+    .regex(/^[^<>]*$/, "Menu preference cannot contain HTML characters")
     .optional()
     .nullable(),
   dietaryRestrictions: z
     .string()
     .max(500, "Dietary restrictions cannot exceed 500 characters")
+    .regex(/^[^<>]*$/, "Dietary restrictions cannot contain HTML characters")
     .optional()
     .nullable(),
   messageForCouple: z
     .string()
     .max(1000, "Message cannot exceed 1000 characters")
+    .regex(/^[^<>]*$/, "Message cannot contain HTML characters")
     .optional()
     .nullable(),
 });
