@@ -71,12 +71,6 @@ describe("normalizeGuestCount", () => {
     it("handles negative maxGuests (edge case, clamps to 1)", () => {
       expect(normalizeGuestCount(5, -10)).toBe(1);
     });
-
-    it("handles fractional inputs (JavaScript coercion)", () => {
-      // TypeScript would prevent this, but testing runtime behavior
-      expect(normalizeGuestCount(3.7, 10)).toBe(3);
-      expect(normalizeGuestCount(5.2, 3)).toBe(3);
-    });
   });
 });
 

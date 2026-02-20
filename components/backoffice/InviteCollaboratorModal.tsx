@@ -18,6 +18,12 @@ import PermissionsSelector, {
   type PresetKey,
   getPermissionsBigInt,
 } from "@/components/backoffice/PermissionsSelector";
+import {
+  convertDaysToHours,
+  parseMaxUses,
+  buildInviteLinkUrl,
+  formatLinkDescription,
+} from "@/lib/invite-link-utils";
 
 // TODO i18n: expiration option labels
 const EXPIRATION_OPTIONS = [
@@ -76,10 +82,10 @@ export default function InviteCollaboratorModal({
         permissions.preset,
         permissions.custom,
       );
-      const expiresInHours = parseInt(linkConfig.expirationDays) * 24;
-      const uses = linkConfig.isUnlimitedUses
-        ? undefined
-        : parseInt(linkConfig.maxUses);
+      const expiresInHours = convertDaysToHours(
+        parseInt(linkConfig.expirationDays),
+      );
+      const uses = parseMaxUses(linkConfig.maxUses, linkConfig.isUnlimitedUses);
 
       const result = await createInviteLink(
         perms.toString(),
@@ -88,11 +94,9 @@ export default function InviteCollaboratorModal({
       );
 
       if (result.success && result.data) {
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
         setUIState((prev) => ({
           ...prev,
-          generatedLink: `${baseUrl}/join/${result.data.token}`,
+          generatedLink: buildInviteLinkUrl(result.data.token),
           isLoading: false,
         }));
       } else {
@@ -138,12 +142,11 @@ export default function InviteCollaboratorModal({
               <p className="text-sm text-default-600">
                 {/* TODO i18n: share link description */}
                 Comparte este link con la persona que quieras invitar.{" "}
-                {expirationDays === 1
-                  ? " El link expira en 1 día."
-                  : ` El link expira en ${linkConfig.expirationDays} días.`}
-                {linkConfig.isUnlimitedUses
-                  ? " Usos ilimitados."
-                  : ` Máximo ${linkConfig.maxUses} uso${parseInt(linkConfig.maxUses) > 1 ? "s" : ""}.`}
+                {formatLinkDescription(
+                  expirationDays,
+                  linkConfig.maxUses,
+                  linkConfig.isUnlimitedUses,
+                )}
               </p>
               <Snippet symbol="" variant="bordered" className="overflow-x-auto">
                 {uiState.generatedLink}
