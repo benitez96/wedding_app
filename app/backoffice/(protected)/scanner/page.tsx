@@ -4,6 +4,7 @@ import { getUserEventContext } from "@/lib/event-context-prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getCheckInConfig } from "@/lib/check-in/getCheckInConfig";
 import QRScanner from "./components/QRScanner";
 import OfflineIndicator from "./components/OfflineIndicator";
 import PermissionRequired from "@/components/backoffice/PermissionRequired";
@@ -60,6 +61,9 @@ export default async function ScannerPage() {
     }
   }
 
+  // Load check-in configuration for this event
+  const checkInConfig = await getCheckInConfig(eventContext.eventId);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -78,7 +82,7 @@ export default async function ScannerPage() {
       <OfflineIndicator />
 
       {/* Scanner */}
-      <QRScanner eventId={eventContext.eventId} />
+      <QRScanner eventId={eventContext.eventId} config={checkInConfig} />
 
       {/* Instrucciones */}
       <div className="bg-content1 rounded-lg shadow-sm p-6">

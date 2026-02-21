@@ -4,38 +4,59 @@ import { useEffect } from "react";
 import { saveCheckInToQueue } from "@/lib/offline/indexedDB";
 
 /**
- * Registra el Service Worker y maneja mensajes offline
+ * Service Worker Registration
  *
- * Eventos del SW:
- * - QUEUE_CHECK_IN: Guardar check-in en IndexedDB (offline)
- * - SYNC_CHECK_INS: Sincronizar check-ins pendientes
+ * Registers SW and handles offline messages:
+ * - Caches critical assets (QR scanner vendor files, scanner page)
+ * - Intercepts /api/check-in POST for offline queue
+ * - Network-first for HTML/assets, cache-first for vendor files
+ *
+ * SW Events:
+ * - QUEUE_CHECK_IN: Save check-in to IndexedDB (offline)
+ * - SYNC_CHECK_INS: Sync pending check-ins when online
  */
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
-      console.log("[SW] Service Worker not supported");
+    if (!("serviceWorker" in navigator)) {
+      // TODO: delete test comment
+      console.log("[⚠️ Service Worker] Not supported in this browser");
       return;
     }
 
-    // Registrar Service Worker
-    navigator.serviceWorker
-      .register("/sw.js", {
-        scope: "/",
-        updateViaCache: "none",
-      })
-      .then((registration) => {
-        console.log("[SW] Registered successfully:", registration.scope);
+    // TODO: delete test comment
+    console.log("[🔧 Service Worker] Registering...");
 
-        // Verificar actualizaciones cada 60 segundos
-        setInterval(() => {
-          registration.update();
-        }, 60000);
+    navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .then((registration) => {
+        // TODO: delete test comment
+        console.log(
+          `[✅ Service Worker] Registered successfully | Scope: ${registration.scope}`,
+        );
+
+        // Listen for updates
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener("statechange", () => {
+              if (
+                newWorker.state === "installed" &&
+                navigator.serviceWorker.controller
+              ) {
+                // TODO: delete test comment
+                console.log(
+                  "[🔄 Service Worker] New version available, reload to update",
+                );
+              }
+            });
+          }
+        });
       })
       .catch((error) => {
-        console.error("[SW] Registration failed:", error);
+        // TODO: delete test comment
+        console.error("[❌ Service Worker] Registration failed:", error);
       });
 
-    // Escuchar mensajes del Service Worker
     navigator.serviceWorker.addEventListener(
       "message",
       handleServiceWorkerMessage,
@@ -53,27 +74,33 @@ export default function ServiceWorkerRegistration() {
 }
 
 /**
- * Handler de mensajes del Service Worker
+ * Handle messages from Service Worker
  */
 async function handleServiceWorkerMessage(event: MessageEvent) {
-  const { type, data } = event.data;
+  const { type, data } = event.data ?? {};
 
-  console.log("[SW Client] Message received:", type, data);
+  // TODO: delete test comment
+  console.log(`[📬 Service Worker] Message received | Type: ${type}`, data);
 
-  // Guardar check-in en IndexedDB (offline)
   if (type === "QUEUE_CHECK_IN") {
     try {
+      // TODO: delete test comment
+      console.log(
+        `[📴 Service Worker] Queueing offline check-in via SW message`,
+      );
+
       await saveCheckInToQueue({
         invitationId: data.body.invitationId,
         tokenId: data.body.tokenId,
         guestsCount: data.body.guestsCount,
-        checkedInBy: data.body.checkedInBy,
         timestamp: data.timestamp,
       });
 
-      console.log("[SW Client] Check-in queued in IndexedDB");
+      // TODO: delete test comment
+      console.log(
+        `[✅ Service Worker] Check-in queued successfully via SW message`,
+      );
 
-      // Mostrar notificación al usuario
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification("Check-in guardado", {
           body: "Se sincronizará cuando haya conexión",
@@ -81,18 +108,24 @@ async function handleServiceWorkerMessage(event: MessageEvent) {
         });
       }
     } catch (error) {
-      console.error("[SW Client] Error queueing check-in:", error);
+      // TODO: delete test comment
+      console.error("[❌ Service Worker] Error queueing check-in:", error);
     }
   }
 
-  // Sincronizar check-ins pendientes
   if (type === "SYNC_CHECK_INS") {
     try {
-      // Dynamic import para evitar cargar el módulo en el bundle principal
+      // TODO: delete test comment
+      console.log(`[🔄 Service Worker] Sync request received from SW`);
+
       const { syncPendingCheckIns } = await import("@/lib/offline/syncQueue");
       await syncPendingCheckIns();
+
+      // TODO: delete test comment
+      console.log(`[✅ Service Worker] Sync completed via SW trigger`);
     } catch (error) {
-      console.error("[SW Client] Error syncing check-ins:", error);
+      // TODO: delete test comment
+      console.error("[❌ Service Worker] Error syncing check-ins:", error);
     }
   }
 }

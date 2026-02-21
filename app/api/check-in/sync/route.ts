@@ -3,12 +3,12 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { z } from "zod";
+import { emitCheckInEvent } from "@/app/api/events/[eventId]/stream/route";
 
 const syncCheckInSchema = z.object({
   clientId: z.string().uuid(),
   invitationId: z.string().cuid(),
   guestsCount: z.number().int().min(1).max(20),
-  checkedInBy: z.string().cuid(),
   deviceId: z.string().optional(),
   timestamp: z.number(),
 });
@@ -43,21 +43,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validated = syncCheckInSchema.parse(body);
 
-    // 3. Verificar duplicado por clientId (deduplicación)
-    const existing = await prisma.checkIn.findUnique({
-      where: { clientId: validated.clientId },
-    });
+    // TODO: delete test comment
+    console.log(
+      `[📤 Sync Endpoint] Received check-in | ClientID: ${validated.clientId} | Invitation: ${validated.invitationId}`,
+    );
 
-    if (existing) {
-      console.log(`[Sync] Duplicado detectado: ${validated.clientId}`);
-      return NextResponse.json({
-        success: true,
-        duplicate: true,
-        message: "Check-in ya fue sincronizado",
-      });
-    }
-
-    // 4. Obtener invitación actual
+    // 3. Obtener invitación actual
     const invitation = await prisma.invitation.findUnique({
       where: { id: validated.invitationId },
       include: {
@@ -101,47 +92,100 @@ export async function POST(request: NextRequest) {
     const willExceed = validated.guestsCount > remaining;
     const excess = willExceed ? validated.guestsCount - remaining : 0;
 
-    // 7. Crear check-in (SIEMPRE, incluso si excede)
-    const checkIn = await prisma.$transaction(async (tx) => {
-      const newCheckIn = await tx.checkIn.create({
-        data: {
-          invitationId: invitation.id,
-          checkedInBy: validated.checkedInBy,
-          guestsCount: validated.guestsCount,
-          clientId: validated.clientId,
-          deviceId: validated.deviceId,
-          createdAt: new Date(validated.timestamp), // Usar timestamp original
-          syncedAt: new Date(), // Ahora fue sincronizado
-          exceededCapacity: willExceed,
-          capacityNote: willExceed
-            ? `Ingresaron ${currentTotal + validated.guestsCount}/${invitation.maxGuests} (exceso: ${excess})`
-            : null,
-        },
+    // 7. Use try-catch to handle duplicate clientId gracefully
+    let checkIn;
+    let isDuplicate = false;
+
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Create new check-in (will throw if clientId already exists)
+        const newCheckIn = await tx.checkIn.create({
+          data: {
+            invitationId: invitation.id,
+            checkedInBy: session.user.id,
+            guestsCount: validated.guestsCount,
+            clientId: validated.clientId,
+            deviceId: validated.deviceId,
+            createdAt: new Date(validated.timestamp),
+            syncedAt: new Date(),
+            exceededCapacity: willExceed,
+            capacityNote: willExceed
+              ? `Ingresaron ${currentTotal + validated.guestsCount}/${invitation.maxGuests} (exceso: ${excess})`
+              : null,
+          },
+        });
+
+        // TODO: delete test comment
+        console.log(
+          `[✅ Sync Endpoint] Created check-in in DB | ID: ${newCheckIn.id} | ClientID: ${validated.clientId}`,
+        );
+
+        // Update invitation counters
+        await tx.invitation.update({
+          where: { id: invitation.id },
+          data: {
+            checkInCount: { increment: validated.guestsCount },
+            lastCheckInAt: new Date(),
+          },
+        });
+
+        return newCheckIn;
       });
 
-      // Actualizar cache en invitación
-      await tx.invitation.update({
-        where: { id: invitation.id },
-        data: {
-          checkInCount: { increment: validated.guestsCount },
-          lastCheckInAt: new Date(),
-        },
+      checkIn = result;
+    } catch (error: any) {
+      // If duplicate key error, fetch existing check-in
+      if (error.code === "P2002" && error.meta?.target?.includes("clientId")) {
+        // TODO: delete test comment
+        console.log(
+          `[⚠️ Sync Endpoint] Duplicate clientId detected via P2002: ${validated.clientId} | Fetching existing`,
+        );
+
+        checkIn = await prisma.checkIn.findUnique({
+          where: { clientId: validated.clientId },
+        });
+
+        if (!checkIn) {
+          throw new Error("Duplicate detected but check-in not found");
+        }
+
+        isDuplicate = true;
+      } else {
+        // Re-throw other errors
+        throw error;
+      }
+    }
+
+    // If duplicate, return early (no SSE event needed)
+    if (isDuplicate) {
+      // TODO: delete test comment
+      console.log(
+        `[✅ Sync Endpoint] Duplicate handled successfully | ClientID: ${validated.clientId}`,
+      );
+      return NextResponse.json({
+        success: true,
+        duplicate: true,
+        message: "Check-in ya fue sincronizado",
       });
+    }
 
-      return newCheckIn;
-    });
+    // Emit SSE event to notify other clients (only for NEW check-ins)
+    emitCheckInEvent(invitation.eventId);
 
-    console.log(`[Sync] ✓ Check-in sincronizado: ${checkIn.id}`);
+    // TODO: delete test comment
+    console.log(
+      `[✅ Sync Endpoint] Check-in synced successfully | ID: ${checkIn!.id}`,
+    );
 
-    // 8. Retornar resultado
+    // 8. Return result
     if (willExceed) {
       return NextResponse.json({
         success: true,
         warning: `Se excedió la capacidad en ${excess} ${excess === 1 ? "persona" : "personas"}`,
         exceededCapacity: true,
         checkIn: {
-          id: checkIn.id,
-          guestsCount: checkIn.guestsCount,
+          id: checkIn!.id,
+          guestsCount: checkIn!.guestsCount,
         },
       });
     }
@@ -149,8 +193,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       checkIn: {
-        id: checkIn.id,
-        guestsCount: checkIn.guestsCount,
+        id: checkIn!.id,
+        guestsCount: checkIn!.guestsCount,
       },
     });
   } catch (error) {

@@ -284,6 +284,7 @@ model Invitation {
   @@index([eventId])
   @@index([guestName])
   @@index([guestPhone])
+  @@index([eventId, updatedAt]) // Composite index for efficient delta queries
   @@map("invitations")
 }
 

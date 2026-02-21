@@ -28,7 +28,6 @@ export interface CheckInQueueItem {
   invitationId: string;
   tokenId: string;
   guestsCount: number;
-  checkedInBy: string;
   deviceId: string;
   timestamp: number;
   synced: boolean;
@@ -145,8 +144,40 @@ export async function updateCachedInvitationCheckInCount(
   const invitation = await database.get("invitations-cache", invitationId);
 
   if (invitation) {
+    const oldCount = invitation.checkInCount;
     invitation.checkInCount += increment;
     await database.put("invitations-cache", invitation);
+
+    // TODO: delete test comment
+    console.log(
+      `[💾 IDB Cache] Updated checkInCount for ${invitationId} | ${oldCount} → ${invitation.checkInCount} (+${increment})`,
+    );
+  }
+}
+
+/**
+ * Update invitation cache with delta data from server
+ * Used for SSE-triggered delta sync
+ */
+export async function updateInvitationCache(
+  invitation: Partial<InvitationCache> & { id: string },
+): Promise<void> {
+  const database = await getDB();
+  const existing = await database.get("invitations-cache", invitation.id);
+
+  if (existing) {
+    // Merge updates into existing cache entry
+    const updated: InvitationCache = {
+      ...existing,
+      ...invitation,
+      lastSyncedAt: Date.now(),
+    };
+    await database.put("invitations-cache", updated);
+
+    // TODO: delete test comment
+    console.log(
+      `[💾 IDB Cache] Updated invitation ${invitation.id} | checkInCount: ${existing.checkInCount} → ${updated.checkInCount}`,
+    );
   }
 }
 
@@ -179,6 +210,11 @@ export async function saveCheckInToQueue(
   };
 
   await database.add("check-in-queue", item);
+
+  // TODO: delete test comment
+  console.log(
+    `[💾 IDB Queue] Added check-in to queue | ID: ${item.id} | ClientID: ${item.clientId} | Invitation: ${data.invitationId} | Guests: ${data.guestsCount}`,
+  );
 
   // Actualizar cache local de invitación
   await updateCachedInvitationCheckInCount(data.invitationId, data.guestsCount);

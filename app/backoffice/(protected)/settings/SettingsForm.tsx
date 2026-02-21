@@ -4,10 +4,12 @@ import { useActionState, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody } from "@heroui/card";
-import { Save } from "lucide-react";
+import { Select, SelectItem } from "@heroui/select";
+import { Save, Zap } from "lucide-react";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import { updateConfigurations } from "@/app/actions/settings";
 import { useToastFeedback } from "@/hooks/useToastFeedback";
+import { CheckInStrategyType } from "@/types/check-in-strategy";
 
 interface ConfigurationItem {
   id: string;
@@ -42,7 +44,7 @@ export default function SettingsForm({
     if (state.success && state.message) toastSuccess(state.message);
   }, [state]);
 
-  // Obtener valores iniciales (solo lectura, sin estado)
+  // Get initial values (read-only, no state)
   const photoUploadUrl = getConfigValue(
     initialConfigurations,
     CONFIGURATION_KEYS.PHOTO_UPLOAD_URL,
@@ -57,9 +59,33 @@ export default function SettingsForm({
       CONFIGURATION_KEYS.REMIND_RESTING_DAYS,
     ) || "40";
 
-  // El valor viene en formato datetime-local: "YYYY-MM-DDTHH:mm"
-  // Lo usamos directamente sin conversión
+  // Check-in strategy configuration (only strategy selector, timeouts are env vars)
+  const checkinStrategy =
+    (getConfigValue(
+      initialConfigurations,
+      CONFIGURATION_KEYS.CHECKIN_STRATEGY,
+    ) as CheckInStrategyType) || "HYBRID_SMART";
+
+  // datetime-local format: "YYYY-MM-DDTHH:mm"
   const initialDateTimeLocal = weddingDateTimeISO || "";
+
+  const strategies = [
+    {
+      key: "IDB_FIRST" as CheckInStrategyType,
+      label: "Cache Local Primero",
+      description: "Máxima velocidad, sincronización eventual",
+    },
+    {
+      key: "SERVER_FIRST" as CheckInStrategyType,
+      label: "Servidor Primero",
+      description: "Datos siempre actualizados, requiere buena conexión",
+    },
+    {
+      key: "HYBRID_SMART" as CheckInStrategyType,
+      label: "Inteligente (Recomendado)",
+      description: "Se adapta automáticamente según la calidad de red",
+    },
+  ];
 
   return (
     <form action={formAction} className="space-y-6">
@@ -119,6 +145,47 @@ export default function SettingsForm({
               variant="bordered"
               isDisabled={isPending}
             />
+          </CardBody>
+        </Card>
+
+        {/* CHECK-IN STRATEGY CONFIGURATION */}
+        {/* TODO: i18n */}
+        <Card className="border-2 border-primary/20">
+          <CardBody className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold">Estrategia de Check-In</h3>
+            </div>
+            <p className="text-sm text-foreground/60 mb-4">
+              Configura cómo los scanners manejarán los check-ins según las
+              condiciones de red
+            </p>
+
+            {/* Strategy Selection */}
+            <Select
+              name="checkinStrategy"
+              label="Estrategia de Check-In"
+              description="Cómo los dispositivos scanner manejarán los check-ins"
+              defaultSelectedKeys={[checkinStrategy]}
+              variant="bordered"
+              isDisabled={isPending}
+            >
+              {strategies.map((strategy) => (
+                <SelectItem
+                  key={strategy.key}
+                  description={strategy.description}
+                >
+                  {strategy.label}
+                </SelectItem>
+              ))}
+            </Select>
+
+            <div className="bg-default-100 rounded-lg p-3 text-xs text-foreground/60">
+              <p>
+                <strong>Nota:</strong> Los timeouts y umbrales técnicos se
+                configuran globalmente mediante variables de entorno.
+              </p>
+            </div>
           </CardBody>
         </Card>
       </div>

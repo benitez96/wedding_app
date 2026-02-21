@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardBody } from "@heroui/card";
 import { WifiOff, Wifi, RefreshCw } from "lucide-react";
 import { Button } from "@heroui/button";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { hasPendingCheckIns, forceSyncCheckIns } from "@/lib/offline/syncQueue";
 
 /**
@@ -15,26 +16,9 @@ import { hasPendingCheckIns, forceSyncCheckIns } from "@/lib/offline/syncQueue";
  * - Botón manual para forzar sincronización
  */
 export default function OfflineIndicator() {
-  const [isOnline, setIsOnline] = useState(true);
+  const isOnline = useOnlineStatus();
   const [hasPending, setHasPending] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-
-  // Monitorear estado de conexión
-  useEffect(() => {
-    const updateOnlineStatus = () => {
-      setIsOnline(navigator.onLine);
-    };
-
-    updateOnlineStatus();
-
-    window.addEventListener("online", updateOnlineStatus);
-    window.addEventListener("offline", updateOnlineStatus);
-
-    return () => {
-      window.removeEventListener("online", updateOnlineStatus);
-      window.removeEventListener("offline", updateOnlineStatus);
-    };
-  }, []);
 
   // Verificar check-ins pendientes
   useEffect(() => {
@@ -45,11 +29,40 @@ export default function OfflineIndicator() {
 
     checkPending();
 
-    // Verificar cada 5 segundos
     const interval = setInterval(checkPending, 5000);
 
     return () => clearInterval(interval);
   }, []);
+
+  // Fallback: sincronizar automáticamente cuando vuelve la conexión.
+  // Background Sync API no está disponible en todos los browsers
+  // (Firefox, Safari), así que este effect garantiza la sincronización.
+  useEffect(() => {
+    if (!isOnline || isSyncing) return;
+
+    let cancelled = false;
+
+    const autoSync = async () => {
+      const pending = await hasPendingCheckIns();
+      if (!pending || cancelled) return;
+
+      setIsSyncing(true);
+      try {
+        await forceSyncCheckIns();
+        if (!cancelled) setHasPending(false);
+      } catch (error) {
+        console.error("[Offline] Auto-sync failed:", error);
+      } finally {
+        if (!cancelled) setIsSyncing(false);
+      }
+    };
+
+    autoSync();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOnline]);
 
   // Sincronizar manualmente
   const handleSync = async () => {

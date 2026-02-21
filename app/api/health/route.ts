@@ -1,20 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
 
+/**
+ * Health check endpoint.
+ * Also used by NetworkMonitor for latency measurement (HEAD request).
+ */
 export async function GET() {
   try {
-    // Verificar que la aplicación está funcionando
-    return NextResponse.json(
-      { 
-        status: 'ok'
-      },
-      { status: 200 }
-    )
-  } catch (error) {
-    return NextResponse.json(
-      { 
-        status: 'error'
-      },
-      { status: 503 }
-    )
+    return NextResponse.json({ status: "ok" }, { status: 200 });
+  } catch {
+    return NextResponse.json({ status: "error" }, { status: 503 });
   }
+}
+
+/**
+ * Lightweight HEAD request for network latency measurement
+ */
+export async function HEAD() {
+  return new NextResponse(null, { status: 200 });
 }

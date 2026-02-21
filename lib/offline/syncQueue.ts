@@ -25,10 +25,46 @@ export interface SyncResult {
   }>;
 }
 
+// Global lock to prevent concurrent sync operations
+let syncInProgress = false;
+
 /**
- * Sincronizar todos los check-ins pendientes
+ * Sync all pending check-ins (with lock to prevent concurrent syncs)
  */
 export async function syncPendingCheckIns(): Promise<SyncResult> {
+  // If sync already in progress, return early
+  if (syncInProgress) {
+    // TODO: delete test comment
+    console.log(
+      "[⏸️ Outbound Sync] Sync already in progress, skipping duplicate call",
+    );
+    return {
+      total: 0,
+      synced: 0,
+      failed: 0,
+      conflicts: [],
+    };
+  }
+
+  // Acquire lock
+  syncInProgress = true;
+  // TODO: delete test comment
+  console.log("[🔒 Outbound Sync] Lock acquired");
+
+  try {
+    return await performSync();
+  } finally {
+    // Release lock
+    syncInProgress = false;
+    // TODO: delete test comment
+    console.log("[🔓 Outbound Sync] Lock released");
+  }
+}
+
+/**
+ * Internal sync implementation
+ */
+async function performSync(): Promise<SyncResult> {
   const result: SyncResult = {
     total: 0,
     synced: 0,
@@ -41,11 +77,15 @@ export async function syncPendingCheckIns(): Promise<SyncResult> {
     result.total = pending.length;
 
     if (pending.length === 0) {
-      console.log("[Sync] No pending check-ins");
+      // TODO: delete test comment
+      console.log("[📤 Outbound Sync] No pending check-ins in queue");
       return result;
     }
 
-    console.log(`[Sync] Syncing ${pending.length} check-ins...`);
+    // TODO: delete test comment
+    console.log(
+      `[📤 Outbound Sync] Found ${pending.length} pending check-ins, uploading to server...`,
+    );
 
     for (const checkIn of pending) {
       try {
@@ -58,7 +98,6 @@ export async function syncPendingCheckIns(): Promise<SyncResult> {
             clientId: checkIn.clientId,
             invitationId: checkIn.invitationId,
             guestsCount: checkIn.guestsCount,
-            checkedInBy: checkIn.checkedInBy,
             deviceId: checkIn.deviceId,
             timestamp: checkIn.timestamp,
           }),
@@ -81,11 +120,22 @@ export async function syncPendingCheckIns(): Promise<SyncResult> {
             invitationId: checkIn.invitationId,
             reason: data.warning || "Capacidad excedida",
           });
+          // TODO: delete test comment
+          console.warn(
+            `[⚠️ Outbound Sync] Check-in ${checkIn.id} synced with conflict: ${data.warning}`,
+          );
+        } else {
+          // TODO: delete test comment
+          console.log(
+            `[✅ Outbound Sync] Check-in ${checkIn.id} synced successfully`,
+          );
         }
-
-        console.log(`[Sync] ✓ Check-in ${checkIn.id} synced`);
       } catch (error) {
-        console.error(`[Sync] ✗ Failed to sync check-in ${checkIn.id}:`, error);
+        // TODO: delete test comment
+        console.error(
+          `[❌ Outbound Sync] Failed to sync check-in ${checkIn.id}:`,
+          error,
+        );
         result.failed++;
       }
     }
@@ -93,9 +143,16 @@ export async function syncPendingCheckIns(): Promise<SyncResult> {
     // Limpiar check-ins sincronizados
     if (result.synced > 0) {
       await clearSyncedCheckIns();
+      // TODO: delete test comment
+      console.log(
+        `[🗑️ Outbound Sync] Cleaned ${result.synced} synced check-ins from IDB queue`,
+      );
     }
 
-    console.log(`[Sync] Complete: ${result.synced}/${result.total} synced`);
+    // TODO: delete test comment
+    console.log(
+      `[✅ Outbound Sync] Complete: ${result.synced}/${result.total} synced, ${result.failed} failed`,
+    );
 
     // Mostrar notificación si hay conflictos
     if (result.conflicts.length > 0 && "Notification" in window) {

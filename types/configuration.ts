@@ -2,6 +2,9 @@ export const CONFIGURATION_KEYS = {
   PHOTO_UPLOAD_URL: "PHOTO_UPLOAD_URL",
   WEDDING_DATE: "WEDDING_DATE",
   REMIND_RESTING_DAYS: "REMIND_RESTING_DAYS",
+
+  // Check-in strategy configuration (per-event)
+  CHECKIN_STRATEGY: "checkin.strategy", // "IDB_FIRST" | "SERVER_FIRST" | "HYBRID_SMART"
 } as const;
 
 export type ConfigurationKey =

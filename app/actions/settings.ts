@@ -22,17 +22,20 @@ export const updateConfigurations = withEventAuth(
     try {
       const eventId = ctx.event.eventId;
 
-      // Obtener valores del formulario
+      // Get form values
       const photoUploadUrl = formData.get("photoUploadUrl") as string;
       const weddingDateTime = formData.get("weddingDateTime") as string;
       const remindRestingDays = formData.get("remindRestingDays") as string;
 
-      // Validación de campo requerido
+      // Check-in strategy configuration (only strategy type, timeouts are env vars)
+      const checkinStrategy = formData.get("checkinStrategy") as string;
+
+      // Validate required field
       if (!weddingDateTime) {
         return { success: false, error: "La fecha y hora son requeridas" };
       }
 
-      // Validar días de recordatorio
+      // Validate remind days
       const remindDaysNum = Number.parseInt(remindRestingDays || "40", 10);
       if (
         Number.isNaN(remindDaysNum) ||
@@ -42,6 +45,15 @@ export const updateConfigurations = withEventAuth(
         return {
           success: false,
           error: "Los días de recordatorio deben estar entre 1 y 365",
+        };
+      }
+
+      // Validate check-in strategy
+      const validStrategies = ["IDB_FIRST", "SERVER_FIRST", "HYBRID_SMART"];
+      if (checkinStrategy && !validStrategies.includes(checkinStrategy)) {
+        return {
+          success: false,
+          error: "Estrategia de check-in inválida",
         };
       }
 
@@ -97,7 +109,25 @@ export const updateConfigurations = withEventAuth(
         },
       });
 
-      // Revalidar
+      // Check-in strategy configuration (only strategy type stored in DB)
+      await prisma.configuration.upsert({
+        where: {
+          eventId_key: {
+            eventId,
+            key: CONFIGURATION_KEYS.CHECKIN_STRATEGY,
+          },
+        },
+        update: { value: checkinStrategy || "HYBRID_SMART" },
+        create: {
+          eventId,
+          key: CONFIGURATION_KEYS.CHECKIN_STRATEGY,
+          value: checkinStrategy || "HYBRID_SMART",
+          description:
+            "Check-in strategy: IDB_FIRST, SERVER_FIRST, HYBRID_SMART",
+        },
+      });
+
+      // Revalidate
       revalidatePath("/backoffice/settings");
       revalidatePath("/", "layout");
 
