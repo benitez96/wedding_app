@@ -97,12 +97,6 @@ export const updateConfigurations = withEventAuth(
         },
       });
 
-      // Limpiar cache de configuraciones
-      const { clearConfigurationCache } = await import(
-        "@/lib/get-configurations"
-      );
-      clearConfigurationCache();
-
       // Revalidar
       revalidatePath("/backoffice/settings");
       revalidatePath("/", "layout");

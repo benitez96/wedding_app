@@ -56,7 +56,6 @@ export function getPatternPositions(
       return getCenterPosition();
 
     case DecorationPatterns.TILED:
-    case DecorationPatterns.NONE:
     default:
       return [];
   }

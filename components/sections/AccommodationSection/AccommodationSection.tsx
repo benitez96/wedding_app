@@ -1,44 +1,14 @@
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
 import AccommodationList from "@/components/sections/AccommodationList";
-import { AccommodationSectionSettings } from "./AccommodationSection.metadata";
+import {
+  AccommodationSectionSettings,
+  AccommodationSectionSettingsSchema,
+} from "./AccommodationSection.metadata";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 import { SectionIcon } from "@/components/ui/SectionIcon";
 import { SectionIcon as SectionIconType } from "@/types/section-icon";
-
-const accommodations = [
-  {
-    name: "Hotel Santa Ines",
-    phone: "+54 9 3777 20-0505",
-    description: "Ubicado en el centro de la ciudad",
-    distance: "3 min del salón a pie",
-  },
-  {
-    name: "Hotel La Casona",
-    phone: "+54 9 3777 45-2357",
-    description: "Ubicado en el centro de la ciudad",
-    distance: "3 min del salón a pie",
-  },
-  {
-    name: "Hotel Victoria",
-    phone: "+54 9 3777 45-2348",
-    description: "Ubicado en el centro de la ciudad",
-    distance: "11 min del salón a pie",
-  },
-  {
-    name: "Hotel Rio Arriba",
-    phone: "+54 9 3777 45-0376",
-    description: "Ubicado sobre la costanera de la ciudad",
-    distance: "12 min del salón a pie",
-  },
-  {
-    name: "Cabañas Bella Vista",
-    phone: "+54 9 3777 45-1555",
-    description: "Ubicado sobre la costanera de la ciudad",
-    distance: "13 min del salón a pie",
-  },
-];
 
 interface AccommodationSectionProps {
   settings?: AccommodationSectionSettings;
@@ -47,21 +17,35 @@ interface AccommodationSectionProps {
 export default function AccommodationSection({
   settings,
 }: AccommodationSectionProps) {
-  const title = settings?.title || "ALOJAMIENTOS";
-  const description =
-    settings?.description ||
-    "Sabemos que podés venir de lejos, así que te facilitamos algunos teléfonos de alojamientos cercanos";
-  const hasAlternateBg = settings?.hasAlternateBg ?? false;
+  // Use safeParse to handle potentially invalid data gracefully
+  const result = AccommodationSectionSettingsSchema.safeParse(settings || {});
+
+  // If validation fails, use defaults from schema
+  if (!result.success) {
+    console.error(
+      "AccommodationSection schema validation failed:",
+      result.error.issues,
+    );
+    console.log("Settings received:", settings);
+  }
+
+  const parsed = result.success
+    ? result.data
+    : AccommodationSectionSettingsSchema.parse({});
+
+  const title = parsed.title;
+  const description = parsed.description;
+  const accommodations = parsed.accommodations;
+  const hasAlternateBg = parsed.hasAlternateBg;
 
   // Section icon
-  const sectionIcon = (settings?.icon || "accommodation") as SectionIconType;
+  const sectionIcon = parsed.icon as SectionIconType;
 
-  // Decoraciones
-  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
-  const decorationPattern = (settings?.decorationPattern ||
-    "none") as DecorationPattern;
-  const decorationOpacity = settings?.decorationOpacity ?? 10;
-  const decorationSize = settings?.decorationSize ?? 60;
+  // Decorations
+  const decorationSvg = parsed.decorationSvg as DecorationSvg;
+  const decorationPattern = parsed.decorationPattern as DecorationPattern;
+  const decorationOpacity = parsed.decorationOpacity;
+  const decorationSize = parsed.decorationSize;
 
   return (
     <AnimatedSectionCSS delay={0.6}>

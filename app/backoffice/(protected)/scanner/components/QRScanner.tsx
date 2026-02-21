@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Card, CardBody } from "@heroui/card";
 import { Button } from "@heroui/button";
 import { Camera, CameraOff, AlertCircle, Download } from "lucide-react";
@@ -17,11 +17,12 @@ interface QRScannerProps {
 /**
  * Componente principal del scanner QR
  *
- * Usa BarcodeDetector API nativa para escanear códigos QR.
- * Cuando detecta un QR:
- * 1. Valida el token vía Server Action
- * 2. Muestra modal de confirmación con datos de la invitación
- * 3. Permite registrar el check-in
+ * Flujo:
+ * 1. Usuario activa el scanner (enabled = true)
+ * 2. La cámara se prende UNA VEZ y queda corriendo
+ * 3. Cuando detecta un QR → valida vía Server Action → muestra modal
+ * 4. Mientras el modal está abierto, ignora nuevas detecciones (busyRef)
+ * 5. Al cerrar el modal → vuelve a aceptar detecciones (sin tocar la cámara)
  */
 export default function QRScanner({ eventId }: QRScannerProps) {
   const [isEnabled, setIsEnabled] = useState(false);
@@ -42,10 +43,13 @@ export default function QRScanner({ eventId }: QRScannerProps) {
     total: number;
   } | null>(null);
 
+  // Ref para bloquear scans mientras procesamos (NO estado, NO causa re-renders)
+  const busyRef = useRef(false);
+
   // Detectar modo offline
   const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
-  // Cargar invitaciones en cache al montar el componente
+  // Cargar invitaciones en cache al montar
   useEffect(() => {
     const loadCache = async () => {
       setIsCaching(true);
@@ -69,10 +73,14 @@ export default function QRScanner({ eventId }: QRScannerProps) {
     loadCache();
   }, [eventId]);
 
-  // Hook del scanner
+  // Hook del scanner — enabled es la ÚNICA cosa que lo prende/apaga
   const { videoRef, isScanning, hasPermission, error } = useQRScanner({
     enabled: isEnabled,
     onScan: async (tokenId) => {
+      // Si ya estamos procesando un QR, ignorar
+      if (busyRef.current) return;
+      busyRef.current = true;
+
       setIsValidating(true);
       setScanError(null);
 
@@ -83,11 +91,11 @@ export default function QRScanner({ eventId }: QRScannerProps) {
           setScannedInvitation(result.invitation);
         } else {
           setScanError(result.error || "Error al validar el código QR");
-          setIsEnabled(false);
+          busyRef.current = false;
         }
-      } catch (err) {
+      } catch {
         setScanError("Error al conectar con el servidor");
-        setIsEnabled(false);
+        busyRef.current = false;
       } finally {
         setIsValidating(false);
       }
@@ -95,12 +103,12 @@ export default function QRScanner({ eventId }: QRScannerProps) {
     onError: (err) => {
       console.error("[Scanner] Error:", err);
       setScanError(err.message);
-      setIsEnabled(false);
     },
   });
 
   const handleStartScanning = () => {
     setScanError(null);
+    busyRef.current = false;
     setIsEnabled(true);
   };
 
@@ -110,8 +118,8 @@ export default function QRScanner({ eventId }: QRScannerProps) {
 
   const handleCloseModal = () => {
     setScannedInvitation(null);
-    // Reiniciar scanner después de cerrar modal
-    setIsEnabled(true);
+    // Liberar el lock → el scanner sigue corriendo, acepta nuevas detecciones
+    busyRef.current = false;
   };
 
   return (
@@ -152,14 +160,25 @@ export default function QRScanner({ eventId }: QRScannerProps) {
               </div>
             )}
 
-            {/* Marco de escaneo */}
+            {/* Overlay + Marco de escaneo */}
             {isScanning && !isValidating && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-64 h-64 border-4 border-success rounded-2xl shadow-lg">
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-success rounded-tl-2xl" />
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-success rounded-tr-2xl" />
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-success rounded-bl-2xl" />
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-success rounded-br-2xl" />
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Overlay oscuro con hueco central via clip-path */}
+                <div
+                  className="absolute inset-0 bg-black/50"
+                  style={{
+                    clipPath:
+                      "polygon(0% 0%, 0% 100%, calc(50% - 128px) 100%, calc(50% - 128px) calc(50% - 128px), calc(50% + 128px) calc(50% - 128px), calc(50% + 128px) calc(50% + 128px), calc(50% - 128px) calc(50% + 128px), calc(50% - 128px) 100%, 100% 100%, 100% 0%)",
+                  }}
+                />
+                {/* Esquinas blancas */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative w-64 h-64">
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-2xl" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-2xl" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-2xl" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-2xl" />
+                  </div>
                 </div>
               </div>
             )}

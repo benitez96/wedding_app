@@ -15,7 +15,7 @@ export function DecorationPreview({
   size,
   hasAlternateBg = false,
 }: DecorationPreviewProps) {
-  if (svg === "none" || pattern === "none") {
+  if (svg === "none") {
     return (
       <Card className="w-full">
         <CardBody className="h-32 flex items-center justify-center">

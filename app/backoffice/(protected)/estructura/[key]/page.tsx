@@ -61,6 +61,9 @@ export default async function EditSectionPage({
     if (!section) {
       return { success: false, error: "Sección no encontrada" };
     }
+    if (!isSectionKey(key)) {
+      return { success: false, error: "Clave de sección inválida" };
+    }
     return await updateSectionSettings(section.id, key, settings);
   }
 

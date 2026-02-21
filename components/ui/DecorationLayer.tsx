@@ -12,7 +12,7 @@ import { getPatternPositions } from "@/lib/decoration-patterns";
  */
 export function DecorationLayer({
   svg = "none",
-  pattern = "none",
+  pattern = "corners",
   opacity = 10,
   size = 60,
   hasAlternateBg = false,
@@ -64,7 +64,7 @@ export function DecorationLayer({
     : "var(--color-secondary)";
 
   // Si no hay decoración, solo renderiza children sin decoraciones
-  const hasDecoration = svg !== "none" && pattern !== "none";
+  const hasDecoration = svg !== "none";
 
   // Patrón especial: TILED usa background-image CSS
   if (hasDecoration && pattern === DecorationPatterns.TILED) {

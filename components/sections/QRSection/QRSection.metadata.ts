@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  CommonSectionFieldsSchema,
+  DecorationSvgSchema,
+  DecorationPatternSchema,
+} from "@/types/section-settings-schemas";
 
 export const QR_SECTION_KEY = "qr" as const;
 
@@ -16,30 +21,12 @@ export const QRSectionSettingsSchema = z.object({
   subtitle: z.string().default("Presenta este código QR al ingresar al evento"),
   hasAlternateBg: z.boolean().default(false),
 
-  // Ícono de sección
+  // Icon (QRSection doesn't use standard icon system, uses emoji)
   icon: z.string().default("qrcode"),
 
-  // Sistema de decoraciones
-  decorationSvg: z
-    .enum(["none", "flower", "leaf", "heart", "branch", "branch-2"])
-    .default("none"),
-  decorationPattern: z
-    .enum([
-      "none",
-      "corners",
-      "scattered-grid-alt",
-      "scattered-grid-progressive",
-      "scattered-grid-radial",
-      "border-top",
-      "border-bottom",
-      "border-both",
-      "border-left",
-      "border-right",
-      "border-sides",
-      "tiled",
-      "center",
-    ])
-    .default("none"),
+  // Decorations
+  decorationSvg: DecorationSvgSchema.default("none"),
+  decorationPattern: DecorationPatternSchema.default("corners"),
   decorationOpacity: z.number().min(0).max(100).default(10),
   decorationSize: z.number().min(20).max(200).default(60),
 });

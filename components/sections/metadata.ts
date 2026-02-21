@@ -20,19 +20,19 @@ import { RSVPSectionMetadata } from "./RSVPSection/RSVPSection.metadata";
 // METADATA REGISTRY
 // ============================================
 export const SECTION_METADATA = {
-  "accommodation": AccommodationSectionMetadata,
-  "celebration": CelebrationSectionMetadata,
-  "ceremony": CeremonySectionMetadata,
-  "date": DateSectionMetadata,
-  "divider": DividerSectionMetadata,
-  "dress_code": DressCodeSectionMetadata,
-  "gift": GiftSectionMetadata,
-  "hero": HeroSectionMetadata,
-  "instagram": InstagramSectionMetadata,
-  "photo_upload": PhotoUploadSectionMetadata,
-  "qr": QRSectionMetadata,
-  "quote": QuoteSectionMetadata,
-  "rsvp": RSVPSectionMetadata,
+  accommodation: AccommodationSectionMetadata,
+  celebration: CelebrationSectionMetadata,
+  ceremony: CeremonySectionMetadata,
+  date: DateSectionMetadata,
+  divider: DividerSectionMetadata,
+  dress_code: DressCodeSectionMetadata,
+  gift: GiftSectionMetadata,
+  hero: HeroSectionMetadata,
+  instagram: InstagramSectionMetadata,
+  photo_upload: PhotoUploadSectionMetadata,
+  qr: QRSectionMetadata,
+  quote: QuoteSectionMetadata,
+  rsvp: RSVPSectionMetadata,
 } as const;
 
 // ============================================
@@ -41,5 +41,5 @@ export const SECTION_METADATA = {
 export type SectionKey = keyof typeof SECTION_METADATA;
 
 export function isSectionKey(key: string): key is SectionKey {
-  return key in SECTION_METADATA;
+  return Object.prototype.hasOwnProperty.call(SECTION_METADATA, key);
 }

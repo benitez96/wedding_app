@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SectionIcons } from "@/types/section-icon";
+import { CommonSectionFieldsSchema } from "@/types/section-settings-schemas";
 
 export const CELEBRATION_SECTION_KEY = "celebration" as const;
 
@@ -12,69 +12,24 @@ export const CelebrationSectionMetadata = {
   defaultEnabled: true,
 };
 
-export const CelebrationSectionSettingsSchema = z.object({
-  description: z
-    .string()
-    .default("Despues de la Ceremonia festejaremos en el Club Union"),
-  venueName: z.string().default("Club Union"),
-  mapsUrl: z
-    .string()
-    .url()
-    .default("https://maps.app.goo.gl/AjTWBW7Y25sENdw36"),
-
-  // Sistema nuevo de íconos
-  icon: z
-    .enum([
-      "none",
-      "rings-1",
-      "rings-2",
-      "celebration-1",
-      "celebration-2",
-      "gift-1",
-      "gift-2",
-      "photos-1",
-      "photos-2",
-      "instagram",
-      "dress-code",
-      "accommodation",
-      "church",
-      "disco-ball",
-      "rsvp",
-      "calendar",
-      "music",
-    ])
-    .default("celebration-1"),
-
-  // Deprecated
-  iconUrl: z.string().optional(),
-
-  showDirectionsButton: z.boolean().default(true),
-  hasAlternateBg: z.boolean().default(false),
-
-  // 🌸 Sistema de decoraciones
-  decorationSvg: z
-    .enum(["none", "flower", "leaf", "heart", "branch", "branch-2"])
-    .default("none"),
-  decorationPattern: z
-    .enum([
-      "none",
-      "corners",
-      "scattered-grid-alt",
-      "scattered-grid-progressive",
-      "scattered-grid-radial",
-      "border-top",
-      "border-bottom",
-      "border-both",
-      "border-left",
-      "border-right",
-      "border-sides",
-      "tiled",
-      "center",
-    ])
-    .default("none"),
-  decorationOpacity: z.number().min(0).max(100).default(10),
-  decorationSize: z.number().min(20).max(200).default(60),
-});
+export const CelebrationSectionSettingsSchema = z
+  .object({
+    description: z
+      .string()
+      .default("Despues de la Ceremonia festejaremos en el Club Union"),
+    venueName: z.string().default("Club Union"),
+    mapsUrl: z
+      .string()
+      .url()
+      .default("https://maps.app.goo.gl/AjTWBW7Y25sENdw36"),
+    showDirectionsButton: z.boolean().default(true),
+  })
+  .merge(CommonSectionFieldsSchema)
+  .merge(
+    z.object({
+      icon: CommonSectionFieldsSchema.shape.icon.default("celebration-1"),
+    }),
+  );
 
 export type CelebrationSectionSettings = z.infer<
   typeof CelebrationSectionSettingsSchema

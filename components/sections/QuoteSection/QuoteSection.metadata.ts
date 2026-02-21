@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CommonSectionFieldsSchema } from "@/types/section-settings-schemas";
 
 export const QUOTE_SECTION_KEY = "quote" as const;
 
@@ -11,38 +12,20 @@ export const QuoteSectionMetadata = {
   defaultEnabled: true,
 };
 
-export const QuoteSectionSettingsSchema = z.object({
-  quoteText: z
-    .string()
-    .default(
-      "El amor nos unió, y queremos compartir nuestra felicidad con vos.",
-    ),
-  showQuote: z.boolean().default(true),
-  hasAlternateBg: z.boolean().default(true), // QuoteSection tiene bg por defecto
-
-  // 🌸 Sistema de decoraciones
-  decorationSvg: z
-    .enum(["none", "flower", "leaf", "heart", "branch", "branch-2"])
-    .default("none"),
-  decorationPattern: z
-    .enum([
-      "none",
-      "corners",
-      "scattered-grid-alt",
-      "scattered-grid-progressive",
-      "scattered-grid-radial",
-      "border-top",
-      "border-bottom",
-      "border-both",
-      "border-left",
-      "border-right",
-      "border-sides",
-      "tiled",
-      "center",
-    ])
-    .default("none"),
-  decorationOpacity: z.number().min(0).max(100).default(10),
-  decorationSize: z.number().min(20).max(200).default(60),
-});
+export const QuoteSectionSettingsSchema = z
+  .object({
+    quoteText: z
+      .string()
+      .default(
+        "El amor nos unió, y queremos compartir nuestra felicidad con vos.",
+      ),
+    showQuote: z.boolean().default(true),
+  })
+  .merge(CommonSectionFieldsSchema)
+  .merge(
+    z.object({
+      hasAlternateBg: z.boolean().default(true), // QuoteSection tiene bg por defecto
+    }),
+  );
 
 export type QuoteSectionSettings = z.infer<typeof QuoteSectionSettingsSchema>;

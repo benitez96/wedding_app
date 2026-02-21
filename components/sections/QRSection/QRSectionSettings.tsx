@@ -16,7 +16,7 @@ interface QRSectionSettingsProps {
  * Permite personalizar el título y subtítulo que se muestran
  * en la sección de código QR de la invitación.
  */
-export default function QRSectionSettings({
+export function QRSectionSettingsForm({
   settings,
   onChange,
 }: QRSectionSettingsProps) {
