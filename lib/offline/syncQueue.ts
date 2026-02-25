@@ -1,11 +1,11 @@
 /**
- * Sincronización de check-ins pendientes (offline → online)
+ * Sync pending check-ins from IndexedDB queue to server
  *
- * Estrategia:
- * - Obtener check-ins pendientes de IndexedDB
- * - Enviar cada uno al servidor vía API
- * - Marcar como sincronizado si es exitoso
- * - Manejar conflictos (capacidad excedida)
+ * Strategy:
+ * - Upload each pending check-in to server via /api/check-in/sync
+ * - Mark as synced if successful
+ * - Track conflicts (capacity exceeded)
+ * - Global lock prevents concurrent sync operations
  */
 
 import {
@@ -29,15 +29,11 @@ export interface SyncResult {
 let syncInProgress = false;
 
 /**
- * Sync all pending check-ins (with lock to prevent concurrent syncs)
+ * Sync all pending check-ins (with lock to prevent race conditions)
  */
 export async function syncPendingCheckIns(): Promise<SyncResult> {
-  // If sync already in progress, return early
+  // If sync already in progress, return early (prevent duplicate uploads)
   if (syncInProgress) {
-    // TODO: delete test comment
-    console.log(
-      "[⏸️ Outbound Sync] Sync already in progress, skipping duplicate call",
-    );
     return {
       total: 0,
       synced: 0,
@@ -48,16 +44,12 @@ export async function syncPendingCheckIns(): Promise<SyncResult> {
 
   // Acquire lock
   syncInProgress = true;
-  // TODO: delete test comment
-  console.log("[🔒 Outbound Sync] Lock acquired");
 
   try {
     return await performSync();
   } finally {
     // Release lock
     syncInProgress = false;
-    // TODO: delete test comment
-    console.log("[🔓 Outbound Sync] Lock released");
   }
 }
 
@@ -77,15 +69,8 @@ async function performSync(): Promise<SyncResult> {
     result.total = pending.length;
 
     if (pending.length === 0) {
-      // TODO: delete test comment
-      console.log("[📤 Outbound Sync] No pending check-ins in queue");
       return result;
     }
-
-    // TODO: delete test comment
-    console.log(
-      `[📤 Outbound Sync] Found ${pending.length} pending check-ins, uploading to server...`,
-    );
 
     for (const checkIn of pending) {
       try {
@@ -109,52 +94,30 @@ async function performSync(): Promise<SyncResult> {
 
         const data = await response.json();
 
-        // Marcar como sincronizado
+        // Mark as synced
         await markCheckInAsSynced(checkIn.id);
         result.synced++;
 
-        // Si hubo conflicto (capacidad excedida), registrarlo
+        // Track conflicts (capacity exceeded)
         if (data.warning || data.exceededCapacity) {
           result.conflicts.push({
             checkInId: checkIn.id,
             invitationId: checkIn.invitationId,
             reason: data.warning || "Capacidad excedida",
           });
-          // TODO: delete test comment
-          console.warn(
-            `[⚠️ Outbound Sync] Check-in ${checkIn.id} synced with conflict: ${data.warning}`,
-          );
-        } else {
-          // TODO: delete test comment
-          console.log(
-            `[✅ Outbound Sync] Check-in ${checkIn.id} synced successfully`,
-          );
         }
       } catch (error) {
-        // TODO: delete test comment
-        console.error(
-          `[❌ Outbound Sync] Failed to sync check-in ${checkIn.id}:`,
-          error,
-        );
+        console.error(`[Sync] Failed to sync check-in ${checkIn.id}:`, error);
         result.failed++;
       }
     }
 
-    // Limpiar check-ins sincronizados
+    // Clean up synced check-ins from IDB queue
     if (result.synced > 0) {
       await clearSyncedCheckIns();
-      // TODO: delete test comment
-      console.log(
-        `[🗑️ Outbound Sync] Cleaned ${result.synced} synced check-ins from IDB queue`,
-      );
     }
 
-    // TODO: delete test comment
-    console.log(
-      `[✅ Outbound Sync] Complete: ${result.synced}/${result.total} synced, ${result.failed} failed`,
-    );
-
-    // Mostrar notificación si hay conflictos
+    // Show notification if conflicts occurred
     if (result.conflicts.length > 0 && "Notification" in window) {
       if (Notification.permission === "granted") {
         new Notification("⚠️ Conflictos en check-in", {
@@ -172,7 +135,7 @@ async function performSync(): Promise<SyncResult> {
 }
 
 /**
- * Forzar sincronización (llamado manualmente)
+ * Force sync (called manually by user)
  */
 export async function forceSyncCheckIns(): Promise<SyncResult> {
   if (!navigator.onLine) {
@@ -183,7 +146,7 @@ export async function forceSyncCheckIns(): Promise<SyncResult> {
 }
 
 /**
- * Verificar si hay check-ins pendientes
+ * Check if there are pending check-ins in the queue
  */
 export async function hasPendingCheckIns(): Promise<boolean> {
   const pending = await getPendingCheckIns();

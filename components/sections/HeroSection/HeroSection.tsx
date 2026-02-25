@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import { Section } from "@/components/section";
 import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import {
   HeroSectionSettings,
   TEXT_COLORS,
@@ -13,8 +14,8 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ settings }: HeroSectionProps) {
-  const imageUrl = settings?.imageUrl || "/logo-2.jpeg";
-  const title = settings?.title || "NUESTRA BODA";
+  const imageUrl = settings?.imageUrl || "";
+  const title = settings?.title || "MI EVENTO";
   const showScrollIndicator = settings?.showScrollIndicator ?? true;
   const enableOverlay = settings?.enableOverlay ?? false;
   const enableFadeEffect = settings?.enableFadeEffect ?? false;
@@ -56,11 +57,9 @@ export default function HeroSection({ settings }: HeroSectionProps) {
         {/* Media (imagen o video) */}
         <div className="absolute inset-0 w-full h-full" style={fadeStyles}>
           {!hasValidMedia ? (
-            // Placeholder cuando no hay media válida
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <p className="text-gray-500 text-sm">
-                Ingresá una URL válida o subí una imagen/video
-              </p>
+            // Logo cuando no hay media válida
+            <div className="w-full h-full flex items-center justify-center p-8 bg-background">
+              <Logo className="size-[150px]" />
             </div>
           ) : mediaType === "video" ? (
             <video
@@ -70,7 +69,6 @@ export default function HeroSection({ settings }: HeroSectionProps) {
               muted
               playsInline
               preload="metadata"
-              poster="/logo-2.jpeg"
               className={`w-full h-full ${objectFit === OBJECT_FIT_MODES.COVER ? "object-cover" : "object-contain"}`}
             >
               Tu navegador no soporta videos
@@ -127,11 +125,9 @@ export default function HeroSection({ settings }: HeroSectionProps) {
         {/* Media (imagen o video) */}
         <div className="relative w-full" style={fadeStyles}>
           {!hasValidMedia ? (
-            // Placeholder cuando no hay media válida
-            <div className="w-full h-[calc(100dvh-120px)] bg-gray-200 flex items-center justify-center">
-              <p className="text-gray-500 text-sm">
-                Ingresá una URL válida o subí una imagen/video
-              </p>
+            // Logo cuando no hay media válida
+            <div className="w-full h-[calc(100dvh-120px)] flex items-center justify-center p-8 bg-background">
+              <Logo className="w-[150px] h-[150px] fill-foreground" />
             </div>
           ) : mediaType === "video" ? (
             <video
@@ -141,7 +137,6 @@ export default function HeroSection({ settings }: HeroSectionProps) {
               muted
               playsInline
               preload="metadata"
-              poster="/logo-2.jpeg"
               className={`w-full h-[calc(100dvh-120px)] ${objectFit === OBJECT_FIT_MODES.COVER ? "object-cover" : "object-contain"}`}
             >
               Tu navegador no soporta videos

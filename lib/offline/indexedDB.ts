@@ -133,8 +133,7 @@ export async function getAllCachedInvitations(): Promise<InvitationCache[]> {
 }
 
 /**
- * Actualizar checkInCount de una invitación en cache
- * (Usado después de check-in local exitoso)
+ * Update checkInCount in local cache after successful check-in
  */
 export async function updateCachedInvitationCheckInCount(
   invitationId: string,
@@ -144,20 +143,13 @@ export async function updateCachedInvitationCheckInCount(
   const invitation = await database.get("invitations-cache", invitationId);
 
   if (invitation) {
-    const oldCount = invitation.checkInCount;
     invitation.checkInCount += increment;
     await database.put("invitations-cache", invitation);
-
-    // TODO: delete test comment
-    console.log(
-      `[💾 IDB Cache] Updated checkInCount for ${invitationId} | ${oldCount} → ${invitation.checkInCount} (+${increment})`,
-    );
   }
 }
 
 /**
- * Update invitation cache with delta data from server
- * Used for SSE-triggered delta sync
+ * Update invitation cache with delta data from server (SSE-triggered sync)
  */
 export async function updateInvitationCache(
   invitation: Partial<InvitationCache> & { id: string },
@@ -173,11 +165,6 @@ export async function updateInvitationCache(
       lastSyncedAt: Date.now(),
     };
     await database.put("invitations-cache", updated);
-
-    // TODO: delete test comment
-    console.log(
-      `[💾 IDB Cache] Updated invitation ${invitation.id} | checkInCount: ${existing.checkInCount} → ${updated.checkInCount}`,
-    );
   }
 }
 
@@ -194,7 +181,7 @@ export async function clearInvitationsCache(): Promise<void> {
 // ============================================
 
 /**
- * Guardar check-in en queue (offline)
+ * Save check-in to offline queue (for later sync)
  */
 export async function saveCheckInToQueue(
   data: Omit<CheckInQueueItem, "id" | "synced" | "deviceId" | "clientId">,
@@ -204,19 +191,14 @@ export async function saveCheckInToQueue(
   const item: CheckInQueueItem = {
     ...data,
     id: crypto.randomUUID(),
-    clientId: crypto.randomUUID(), // Para deduplicación en servidor
+    clientId: crypto.randomUUID(), // For server-side deduplication
     deviceId: await getDeviceId(),
     synced: false,
   };
 
   await database.add("check-in-queue", item);
 
-  // TODO: delete test comment
-  console.log(
-    `[💾 IDB Queue] Added check-in to queue | ID: ${item.id} | ClientID: ${item.clientId} | Invitation: ${data.invitationId} | Guests: ${data.guestsCount}`,
-  );
-
-  // Actualizar cache local de invitación
+  // Update local cache (optimistic update)
   await updateCachedInvitationCheckInCount(data.invitationId, data.guestsCount);
 
   return item;

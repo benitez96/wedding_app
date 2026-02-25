@@ -36,10 +36,13 @@ export function SectionEditorLayout({
           <CardHeader>
             <h3 className="text-lg font-semibold">Vista Previa</h3>
           </CardHeader>
-          <CardBody className="overflow-auto max-h-[calc(100vh-200px)]">
-            {previewPlaceholder ?? (
-              <PreviewComponent settings={previewSettings} />
-            )}
+          <CardBody className="p-0 overflow-hidden">
+            {/* Mobile viewport simulator */}
+            <div className="w-full h-[calc(100vh-200px)] overflow-y-auto bg-background">
+              {previewPlaceholder ?? (
+                <PreviewComponent settings={previewSettings} />
+              )}
+            </div>
           </CardBody>
         </Card>
       </div>

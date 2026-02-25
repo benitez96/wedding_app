@@ -104,15 +104,8 @@ export async function GET(
             const msg = `event: check-in\ndata: ${JSON.stringify({ timestamp: data.timestamp })}\n\n`;
             try {
               controller.enqueue(encoder.encode(msg));
-              // TODO: delete test comment
-              console.log(
-                `[📡 SSE Server] Emitted check-in event for eventId: ${eventId}`,
-              );
             } catch {
-              // Client disconnected
-              console.log(
-                `[⚠️ SSE Server] Failed to send to disconnected client`,
-              );
+              // Client disconnected - cleanup handled in cancel()
             }
           }
         };
@@ -143,7 +136,10 @@ export async function GET(
   }
 }
 
-// Helper to emit check-in events (called from check-in routes)
+/**
+ * Emit check-in event to all connected SSE clients for this event
+ * Called from check-in routes after successful check-in creation
+ */
 export function emitCheckInEvent(eventId: string) {
   const listeners = global.checkInEventListeners as
     | Map<string, (data: { eventId: string; timestamp: string }) => void>
@@ -151,13 +147,6 @@ export function emitCheckInEvent(eventId: string) {
 
   const listener = listeners?.get(eventId);
   if (listener) {
-    // TODO: delete test comment
-    console.log(`[📡 SSE] Emitting check-in event for eventId: ${eventId}`);
     listener({ eventId, timestamp: new Date().toISOString() });
-  } else {
-    // TODO: delete test comment
-    console.log(
-      `[⚠️ SSE] No listeners registered for eventId: ${eventId} (client probably not connected)`,
-    );
   }
 }

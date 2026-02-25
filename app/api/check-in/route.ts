@@ -10,16 +10,19 @@ import { emitCheckInEvent } from "@/app/api/events/[eventId]/stream/route";
 /**
  * POST /api/check-in
  *
- * Route Handler para crear check-ins. Expuesto como REST endpoint
- * para que el Service Worker pueda interceptarlo cuando estamos offline
- * y hacer queue en IndexedDB.
+ * Create check-in (online mode - direct to server)
  *
- * Online: pasa derecho al servidor → crea check-in en DB
- * Offline: el SW intercepta el fetch, responde con { queued: true }
- *          y guarda el payload para sincronizar después vía /api/check-in/sync
+ * Flow:
+ * - Online: Creates check-in immediately in database
+ * - Offline: Service Worker intercepts and queues in IndexedDB
+ *            (synced later via /api/check-in/sync)
+ *
+ * Note: Never rejects check-ins, even if capacity exceeded
+ * (reflects reality - people already entered the venue)
  */
 export async function POST(request: NextRequest) {
   try {
+    // 1. Authentication
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -31,14 +34,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 2. Parse and validate body
     const body = await request.json();
     const validated = createCheckInSchema.parse(body);
 
+    // 3. Fetch invitation with event data (for permission check)
     const invitation = await prisma.invitation.findUnique({
       where: { id: validated.invitationId },
       include: {
         event: {
           select: {
+            id: true,
             ownerId: true,
             members: {
               where: { userId: session.user.id },
@@ -55,6 +61,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 4. Verify permissions (owner has automatic access)
     const isOwner = invitation.event.ownerId === session.user.id;
 
     if (!isOwner) {
@@ -70,13 +77,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 5. Calculate capacity
     const currentTotal = invitation.checkInCount;
     const remaining = invitation.maxGuests - currentTotal;
     const willExceed = validated.guestsCount > remaining;
     const excess = willExceed ? validated.guestsCount - remaining : 0;
 
+    // 6. Generate clientId if not provided (for idempotency)
     const clientId = validated.clientId || crypto.randomUUID();
 
+    // 7. Create check-in in transaction
     const checkIn = await prisma.$transaction(async (tx) => {
       const newCheckIn = await tx.checkIn.create({
         data: {
@@ -93,6 +103,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Update invitation counters
       await tx.invitation.update({
         where: { id: invitation.id },
         data: {
@@ -104,12 +115,14 @@ export async function POST(request: NextRequest) {
       return newCheckIn;
     });
 
+    // 8. Revalidate paths
     revalidatePath("/backoffice/scanner");
     revalidatePath("/backoffice/invitations");
 
-    // Emit SSE event for real-time sync
-    emitCheckInEvent(invitation.eventId);
+    // 9. Emit SSE event to notify other devices
+    emitCheckInEvent(invitation.event.id);
 
+    // 10. Return result
     if (willExceed) {
       return NextResponse.json({
         success: true,

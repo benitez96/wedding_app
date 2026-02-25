@@ -45,8 +45,8 @@ export function HeroSectionSettingsForm({
 }: SectionSettingsFormProps<HeroSectionSettings>) {
   const [settings, setSettings] = useState<Partial<HeroSectionSettings>>(
     () => ({
-      imageUrl: initialSettings.imageUrl || "/logo-2.jpeg",
-      title: initialSettings.title || "NUESTRA BODA",
+      imageUrl: initialSettings.imageUrl || "",
+      title: initialSettings.title || "MI EVENTO",
       showScrollIndicator: initialSettings.showScrollIndicator ?? true,
       enableOverlay: initialSettings.enableOverlay ?? false,
       enableFadeEffect: initialSettings.enableFadeEffect ?? false,
@@ -92,17 +92,6 @@ export function HeroSectionSettingsForm({
             }
             label="Imagen o Video Principal"
             description="Subir imagen (JPG, PNG, WebP) o video (MP4, WebM, MOV - Máx. 20MB)"
-          />
-
-          {/* URL de imagen (fallback manual) */}
-          <Input
-            label="URL de la Imagen (opcional)"
-            description="O ingresá una URL externa directamente"
-            placeholder="/logo-2.jpeg"
-            value={settings.imageUrl || ""}
-            onChange={(e) =>
-              updateSettings((prev) => ({ ...prev, imageUrl: e.target.value }))
-            }
           />
 
           {/* Título */}
