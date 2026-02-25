@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Wedding App - Backoffice",
-    short_name: "Wedding BO",
-    description: "Sistema de gestión de eventos y check-in con QR",
+    name: "Invify - Backoffice",
+    short_name: "Invify BO",
+    description: "Sistema de gestión de invitaciones y eventos digitales",
     start_url: "/backoffice",
     scope: "/backoffice",
     display: "standalone",

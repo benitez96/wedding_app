@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import EventAvatar from "./EventAvatar";
 import { useDisclosure } from "@heroui/use-disclosure";
 import CreateEventModal from "@/components/backoffice/CreateEventModal";
 import { switchActiveEvent } from "@/app/actions/events";
+import { Logo } from "@/components/Logo";
 
 export default function EventSwitcher() {
   const { events, activeEventId, tier } = useSidebar();
@@ -41,8 +42,8 @@ export default function EventSwitcher() {
     <>
       <aside className="fixed left-0 top-0 h-screen w-[72px] bg-content1 flex flex-col items-center py-4 gap-2 border-r border-divider z-40">
         {/* Logo/Brand */}
-        <div className="flex items-center justify-center mb-2">
-          <Heart className="text-red-500 w-8 h-8" />
+        <div className="flex items-center justify-center mb-2 bg-black rounded-lg p-2">
+          <Logo className="size-8 text-white" />
         </div>
 
         <Divider className="w-12" />

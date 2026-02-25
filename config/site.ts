@@ -1,6 +1,6 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Boda Daniel & Soledad",
-  description: "Nos casamos y queremos compartirlo con vos!",
+  name: "Invify",
+  description: "Sistema de gestión de invitaciones y eventos digitales",
 };

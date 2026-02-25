@@ -1,7 +1,7 @@
 {
   "dashboard": {
     "id": null,
-    "title": "Wedding App - Security Dashboard",
+    "title": "Invify - Security Dashboard",
     "tags": ["security", "fail2ban", "caddy"],
     "style": "dark",
     "timezone": "browser",
@@ -44,8 +44,8 @@
             },
             "thresholds": {
               "steps": [
-                {"color": "green", "value": null},
-                {"color": "red", "value": 1}
+                { "color": "green", "value": null },
+                { "color": "red", "value": 1 }
               ]
             }
           }

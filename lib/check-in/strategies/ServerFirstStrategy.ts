@@ -16,7 +16,10 @@ import type {
   CheckInStrategyConfig,
 } from "@/types/check-in-strategy";
 import { scanQR } from "@/app/actions/check-in/scanQR";
-import { getInvitationByToken } from "@/lib/offline/indexedDB";
+import {
+  getInvitationByToken,
+  saveCheckInToQueue,
+} from "@/lib/offline/indexedDB";
 
 export class ServerFirstStrategy implements ICheckInStrategy {
   constructor(private config: CheckInStrategyConfig) {}
@@ -53,19 +56,25 @@ export class ServerFirstStrategy implements ICheckInStrategy {
       }
 
       // Server returned error → try IDB fallback
-      return this.validateFromIDB(tokenId, result.error);
+      return this.validateFromIDB(tokenId, result.error || "Error al validar");
     } catch {
       // Network error or timeout → fallback to IDB
-      return this.validateFromIDB(tokenId, "Server unavailable");
+      return this.validateFromIDB(tokenId, "Error al validar");
     }
   }
 
   /**
-   * Create check-in: POST to server with timeout
+   * Create check-in: POST to server with timeout, fallback to queue on failure
    */
   async createCheckIn(
     input: CheckInAttemptInput,
   ): Promise<CheckInAttemptResult> {
+    // If offline, queue immediately
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return this.queueCheckIn(input);
+    }
+
+    // Try server
     try {
       const response = await fetch("/api/check-in", {
         method: "POST",
@@ -90,19 +99,38 @@ export class ServerFirstStrategy implements ICheckInStrategy {
         };
       }
 
+      // Server returned error → fallback to queue
+      return this.queueCheckIn(input);
+    } catch (error) {
+      // Network error or timeout → fallback to queue
+      return this.queueCheckIn(input);
+    }
+  }
+
+  /**
+   * Queue check-in for later sync
+   */
+  private async queueCheckIn(
+    input: CheckInAttemptInput,
+  ): Promise<CheckInAttemptResult> {
+    try {
+      await saveCheckInToQueue({
+        invitationId: input.invitationId,
+        tokenId: input.tokenId,
+        guestsCount: input.guestsCount,
+        timestamp: Date.now(),
+      });
+
       return {
-        success: false,
-        source: "SERVER",
-        error: result.error || "Check-in failed",
+        success: true,
+        source: "OFFLINE_QUEUE",
+        queued: true,
       };
     } catch (error) {
       return {
         success: false,
-        source: "SERVER",
-        error:
-          error instanceof Error && error.name === "TimeoutError"
-            ? "Server timeout"
-            : "Network error during check-in",
+        source: "OFFLINE_QUEUE",
+        error: "Error al guardar check-in offline",
       };
     }
   }

@@ -80,25 +80,29 @@ describe("DecorationPreview", () => {
       expect(mockDecorationLayer).not.toHaveBeenCalled();
     });
 
-    it("renders empty state when pattern is 'none'", () => {
+    it("renders preview when svg is valid and pattern is set", () => {
       render(
         <DecorationPreview
           svg="flower"
-          pattern="none"
+          pattern={DecorationPatterns.CORNERS}
           opacity={50}
           size={60}
         />,
       );
 
-      expect(
-        screen.getByText("Sin decoración seleccionada"),
-      ).toBeInTheDocument();
-      expect(mockDecorationLayer).not.toHaveBeenCalled();
+      // Should render preview (not empty state) when both svg and pattern are valid
+      expect(screen.getByTestId("decoration-layer")).toBeInTheDocument();
+      expect(mockDecorationLayer).toHaveBeenCalled();
     });
 
     it("renders empty state Card with correct styling", () => {
       render(
-        <DecorationPreview svg="none" pattern="none" opacity={50} size={60} />,
+        <DecorationPreview
+          svg="none"
+          pattern={DecorationPatterns.CORNERS}
+          opacity={50}
+          size={60}
+        />,
       );
 
       const cardBody = screen.getByTestId("card-body");
@@ -480,7 +484,12 @@ describe("DecorationPreview", () => {
 
     it("transitions between empty state and preview", () => {
       const { rerender } = render(
-        <DecorationPreview svg="none" pattern="none" opacity={50} size={60} />,
+        <DecorationPreview
+          svg="none"
+          pattern={DecorationPatterns.CORNERS}
+          opacity={50}
+          size={60}
+        />,
       );
 
       expect(

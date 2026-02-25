@@ -15,7 +15,11 @@ import type {
   CheckInAttemptResult,
   CheckInStrategyConfig,
 } from "@/types/check-in-strategy";
-import { getInvitationByToken } from "@/lib/offline/indexedDB";
+import {
+  getInvitationByToken,
+  saveCheckInToQueue,
+} from "@/lib/offline/indexedDB";
+import { scanQR } from "@/app/actions/check-in/scanQR";
 
 export class IDBFirstStrategy implements ICheckInStrategy {
   constructor(private config: CheckInStrategyConfig) {}
@@ -25,7 +29,7 @@ export class IDBFirstStrategy implements ICheckInStrategy {
   }
 
   /**
-   * Validate QR: Always return cached data for instant UX
+   * Validate QR: Check cache first, fallback to server if not found
    */
   async validateQR(
     tokenId: string,
@@ -34,44 +38,80 @@ export class IDBFirstStrategy implements ICheckInStrategy {
     try {
       const cached = await getInvitationByToken(tokenId);
 
-      if (!cached) {
+      if (cached) {
+        const remaining = cached.maxGuests - cached.checkInCount;
+
         return {
-          success: false,
+          success: true,
           source: "IDB",
-          error: "QR code not found in local cache",
+          invitation: {
+            id: cached.id,
+            tokenId: cached.tokenId,
+            guestName: cached.guestName,
+            guestNickname: cached.guestNickname,
+            maxGuests: cached.maxGuests,
+            checkInCount: cached.checkInCount,
+            remaining,
+          },
         };
       }
 
-      const remaining = cached.maxGuests - cached.checkInCount;
+      // Cache miss → fallback to server
+      const serverResult = await scanQR({ tokenId, eventId });
+
+      if (!serverResult.success) {
+        return {
+          success: false,
+          source: "SERVER",
+          error: serverResult.error || "Token inválido",
+        };
+      }
 
       return {
         success: true,
-        source: "IDB",
-        invitation: {
-          id: cached.id,
-          tokenId: cached.tokenId,
-          guestName: cached.guestName,
-          guestNickname: cached.guestNickname,
-          maxGuests: cached.maxGuests,
-          checkInCount: cached.checkInCount,
-          remaining,
-        },
+        source: "SERVER",
+        invitation: serverResult.invitation,
       };
     } catch (error) {
-      return {
-        success: false,
-        source: "IDB",
-        error: "Failed to read from local cache",
-      };
+      // IDB error → try server as last resort
+      try {
+        const serverResult = await scanQR({ tokenId, eventId });
+
+        if (!serverResult.success) {
+          return {
+            success: false,
+            source: "SERVER",
+            error: serverResult.error || "Token inválido",
+          };
+        }
+
+        return {
+          success: true,
+          source: "SERVER",
+          invitation: serverResult.invitation,
+        };
+      } catch {
+        return {
+          success: false,
+          source: "IDB",
+          error: "Error al validar código QR",
+        };
+      }
     }
   }
 
   /**
-   * Create check-in: Always use client-side POST (SW intercepts if offline)
+   * Create check-in: Try server first, fallback to offline queue
    */
   async createCheckIn(
     input: CheckInAttemptInput,
   ): Promise<CheckInAttemptResult> {
+    // If offline, queue immediately
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return this.queueCheckIn(input);
+    }
+
+    // Try server
     try {
       const response = await fetch("/api/check-in", {
         method: "POST",
@@ -96,21 +136,38 @@ export class IDBFirstStrategy implements ICheckInStrategy {
         };
       }
 
+      // Server returned error → fallback to queue
+      return this.queueCheckIn(input);
+    } catch (error) {
+      // Network error or timeout → fallback to queue
+      return this.queueCheckIn(input);
+    }
+  }
+
+  /**
+   * Queue check-in for later sync
+   */
+  private async queueCheckIn(
+    input: CheckInAttemptInput,
+  ): Promise<CheckInAttemptResult> {
+    try {
+      await saveCheckInToQueue({
+        invitationId: input.invitationId,
+        tokenId: input.tokenId,
+        guestsCount: input.guestsCount,
+        timestamp: Date.now(),
+      });
+
       return {
-        success: false,
-        source: "SERVER",
-        error: result.error || "Check-in failed",
+        success: true,
+        source: "OFFLINE_QUEUE",
+        queued: true,
       };
     } catch (error) {
-      // Timeout or network error
-      // SW should have intercepted and queued, but if not, surface error
       return {
         success: false,
-        source: "SERVER",
-        error:
-          error instanceof Error && error.name === "TimeoutError"
-            ? "Server timeout - check-in may be queued"
-            : "Network error during check-in",
+        source: "OFFLINE_QUEUE",
+        error: "Error al guardar check-in offline",
       };
     }
   }

@@ -14,7 +14,6 @@ import {
   LogOut,
   Palette,
   UserPlus,
-  Heart,
 } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
@@ -27,6 +26,7 @@ import EventAvatar from "./EventAvatar";
 import { useDisclosure } from "@heroui/use-disclosure";
 import CreateEventModal from "@/components/backoffice/CreateEventModal";
 import { switchActiveEvent } from "@/app/actions/events";
+import { Logo } from "@/components/Logo";
 
 // TODO i18n: menu item labels
 const MENU_ITEMS: MenuItem[] = [
@@ -120,9 +120,11 @@ export default function MobileMenu() {
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-content1 border-b border-divider flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
-          <Heart className="text-red-500 w-6 h-6" />
+          <div className="bg-black rounded-lg p-1">
+            <Logo className="size-5 text-white" />
+          </div>
           {/* TODO i18n: app name */}
-          <span className="font-bold text-foreground text-lg">Wedding App</span>
+          <span className="font-bold text-white text-lg">Invify</span>
         </div>
 
         <Button

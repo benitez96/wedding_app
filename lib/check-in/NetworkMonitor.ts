@@ -2,7 +2,7 @@
  * Network Monitor
  *
  * Measures network latency and tracks cache staleness for strategy decisions.
- * Uses exponential moving average (EMA) for smooth latency measurements.
+ * Uses rolling average of last 3 pings for accurate real-time measurements.
  *
  * Single Responsibility: Network metrics + cache staleness tracking
  */
@@ -14,7 +14,7 @@ import type {
 } from "@/types/check-in-strategy";
 
 const PING_INTERVAL_MS = 10_000; // Ping every 10s to measure latency
-const EMA_ALPHA = 0.3; // Exponential moving average weight (0-1, higher = more reactive)
+const LATENCY_WINDOW_SIZE = 3; // Rolling average of last 3 measurements
 
 export class NetworkMonitor {
   private networkMetrics: NetworkMetrics = {
@@ -31,6 +31,9 @@ export class NetworkMonitor {
 
   private pingIntervalId: ReturnType<typeof setInterval> | null = null;
   private config: CheckInStrategyConfig;
+
+  // Rolling window of last N latency measurements
+  private latencyWindow: number[] = [];
 
   constructor(config: CheckInStrategyConfig) {
     this.config = config;
@@ -88,30 +91,28 @@ export class NetworkMonitor {
         cache: "no-store",
       });
 
-      const latency = performance.now() - start;
+      const latency = Math.round(performance.now() - start);
 
-      // Exponential moving average for smooth latency
-      const previousLatency = this.networkMetrics.latencyMs;
-      const smoothedLatency =
-        previousLatency === 0
-          ? latency
-          : EMA_ALPHA * latency + (1 - EMA_ALPHA) * previousLatency;
+      // Add to rolling window (keep last N measurements)
+      this.latencyWindow.push(latency);
+      if (this.latencyWindow.length > LATENCY_WINDOW_SIZE) {
+        this.latencyWindow.shift(); // Remove oldest
+      }
+
+      // Calculate average of last N pings
+      const avgLatency = Math.round(
+        this.latencyWindow.reduce((sum, val) => sum + val, 0) /
+          this.latencyWindow.length,
+      );
 
       this.networkMetrics = {
         isOnline: true,
-        latencyMs: Math.round(smoothedLatency),
+        latencyMs: avgLatency,
         lastMeasuredAt: Date.now(),
       };
-
-      // TODO: delete test comment
-      console.log(
-        `[📡 Network Monitor] Latency measured: ${Math.round(latency)}ms (smoothed: ${Math.round(smoothedLatency)}ms)`,
-      );
     } catch {
       // Network error → mark as offline
       this.networkMetrics.isOnline = false;
-      // TODO: delete test comment
-      console.log(`[📡 Network Monitor] Offline detected`);
     }
   }
 

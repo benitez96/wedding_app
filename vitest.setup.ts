@@ -16,6 +16,26 @@ import { afterEach, beforeAll, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 /**
+ * Mock global de Prisma para prevenir intentos de conexión a DB en tests
+ * Prisma se importa en varios módulos y puede intentar conectarse automáticamente
+ * Cada test que necesite Prisma debe hacer su propio mock específico
+ */
+vi.mock("@/lib/prisma", () => ({
+  default: {
+    // Mock de métodos comunes que podrían ser llamados
+    $disconnect: vi.fn(),
+    $connect: vi.fn(),
+    configuration: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+  },
+}));
+
+/**
  * Cleanup automático de React Testing Library
  * Se ejecuta después de CADA test para limpiar el DOM
  */

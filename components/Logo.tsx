@@ -8,6 +8,8 @@ export function Logo({ className = "" }: LogoProps) {
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 358 357"
       className={className}
+      fill="currentColor"
+      stroke="currentColor"
     >
       <path
         strokeWidth="1"
