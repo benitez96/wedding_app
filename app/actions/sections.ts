@@ -103,7 +103,7 @@ export const updateSectionsOrder = withEventAuth(
 
       // Revalidar cache y páginas
       revalidateTag("sections"); // Invalida el cache de secciones
-      revalidatePath("/backoffice/estructura");
+      revalidatePath("/backoffice/structure");
       revalidatePath("/", "layout"); // Revalida toda la app pública
 
       return {
@@ -161,7 +161,7 @@ export const updateSectionSettings = withEventAuth(
 
       // Revalidar cache y páginas
       revalidateTag("sections"); // Invalida el cache de secciones
-      revalidatePath("/backoffice/estructura");
+      revalidatePath("/backoffice/structure");
       revalidatePath("/", "layout");
 
       return {
@@ -233,7 +233,7 @@ export const addSection = withEventAuth(
 
       // Revalidar cache y páginas
       revalidateTag("sections");
-      revalidatePath("/backoffice/estructura");
+      revalidatePath("/backoffice/structure");
       revalidatePath("/", "layout");
 
       return {
@@ -318,7 +318,7 @@ export const removeSection = withEventAuth(
 
       // Revalidar cache y páginas
       revalidateTag("sections");
-      revalidatePath("/backoffice/estructura");
+      revalidatePath("/backoffice/structure");
       revalidatePath("/", "layout");
 
       return {

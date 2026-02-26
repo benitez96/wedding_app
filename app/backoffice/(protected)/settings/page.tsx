@@ -1,31 +1,23 @@
-import { Card, CardBody, CardHeader } from "@heroui/card";
 import SettingsForm from "./SettingsForm";
-import { getConfigurations } from "@/app/actions/settings";
+import { getEventSettings } from "@/app/actions/settings";
 
 // Forzar renderizado dinámico (no estático)
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  // Cargar configuraciones en el servidor
-  const configurations = await getConfigurations();
+  // Cargar configuraciones del evento en el servidor
+  const { event, configurations } = await getEventSettings();
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Configuraciones</h1>
         <p className="text-foreground/60 mt-2">
-          Configurar variables del sitio web
+          Configuración general de tu evento
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold">Variables de Configuración</h3>
-        </CardHeader>
-        <CardBody>
-          <SettingsForm initialConfigurations={configurations} />
-        </CardBody>
-      </Card>
+      <SettingsForm event={event} initialConfigurations={configurations} />
     </div>
   );
 }

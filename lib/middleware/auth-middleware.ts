@@ -7,7 +7,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { hasPermission, PERMISSIONS, type Permission } from "@/lib/permissions";
+import { hasPermission, PERMISSIONS } from "@/lib/permissions";
+
+// Type for permission values (bigint)
+type Permission = bigint;
 
 interface AuthSession {
   user: {

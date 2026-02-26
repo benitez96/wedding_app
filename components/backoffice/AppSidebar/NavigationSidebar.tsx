@@ -4,71 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ChevronLeft,
-  ChevronRight,
-  LayoutDashboard,
-  Users,
-  Layout,
-  Settings,
-  LogOut,
-  Palette,
-  UserPlus,
-  QrCode,
-  ClipboardList,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
 import clsx from "clsx";
 import { useSidebar } from "./SidebarContext";
-import type { MenuItem } from "./types";
 import { authClient } from "@/lib/auth-client";
 import TierBadge from "@/components/backoffice/TierBadge";
-
-// TODO i18n: menu item labels
-const MENU_ITEMS: MenuItem[] = [
-  {
-    label: "Dashboard",
-    href: "/backoffice/dashboard",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-  },
-  {
-    label: "Invitaciones",
-    href: "/backoffice/invitations",
-    icon: <Users className="w-5 h-5" />,
-  },
-  {
-    label: "Scanner QR",
-    href: "/backoffice/scanner",
-    icon: <QrCode className="w-5 h-5" />,
-  },
-  {
-    label: "Check-ins",
-    href: "/backoffice/check-ins",
-    icon: <ClipboardList className="w-5 h-5" />,
-  },
-  {
-    label: "Estructura",
-    href: "/backoffice/estructura",
-    icon: <Layout className="w-5 h-5" />,
-  },
-  {
-    label: "Theming",
-    href: "/backoffice/theming",
-    icon: <Palette className="w-5 h-5" />,
-  },
-  {
-    label: "Configuraciones",
-    href: "/backoffice/settings",
-    icon: <Settings className="w-5 h-5" />,
-  },
-  {
-    label: "Miembros",
-    href: "/backoffice/collaborators",
-    icon: <UserPlus className="w-5 h-5" />,
-    tierRequired: "COMPANY",
-  },
-];
+import { BACKOFFICE_MENU_ITEMS } from "@/config/backoffice-menu";
 
 export default function NavigationSidebar() {
   const { isExpanded, toggleSidebar, events, activeEventId, tier } =
@@ -77,7 +20,7 @@ export default function NavigationSidebar() {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const visibleItems = MENU_ITEMS.filter((item) => {
+  const visibleItems = BACKOFFICE_MENU_ITEMS.filter((item) => {
     if (!item.tierRequired) return true;
     if (item.tierRequired === "COMPANY") return tier === "COMPANY";
     return true;

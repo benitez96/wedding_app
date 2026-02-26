@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { z } from "zod";
 import { emitCheckInEvent } from "@/app/api/events/[eventId]/stream/route";
+import { checkInvitationPermission } from "@/lib/middleware/auth-middleware";
 
 const syncCheckInSchema = z.object({
   clientId: z.string().uuid(),
@@ -19,33 +18,22 @@ const syncCheckInSchema = z.object({
  * Sync offline check-ins to server (idempotent by clientId)
  *
  * Flow:
- * 1. Check if clientId already exists (early return if duplicate)
- * 2. Validate permissions and invitation
- * 3. Create check-in in transaction
- * 4. Emit SSE event for real-time sync
+ * 1. Validate body
+ * 2. Check for duplicate FIRST (idempotency - fast path)
+ * 3. Validate permissions and invitation
+ * 4. Create check-in in transaction
+ * 5. Emit SSE event for real-time sync
  *
  * Note: Never rejects check-ins, even if capacity exceeded
  * (reflects reality - people already entered the venue)
  */
 export async function POST(request: NextRequest) {
   try {
-    // 1. Authentication
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "No autenticado" },
-        { status: 401 },
-      );
-    }
-
-    // 2. Parse and validate body
+    // 1. Parse and validate body
     const body = await request.json();
     const validated = syncCheckInSchema.parse(body);
 
-    // 3. Check for duplicate FIRST (idempotency - fast path)
+    // 2. Check for duplicate FIRST (idempotency - fast path)
     const existingCheckIn = await prisma.checkIn.findUnique({
       where: { clientId: validated.clientId },
     });
@@ -59,52 +47,22 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 4. Fetch invitation with event data (for permission check)
-    const invitation = await prisma.invitation.findUnique({
-      where: { id: validated.invitationId },
-      include: {
-        event: {
-          select: {
-            id: true,
-            ownerId: true,
-            members: {
-              where: { userId: session.user.id },
-            },
-          },
-        },
-      },
-    });
+    // 3. Check authentication + permissions (centralized)
+    const authCheck = await checkInvitationPermission(
+      request,
+      validated.invitationId,
+    );
+    if (!authCheck.authorized) return authCheck.response;
 
-    if (!invitation) {
-      return NextResponse.json(
-        { success: false, error: "Invitación no encontrada" },
-        { status: 404 },
-      );
-    }
+    const { session, invitation } = authCheck;
 
-    // 5. Verify permissions (owner has automatic access)
-    const isOwner = invitation.event.ownerId === session.user.id;
-
-    if (!isOwner) {
-      const member = invitation.event.members[0];
-      if (
-        !member ||
-        !hasPermission(member.permissions, PERMISSIONS.CHECKIN_SCAN)
-      ) {
-        return NextResponse.json(
-          { success: false, error: "Sin permisos para sincronizar check-ins" },
-          { status: 403 },
-        );
-      }
-    }
-
-    // 6. Calculate capacity (may have changed since offline check-in)
+    // 4. Calculate capacity (may have changed since offline check-in)
     const currentTotal = invitation.checkInCount;
     const remaining = invitation.maxGuests - currentTotal;
     const willExceed = validated.guestsCount > remaining;
     const excess = willExceed ? validated.guestsCount - remaining : 0;
 
-    // 7. Create check-in in transaction (no race condition possible here)
+    // 5. Create check-in in transaction (no race condition possible here)
     const checkIn = await prisma.$transaction(async (tx) => {
       const newCheckIn = await tx.checkIn.create({
         data: {

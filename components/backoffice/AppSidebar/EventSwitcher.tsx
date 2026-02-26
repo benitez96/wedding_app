@@ -42,8 +42,11 @@ export default function EventSwitcher() {
     <>
       <aside className="fixed left-0 top-0 h-screen w-[72px] bg-content1 flex flex-col items-center py-4 gap-2 border-r border-divider z-40">
         {/* Logo/Brand */}
-        <div className="flex items-center justify-center mb-2 bg-black rounded-lg p-2">
+        <div className="flex flex-col items-center justify-center mb-2 bg-black rounded p-1 px-2 gap-0.5">
           <Logo className="size-8 text-white" />
+          <span className="text-white text-[9px] font-bold leading-none">
+            Invify
+          </span>
         </div>
 
         <Divider className="w-12" />

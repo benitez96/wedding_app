@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createCheckInSchema } from "@/app/actions/schemas";
 import { emitCheckInEvent } from "@/app/api/events/[eventId]/stream/route";
+import { checkInvitationPermission } from "@/lib/middleware/auth-middleware";
 
 /**
  * POST /api/check-in
@@ -22,71 +21,29 @@ import { emitCheckInEvent } from "@/app/api/events/[eventId]/stream/route";
  */
 export async function POST(request: NextRequest) {
   try {
-    // 1. Authentication
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "No autenticado" },
-        { status: 401 },
-      );
-    }
-
-    // 2. Parse and validate body
+    // 1. Parse and validate body
     const body = await request.json();
     const validated = createCheckInSchema.parse(body);
 
-    // 3. Fetch invitation with event data (for permission check)
-    const invitation = await prisma.invitation.findUnique({
-      where: { id: validated.invitationId },
-      include: {
-        event: {
-          select: {
-            id: true,
-            ownerId: true,
-            members: {
-              where: { userId: session.user.id },
-            },
-          },
-        },
-      },
-    });
+    // 2. Check authentication + permissions (centralized)
+    const authCheck = await checkInvitationPermission(
+      request,
+      validated.invitationId,
+    );
+    if (!authCheck.authorized) return authCheck.response;
 
-    if (!invitation) {
-      return NextResponse.json(
-        { success: false, error: "Invitación no encontrada" },
-        { status: 404 },
-      );
-    }
+    const { session, invitation } = authCheck;
 
-    // 4. Verify permissions (owner has automatic access)
-    const isOwner = invitation.event.ownerId === session.user.id;
-
-    if (!isOwner) {
-      const member = invitation.event.members[0];
-      if (
-        !member ||
-        !hasPermission(member.permissions, PERMISSIONS.CHECKIN_SCAN)
-      ) {
-        return NextResponse.json(
-          { success: false, error: "Sin permisos para registrar check-ins" },
-          { status: 403 },
-        );
-      }
-    }
-
-    // 5. Calculate capacity
+    // 3. Calculate capacity
     const currentTotal = invitation.checkInCount;
     const remaining = invitation.maxGuests - currentTotal;
     const willExceed = validated.guestsCount > remaining;
     const excess = willExceed ? validated.guestsCount - remaining : 0;
 
-    // 6. Generate clientId if not provided (for idempotency)
+    // 4. Generate clientId if not provided (for idempotency)
     const clientId = validated.clientId || crypto.randomUUID();
 
-    // 7. Create check-in in transaction
+    // 5. Create check-in in transaction
     const checkIn = await prisma.$transaction(async (tx) => {
       const newCheckIn = await tx.checkIn.create({
         data: {
@@ -115,14 +72,14 @@ export async function POST(request: NextRequest) {
       return newCheckIn;
     });
 
-    // 8. Revalidate paths
+    // 6. Revalidate paths
     revalidatePath("/backoffice/scanner");
     revalidatePath("/backoffice/invitations");
 
-    // 9. Emit SSE event to notify other devices
+    // 7. Emit SSE event to notify other devices
     emitCheckInEvent(invitation.event.id);
 
-    // 10. Return result
+    // 8. Return result
     if (willExceed) {
       return NextResponse.json({
         success: true,

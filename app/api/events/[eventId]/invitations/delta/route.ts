@@ -17,9 +17,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { hasPermission, PERMISSIONS } from "@/lib/permissions";
+import { checkEventPermission } from "@/lib/middleware/auth-middleware";
 
 interface DeltaInvitation {
   id: string;
@@ -37,50 +36,10 @@ export async function GET(
 ) {
   try {
     const { eventId } = await params;
-    const session = await auth.api.getSession({ headers: request.headers });
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
-
-    // Check permissions
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { ownerId: true },
-    });
-
-    if (!event) {
-      return NextResponse.json(
-        { success: false, error: "Event not found" },
-        { status: 404 },
-      );
-    }
-
-    const isOwner = event.ownerId === session.user.id;
-
-    if (!isOwner) {
-      const member = await prisma.eventMember.findUnique({
-        where: {
-          eventId_userId: {
-            eventId,
-            userId: session.user.id,
-          },
-        },
-      });
-
-      if (
-        !member ||
-        !hasPermission(member.permissions, PERMISSIONS.CHECKIN_SCAN)
-      ) {
-        return NextResponse.json(
-          { success: false, error: "Forbidden" },
-          { status: 403 },
-        );
-      }
-    }
+    // Check authentication + permissions (centralized)
+    const authCheck = await checkEventPermission(request, eventId);
+    if (!authCheck.authorized) return authCheck.response;
 
     // Parse cursor (ISO timestamp)
     const cursorParam = request.nextUrl.searchParams.get("cursor");

@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import { logError } from "@/lib/logger";
 import { PERMISSIONS } from "@/lib/permissions";
+import { generateUniqueSlug } from "@/lib/slug";
+import { updateEventSettingsSchema } from "./schemas/event-settings";
 
 interface ActionState {
   success: boolean;
@@ -13,7 +16,7 @@ interface ActionState {
   message?: string;
 }
 
-export const updateConfigurations = withEventAuth(
+export const updateEventSettings = withEventAuth(
   async (
     ctx,
     prevState: ActionState | null,
@@ -22,90 +25,60 @@ export const updateConfigurations = withEventAuth(
     try {
       const eventId = ctx.event.eventId;
 
-      // Get form values
-      const photoUploadUrl = formData.get("photoUploadUrl") as string;
-      const weddingDateTime = formData.get("weddingDateTime") as string;
-      const remindRestingDays = formData.get("remindRestingDays") as string;
+      // Parsear y validar con Zod
+      const parseResult = updateEventSettingsSchema.safeParse({
+        eventName: formData.get("eventName"),
+        eventDescription: formData.get("eventDescription"),
+        checkinStrategy: formData.get("checkinStrategy"),
+      });
 
-      // Check-in strategy configuration (only strategy type, timeouts are env vars)
-      const checkinStrategy = formData.get("checkinStrategy") as string;
-
-      // Validate required field
-      if (!weddingDateTime) {
-        return { success: false, error: "La fecha y hora son requeridas" };
-      }
-
-      // Validate remind days
-      const remindDaysNum = Number.parseInt(remindRestingDays || "40", 10);
-      if (
-        Number.isNaN(remindDaysNum) ||
-        remindDaysNum < 1 ||
-        remindDaysNum > 365
-      ) {
+      // Si la validación falla, retornar el primer error
+      if (!parseResult.success) {
+        const firstError = parseResult.error.issues[0];
         return {
           success: false,
-          error: "Los días de recordatorio deben estar entre 1 y 365",
+          error: firstError.message,
         };
       }
 
-      // Validate check-in strategy
-      const validStrategies = ["IDB_FIRST", "SERVER_FIRST", "HYBRID_SMART"];
-      if (checkinStrategy && !validStrategies.includes(checkinStrategy)) {
-        return {
-          success: false,
-          error: "Estrategia de check-in inválida",
-        };
-      }
+      const { eventName, eventDescription, checkinStrategy } = parseResult.data;
 
-      // Validar formato datetime-local (YYYY-MM-DDTHH:mm)
-      const dateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-      if (!dateTimePattern.test(weddingDateTime)) {
-        return { success: false, error: "Formato de fecha inválido" };
-      }
-
-      const normalizedDateTime = weddingDateTime;
-
-      // Actualizar configuraciones en la BD (scoped por evento)
-      await prisma.configuration.upsert({
-        where: {
-          eventId_key: { eventId, key: CONFIGURATION_KEYS.PHOTO_UPLOAD_URL },
-        },
-        update: { value: photoUploadUrl || "" },
-        create: {
-          eventId,
-          key: CONFIGURATION_KEYS.PHOTO_UPLOAD_URL,
-          value: photoUploadUrl || "",
-          description: "URL donde los invitados pueden subir fotos y videos",
-        },
+      // Obtener evento actual para verificar si cambió el nombre
+      const currentEvent = await prisma.event.findUnique({
+        where: { id: eventId },
+        select: { name: true, slug: true },
       });
 
-      await prisma.configuration.upsert({
-        where: {
-          eventId_key: { eventId, key: CONFIGURATION_KEYS.WEDDING_DATE },
-        },
-        update: { value: normalizedDateTime },
-        create: {
-          eventId,
-          key: CONFIGURATION_KEYS.WEDDING_DATE,
-          value: normalizedDateTime,
-          description: "Fecha y hora de la boda en formato ISO 8601",
-        },
-      });
+      if (!currentEvent) {
+        return { success: false, error: "Evento no encontrado" };
+      }
 
-      await prisma.configuration.upsert({
-        where: {
-          eventId_key: {
-            eventId,
-            key: CONFIGURATION_KEYS.REMIND_RESTING_DAYS,
-          },
-        },
-        update: { value: remindDaysNum.toString() },
-        create: {
-          eventId,
-          key: CONFIGURATION_KEYS.REMIND_RESTING_DAYS,
-          value: remindDaysNum.toString(),
-          description:
-            "Días antes de la boda para mostrar recordatorio de confirmación",
+      const nameChanged = currentEvent.name !== eventName;
+
+      // Regenerar slug si cambió el nombre
+      let newSlug = currentEvent.slug;
+      if (nameChanged) {
+        try {
+          newSlug = await generateUniqueSlug(eventName, prisma, eventId);
+        } catch (error) {
+          // Si generateSlug lanza error (ej: solo emojis), retornar error amigable
+          return {
+            success: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Error generando identificador único para el evento",
+          };
+        }
+      }
+
+      // Actualizar información del evento
+      await prisma.event.update({
+        where: { id: eventId },
+        data: {
+          name: eventName,
+          slug: newSlug,
+          description: eventDescription,
         },
       });
 
@@ -136,7 +109,7 @@ export const updateConfigurations = withEventAuth(
         message: "Configuraciones guardadas exitosamente",
       };
     } catch (error) {
-      logError("Error actualizando configuraciones", error);
+      logError("Error actualizando configuraciones del evento", error);
       return {
         success: false,
         error: "Error al guardar las configuraciones. Intenta nuevamente.",
@@ -146,16 +119,104 @@ export const updateConfigurations = withEventAuth(
   PERMISSIONS.SETTINGS_EDIT,
 );
 
-export const getConfigurations = withEventAuth(async (ctx) => {
+export const getEventSettings = withEventAuth(async (ctx) => {
   try {
-    const configurations = await prisma.configuration.findMany({
-      where: { eventId: ctx.event.eventId },
-      orderBy: { key: "asc" },
-    });
+    const [event, configurations] = await Promise.all([
+      prisma.event.findUnique({
+        where: { id: ctx.event.eventId },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+        },
+      }),
+      prisma.configuration.findMany({
+        where: { eventId: ctx.event.eventId },
+        orderBy: { key: "asc" },
+      }),
+    ]);
 
-    return configurations;
+    if (!event) {
+      throw new Error("Evento no encontrado");
+    }
+
+    return { event, configurations };
   } catch (error) {
-    logError("Error obteniendo configuraciones", error);
-    return [];
+    logError("Error obteniendo configuraciones del evento", error);
+    throw error;
   }
 }, PERMISSIONS.SETTINGS_VIEW);
+
+/**
+ * Eliminar evento (solo owner)
+ * Elimina el evento y todas sus relaciones
+ * Retorna los eventos restantes para que el cliente decida la navegación
+ */
+export async function deleteEvent(eventId: string): Promise<{
+  success: boolean;
+  error?: string;
+  message?: string;
+  remainingEvents?: Array<{ id: string; name: string }>;
+}> {
+  try {
+    // Verificar autenticación y permisos usando withEventAuth manualmente
+    const { verifyUserAuth } = await import("@/lib/server-auth");
+    const authResult = await verifyUserAuth();
+
+    if (!authResult.success || !authResult.user) {
+      return { success: false, error: "No autorizado" };
+    }
+
+    const userId = authResult.user.id;
+
+    // Verificar que el usuario sea el owner del evento
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { ownerId: true, name: true },
+    });
+
+    if (!event) {
+      return { success: false, error: "Evento no encontrado" };
+    }
+
+    if (event.ownerId !== userId) {
+      return {
+        success: false,
+        error: "Solo el propietario puede eliminar el evento",
+      };
+    }
+
+    // Eliminar el evento (cascade elimina todas las relaciones)
+    await prisma.event.delete({
+      where: { id: eventId },
+    });
+
+    // Obtener eventos restantes del usuario
+    const { getUserAccessibleEvents } = await import(
+      "@/lib/event-context-prisma"
+    );
+    const accessibleEvents = await getUserAccessibleEvents(userId);
+
+    const remainingEvents = accessibleEvents.map((e) => ({
+      id: e.id,
+      name: e.name,
+    }));
+
+    // Revalidate
+    revalidatePath("/backoffice");
+    revalidatePath("/", "layout");
+
+    return {
+      success: true,
+      message: "Evento eliminado exitosamente",
+      remainingEvents,
+    };
+  } catch (error) {
+    logError("Error eliminando evento", error);
+    return {
+      success: false,
+      error: "Error al eliminar el evento. Intenta nuevamente.",
+    };
+  }
+}

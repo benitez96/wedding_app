@@ -4,22 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Menu,
-  X,
-  LayoutDashboard,
-  Users,
-  Layout as LayoutIcon,
-  Settings,
-  LogOut,
-  Palette,
-  UserPlus,
-} from "lucide-react";
+import { Menu, X, LogOut, Plus } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
 import clsx from "clsx";
 import { useSidebar } from "./SidebarContext";
-import type { MenuItem } from "./types";
 import { authClient } from "@/lib/auth-client";
 import TierBadge from "@/components/backoffice/TierBadge";
 import EventAvatar from "./EventAvatar";
@@ -27,41 +16,7 @@ import { useDisclosure } from "@heroui/use-disclosure";
 import CreateEventModal from "@/components/backoffice/CreateEventModal";
 import { switchActiveEvent } from "@/app/actions/events";
 import { Logo } from "@/components/Logo";
-
-// TODO i18n: menu item labels
-const MENU_ITEMS: MenuItem[] = [
-  {
-    label: "Dashboard",
-    href: "/backoffice/dashboard",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-  },
-  {
-    label: "Invitaciones",
-    href: "/backoffice/invitations",
-    icon: <Users className="w-5 h-5" />,
-  },
-  {
-    label: "Estructura",
-    href: "/backoffice/estructura",
-    icon: <LayoutIcon className="w-5 h-5" />,
-  },
-  {
-    label: "Theming",
-    href: "/backoffice/theming",
-    icon: <Palette className="w-5 h-5" />,
-  },
-  {
-    label: "Configuraciones",
-    href: "/backoffice/settings",
-    icon: <Settings className="w-5 h-5" />,
-  },
-  {
-    label: "Miembros",
-    href: "/backoffice/collaborators",
-    icon: <UserPlus className="w-5 h-5" />,
-    tierRequired: "COMPANY",
-  },
-];
+import { BACKOFFICE_MENU_ITEMS } from "@/config/backoffice-menu";
 
 export default function MobileMenu() {
   const { events, activeEventId, tier } = useSidebar();
@@ -72,7 +27,7 @@ export default function MobileMenu() {
   const [switchingEventId, setSwitchingEventId] = useState<string | null>(null);
   const createEventModal = useDisclosure();
 
-  const visibleItems = MENU_ITEMS.filter((item) => {
+  const visibleItems = BACKOFFICE_MENU_ITEMS.filter((item) => {
     if (!item.tierRequired) return true;
     if (item.tierRequired === "COMPANY") return tier === "COMPANY";
     return true;
@@ -119,10 +74,8 @@ export default function MobileMenu() {
     <>
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-content1 border-b border-divider flex items-center justify-between px-4 z-50">
-        <div className="flex items-center gap-2">
-          <div className="bg-black rounded-lg p-1">
-            <Logo className="size-5 text-white" />
-          </div>
+        <div className="flex items-center gap-2 bg-black rounded-lg px-2.5 py-1">
+          <Logo className="size-5 text-white" />
           {/* TODO i18n: app name */}
           <span className="font-bold text-white text-lg">Invify</span>
         </div>
@@ -214,7 +167,7 @@ export default function MobileMenu() {
                           // TODO i18n: aria-label
                           aria-label="Crear nuevo evento"
                         >
-                          <UserPlus className="w-4 h-4" />
+                          <Plus className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>

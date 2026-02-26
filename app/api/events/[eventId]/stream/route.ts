@@ -14,9 +14,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-import { hasPermission, PERMISSIONS } from "@/lib/permissions";
+import { checkEventPermission } from "@/lib/middleware/auth-middleware";
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
 
@@ -36,41 +34,9 @@ export async function GET(
   const { eventId } = await params;
 
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-
-    if (!session?.user) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
-    // Check permissions
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { ownerId: true },
-    });
-
-    if (!event) {
-      return new Response("Not Found", { status: 404 });
-    }
-
-    const isOwner = event.ownerId === session.user.id;
-
-    if (!isOwner) {
-      const member = await prisma.eventMember.findUnique({
-        where: {
-          eventId_userId: {
-            eventId,
-            userId: session.user.id,
-          },
-        },
-      });
-
-      if (
-        !member ||
-        !hasPermission(member.permissions, PERMISSIONS.CHECKIN_SCAN)
-      ) {
-        return new Response("Forbidden", { status: 403 });
-      }
-    }
+    // Check authentication + permissions (centralized)
+    const authCheck = await checkEventPermission(request, eventId);
+    if (!authCheck.authorized) return authCheck.response;
 
     // Setup SSE stream
     const encoder = new TextEncoder();

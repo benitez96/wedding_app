@@ -226,7 +226,7 @@ export default function SectionsList({ initialSections }: SectionsListProps) {
   );
 
   function handleSectionClick(key: string) {
-    router.push(`/backoffice/estructura/${key}`);
+    router.push(`/backoffice/structure/${key}`);
   }
 
   function handleDragEnd(event: DragEndEvent) {

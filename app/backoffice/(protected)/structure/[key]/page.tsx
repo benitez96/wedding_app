@@ -72,7 +72,7 @@ export default async function EditSectionPage({
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
-          href="/backoffice/estructura"
+          href="/backoffice/structure"
           className="flex items-center gap-2 text-sm text-foreground/60 hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4" />

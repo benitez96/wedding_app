@@ -232,7 +232,7 @@ export function getSectionSettingsSchema(key: string): z.ZodSchema {
 `;
 }
 
-// NOTE: Database sync removed - sections are now managed via /backoffice/estructura UI
+// NOTE: Database sync removed - sections are now managed via /backoffice/structure UI
 // This script only generates the TypeScript registries
 
 async function main() {
@@ -272,7 +272,7 @@ async function main() {
     sections.forEach((s) => {
       console.log(`  - ${s.key} (${s.folderName})`);
     });
-    console.log("\n💡 Tip: Go to /backoffice/estructura to manage sections\n");
+    console.log("\n💡 Tip: Go to /backoffice/structure to manage sections\n");
   } catch (error) {
     console.error("❌ Error syncing sections:", error);
     process.exit(1);

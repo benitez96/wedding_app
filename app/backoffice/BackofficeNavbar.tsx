@@ -29,10 +29,11 @@ export default function BackofficeNavbar({
       maxWidth="2xl"
     >
       <NavbarBrand>
-        <Link href="/backoffice/dashboard" className="flex items-center gap-2">
-          <div className="bg-black rounded-lg p-1.5">
-            <Logo className="size-5 md:size-6 text-white" />
-          </div>
+        <Link
+          href="/backoffice/dashboard"
+          className="flex items-center gap-2 bg-black rounded-lg px-3 py-1.5"
+        >
+          <Logo className="size-5 md:size-6 text-white" />
           <span className="font-bold md:text-xl text-lg text-white">
             Invify
           </span>

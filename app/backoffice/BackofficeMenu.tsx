@@ -52,7 +52,7 @@ const MENU_ITEMS: MenuItem[] = [
   },
   {
     label: "Estructura",
-    href: "/backoffice/estructura",
+    href: "/backoffice/structure",
     icon: <Layout className="w-5 h-5" />,
   },
   {

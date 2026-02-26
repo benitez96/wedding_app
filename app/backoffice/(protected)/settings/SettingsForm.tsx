@@ -3,13 +3,16 @@
 import { useActionState, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
-import { Card, CardBody } from "@heroui/card";
+import { Textarea } from "@heroui/input";
+import { Accordion, AccordionItem } from "@heroui/accordion";
 import { Select, SelectItem } from "@heroui/select";
-import { Save, Zap } from "lucide-react";
+import { Save, Info, Zap, AlertTriangle, ArrowRight } from "lucide-react";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
-import { updateConfigurations } from "@/app/actions/settings";
+import { updateEventSettings } from "@/app/actions/settings";
 import { useToastFeedback } from "@/hooks/useToastFeedback";
+import { useSlugPreview } from "@/hooks/useSlugPreview";
 import { CheckInStrategyType } from "@/types/check-in-strategy";
+import DangerZone from "./DangerZone";
 
 interface ConfigurationItem {
   id: string;
@@ -18,7 +21,15 @@ interface ConfigurationItem {
   description: string | null;
 }
 
+interface EventData {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+}
+
 interface SettingsFormProps {
+  event: EventData;
   initialConfigurations: ConfigurationItem[];
 }
 
@@ -28,36 +39,26 @@ function getConfigValue(configs: ConfigurationItem[], key: string): string {
 }
 
 export default function SettingsForm({
+  event,
   initialConfigurations,
 }: SettingsFormProps) {
   // useActionState para manejar el estado del formulario
   const [state, formAction, isPending] = useActionState(
-    updateConfigurations,
+    updateEventSettings,
     null,
   );
   const { toastSuccess, toastError } = useToastFeedback();
+
+  // Hook para manejar slug preview en tiempo real
+  const { eventName, setEventName, slugPreview, slugWillChange } =
+    useSlugPreview(event.name, event.slug);
 
   // Reaccionar al resultado del server action via toast
   useEffect(() => {
     if (!state) return;
     if (state.error) toastError(state.error);
     if (state.success && state.message) toastSuccess(state.message);
-  }, [state]);
-
-  // Get initial values (read-only, no state)
-  const photoUploadUrl = getConfigValue(
-    initialConfigurations,
-    CONFIGURATION_KEYS.PHOTO_UPLOAD_URL,
-  );
-  const weddingDateTimeISO = getConfigValue(
-    initialConfigurations,
-    CONFIGURATION_KEYS.WEDDING_DATE,
-  );
-  const remindRestingDays =
-    getConfigValue(
-      initialConfigurations,
-      CONFIGURATION_KEYS.REMIND_RESTING_DAYS,
-    ) || "40";
+  }, [state, toastError, toastSuccess]);
 
   // Check-in strategy configuration (only strategy selector, timeouts are env vars)
   const checkinStrategy =
@@ -65,9 +66,6 @@ export default function SettingsForm({
       initialConfigurations,
       CONFIGURATION_KEYS.CHECKIN_STRATEGY,
     ) as CheckInStrategyType) || "HYBRID_SMART";
-
-  // datetime-local format: "YYYY-MM-DDTHH:mm"
-  const initialDateTimeLocal = weddingDateTimeISO || "";
 
   const strategies = [
     {
@@ -88,119 +86,186 @@ export default function SettingsForm({
   ];
 
   return (
-    <form action={formAction} className="space-y-6">
-      <div className="grid gap-4">
-        {/* PHOTO_UPLOAD_URL */}
-        <Card>
-          <CardBody>
-            <Input
-              name="photoUploadUrl"
-              label="URL de Subida de Fotos"
-              description="URL donde los invitados pueden subir fotos y videos"
-              defaultValue={photoUploadUrl}
-              placeholder="https://ejemplo.com/subir-fotos"
-              variant="bordered"
-              isDisabled={isPending}
-            />
-          </CardBody>
-        </Card>
+    <div className="space-y-6">
+      <form action={formAction}>
+        <Accordion
+          variant="splitted"
+          defaultExpandedKeys={["event-info", "checkin-strategy"]}
+        >
+          {/* INFORMACIÓN DEL EVENTO */}
+          <AccordionItem
+            key="event-info"
+            title={
+              <div className="flex items-center gap-2">
+                <Info className="w-5 h-5 text-primary" />
+                <span className="font-semibold">Información del Evento</span>
+              </div>
+            }
+            subtitle="Configuración básica de tu evento"
+          >
+            <div className="space-y-4 pb-4">
+              <Input
+                name="eventName"
+                label="Nombre del Evento"
+                description="El nombre de tu boda, fiesta o celebración"
+                value={eventName}
+                onValueChange={setEventName}
+                placeholder="Ej: Boda de Ana y Juan"
+                variant="bordered"
+                isDisabled={isPending}
+                isRequired
+              />
 
-        {/* WEDDING_DATE */}
-        <Card>
-          <CardBody>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  Fecha y Hora de la Boda
-                </label>
-                <p className="text-sm text-foreground/50 mb-3">
-                  Fecha y hora de la ceremonia
+              <Textarea
+                name="eventDescription"
+                label="Descripción (Opcional)"
+                description="Una breve descripción de tu evento"
+                defaultValue={event.description || ""}
+                placeholder="Ej: Celebramos nuestra boda en un día especial..."
+                variant="bordered"
+                isDisabled={isPending}
+                minRows={3}
+                maxRows={6}
+              />
+
+              <div
+                className={`border rounded-lg p-3 transition-colors ${
+                  slugWillChange
+                    ? "bg-warning/5 border-warning/30"
+                    : "bg-default-50 border-default-200"
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <Info
+                    className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                      slugWillChange ? "text-warning" : "text-foreground/60"
+                    }`}
+                  />
+                  <div className="flex-1 space-y-2">
+                    {slugWillChange ? (
+                      <>
+                        <div className="flex items-center gap-2 text-sm">
+                          <code className="bg-default-200 px-2 py-1 rounded font-mono text-xs">
+                            {event.slug}
+                          </code>
+                          <ArrowRight className="w-3 h-3 text-warning" />
+                          <code className="bg-warning/20 text-warning px-2 py-1 rounded font-mono text-xs font-semibold">
+                            {slugPreview}
+                          </code>
+                        </div>
+                        <p className="text-xs text-warning">
+                          El slug se actualizará al guardar los cambios
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-foreground/70">
+                          <strong>Slug:</strong>{" "}
+                          <code className="bg-default-200 px-2 py-1 rounded font-mono text-xs">
+                            {event.slug}
+                          </code>
+                        </p>
+                        <p className="text-xs text-foreground/50">
+                          Se regenera automáticamente cuando cambias el nombre
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-4">
+                <Button
+                  type="submit"
+                  color="primary"
+                  isLoading={isPending}
+                  isDisabled={isPending}
+                  startContent={isPending ? null : <Save className="w-4 h-4" />}
+                >
+                  {isPending ? "Guardando..." : "Guardar Cambios"}
+                </Button>
+              </div>
+            </div>
+          </AccordionItem>
+
+          {/* CHECK-IN STRATEGY CONFIGURATION */}
+          <AccordionItem
+            key="checkin-strategy"
+            title={
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-primary" />
+                <span className="font-semibold">Estrategia de Check-In</span>
+              </div>
+            }
+            subtitle="Configura cómo los scanners manejarán los check-ins"
+          >
+            <div className="space-y-4 pb-4">
+              <p className="text-sm text-foreground/60">
+                Configura cómo los scanners manejarán los check-ins según las
+                condiciones de red
+              </p>
+
+              <Select
+                name="checkinStrategy"
+                label="Estrategia de Check-In"
+                description="Cómo los dispositivos scanner manejarán los check-ins"
+                defaultSelectedKeys={[checkinStrategy]}
+                variant="bordered"
+                isDisabled={isPending}
+              >
+                {strategies.map((strategy) => (
+                  <SelectItem
+                    key={strategy.key}
+                    description={strategy.description}
+                  >
+                    {strategy.label}
+                  </SelectItem>
+                ))}
+              </Select>
+
+              <div className="bg-default-100 rounded-lg p-3 text-xs text-foreground/60">
+                <p>
+                  <strong>Nota:</strong> Los timeouts y umbrales técnicos se
+                  configuran globalmente mediante variables de entorno.
                 </p>
               </div>
 
-              <input
-                type="datetime-local"
-                name="weddingDateTime"
-                defaultValue={initialDateTimeLocal}
-                required
-                disabled={isPending}
-                className="w-full px-3 py-2 border border-default-200 rounded-medium bg-default-50 hover:bg-default-100 focus:bg-default-100 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* REMIND_RESTING_DAYS */}
-        <Card>
-          <CardBody>
-            <Input
-              name="remindRestingDays"
-              label="Días de Recordatorio RSVP"
-              description="Mostrar recordatorio cuando falten menos de X días (default: 40)"
-              defaultValue={remindRestingDays}
-              type="number"
-              min="1"
-              max="365"
-              placeholder="40"
-              variant="bordered"
-              isDisabled={isPending}
-            />
-          </CardBody>
-        </Card>
-
-        {/* CHECK-IN STRATEGY CONFIGURATION */}
-        {/* TODO: i18n */}
-        <Card className="border-2 border-primary/20">
-          <CardBody className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold">Estrategia de Check-In</h3>
-            </div>
-            <p className="text-sm text-foreground/60 mb-4">
-              Configura cómo los scanners manejarán los check-ins según las
-              condiciones de red
-            </p>
-
-            {/* Strategy Selection */}
-            <Select
-              name="checkinStrategy"
-              label="Estrategia de Check-In"
-              description="Cómo los dispositivos scanner manejarán los check-ins"
-              defaultSelectedKeys={[checkinStrategy]}
-              variant="bordered"
-              isDisabled={isPending}
-            >
-              {strategies.map((strategy) => (
-                <SelectItem
-                  key={strategy.key}
-                  description={strategy.description}
+              <div className="flex justify-end mt-4">
+                <Button
+                  type="submit"
+                  color="primary"
+                  isLoading={isPending}
+                  isDisabled={isPending}
+                  startContent={isPending ? null : <Save className="w-4 h-4" />}
                 >
-                  {strategy.label}
-                </SelectItem>
-              ))}
-            </Select>
-
-            <div className="bg-default-100 rounded-lg p-3 text-xs text-foreground/60">
-              <p>
-                <strong>Nota:</strong> Los timeouts y umbrales técnicos se
-                configuran globalmente mediante variables de entorno.
-              </p>
+                  {isPending ? "Guardando..." : "Guardar Cambios"}
+                </Button>
+              </div>
             </div>
-          </CardBody>
-        </Card>
-      </div>
+          </AccordionItem>
+        </Accordion>
+      </form>
 
-      <div className="flex justify-end">
-        <Button
-          type="submit"
-          color="primary"
-          isLoading={isPending}
-          isDisabled={isPending}
-          startContent={isPending ? null : <Save className="w-4 h-4" />}
+      {/* DANGER ZONE - Colapsada por defecto */}
+      <Accordion variant="splitted">
+        <AccordionItem
+          key="danger-zone"
+          title="Zona de Peligro"
+          subtitle="Acciones irreversibles"
+          startContent={<AlertTriangle className="w-5 h-5 text-danger" />}
+          classNames={{
+            base: "border-2 border-danger/20",
+            title: "text-danger font-semibold",
+            subtitle: "text-danger/70",
+            trigger: "hover:bg-danger/5",
+            startContent: "text-danger",
+          }}
         >
-          {isPending ? "Guardando..." : "Guardar Cambios"}
-        </Button>
-      </div>
-    </form>
+          <div className="pb-4">
+            <DangerZone eventId={event.id} eventName={event.name} />
+          </div>
+        </AccordionItem>
+      </Accordion>
+    </div>
   );
 }
