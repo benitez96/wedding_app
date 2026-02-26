@@ -38,6 +38,10 @@ next-env.d.ts
 .pnpm-store
 yarn.lock
 package-lock.json
+
+# E2E test state (auth sessions + generated credentials)
+.e2e-state/
+.e2e-report/
 bun.lockb
 
 .claude

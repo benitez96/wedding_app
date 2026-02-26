@@ -11,8 +11,8 @@ import { getSessionPresence } from "@/lib/middleware/session";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // --- Rate limiting (skip static assets for performance) ---
-  if (!isStaticAsset(pathname)) {
+  // --- Rate limiting (production only; in-memory limiter resets on cold start) ---
+  if (process.env.NODE_ENV === "production" && !isStaticAsset(pathname)) {
     const clientIP = getClientIP(request);
     if (isRateLimited(clientIP)) {
       return new NextResponse("Rate limit exceeded", {
