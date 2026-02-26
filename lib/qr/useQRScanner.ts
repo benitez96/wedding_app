@@ -15,12 +15,18 @@ interface UseQRScannerReturn {
   error: string | null;
 }
 
+// Tipos para el resultado del escaneo QR (vendor library)
+interface QRScanResult {
+  data?: string;
+  rawValue?: string;
+}
+
 // Tipado mínimo del constructor (no dependemos del paquete npm)
 type QrScannerCtor = new (
   video: HTMLVideoElement,
-  onDecode: (result: any) => void,
+  onDecode: (result: string | QRScanResult) => void,
   options?: {
-    onDecodeError?: (error: any) => void;
+    onDecodeError?: (error: Error | string | unknown) => void;
     preferredCamera?: "environment" | "user" | string;
     maxScansPerSecond?: number;
     returnDetailedScanResult?: boolean;
@@ -35,7 +41,7 @@ function toError(err: unknown): Error {
   if (err instanceof Error) return err;
   if (typeof err === "string") return new Error(err);
   if (err && typeof err === "object" && "message" in err) {
-    return new Error(String((err as any).message));
+    return new Error(String(err.message));
   }
   try {
     return new Error(JSON.stringify(err));
@@ -86,15 +92,15 @@ export function useQRScanner({
         // Si el effect se limpió mientras cargaba el módulo, no seguir
         if (cancelled) return;
 
-        const QrScanner = (mod as any).default as QrScannerCtor;
+        const QrScanner = (mod as { default: QrScannerCtor }).default;
 
         const scanner = new QrScanner(
           video,
-          (result: any) => {
+          (result: string | QRScanResult) => {
             const data =
               typeof result === "string"
                 ? result
-                : String(result?.data ?? result?.rawValue ?? "");
+                : String(result.data ?? result.rawValue ?? "");
 
             if (data) {
               onScanRef.current(data);
@@ -129,7 +135,7 @@ export function useQRScanner({
 
         const e = toError(err);
 
-        if ((e as any).name === "AbortError") {
+        if (e.name === "AbortError") {
           console.warn("[QR] AbortError (start interrumpido).");
           return;
         }

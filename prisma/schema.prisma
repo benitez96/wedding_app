@@ -79,6 +79,7 @@ enum SecurityLogType {
   login_failed
   rate_limit_triggered
   honeypot_triggered
+  user_setup_failed
 }
 
 // Suscripción ACTUAL del usuario (1 fila por usuario)
@@ -217,6 +218,8 @@ model EventMember {
   @@unique([eventId, userId])
   @@index([eventId])
   @@index([userId])
+  @@index([userId, revokedAt]) // PERFORMANCE: Active memberships for user
+  @@index([eventId, revokedAt]) // PERFORMANCE: Active collaborators per event
   @@map("event_members")
 }
 
@@ -241,6 +244,8 @@ model EventInviteLink {
 
   @@index([token])
   @@index([eventId])
+  @@index([eventId, isActive]) // PERFORMANCE: Active invite links per event
+  @@index([expiresAt]) // PERFORMANCE: Cleanup expired links
   @@map("event_invite_links")
 }
 
@@ -285,6 +290,9 @@ model Invitation {
   @@index([guestName])
   @@index([guestPhone])
   @@index([eventId, updatedAt]) // Composite index for efficient delta queries
+  @@index([eventId, hasResponded]) // PERFORMANCE: Filter by event + response status
+  @@index([eventId, isAttending]) // PERFORMANCE: Filter confirmed/declined guests
+  @@index([createdAt]) // PERFORMANCE: Sorting by creation date
   @@map("invitations")
 }
 
@@ -316,6 +324,8 @@ model InvitationToken {
 
   @@index([invitationId])
   @@index([isActive])
+  @@index([invitationId, isActive, isUsed]) // PERFORMANCE: Compound index for common filters
+  @@index([expiresAt]) // PERFORMANCE: Find expired tokens for cleanup
   @@map("invitation_tokens")
 }
 
@@ -360,6 +370,8 @@ model CheckIn {
   @@index([clientId])
   @@index([deletedAt])
   @@index([exceededCapacity])
+  @@index([invitationId, deletedAt]) // PERFORMANCE: Active check-ins per invitation
+  @@index([checkedInBy, createdAt]) // PERFORMANCE: Check-ins by staff member
   @@map("check_ins")
 }
 
@@ -422,6 +434,8 @@ model SecurityLog {
   details   Json?
 
   @@index([ip, type, createdAt])
+  @@index([type, createdAt]) // PERFORMANCE: Audit logs by type
+  @@index([createdAt]) // PERFORMANCE: Recent security events
   @@map("security_logs")
 }
 

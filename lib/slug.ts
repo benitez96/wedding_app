@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { PrismaClient } from "@/app/generated/prisma";
+
 /**
  * Genera un slug a partir de un string
  * Convierte a lowercase, remueve acentos, reemplaza espacios por guiones
@@ -40,7 +42,7 @@ export function generateSlug(text: string): string {
  */
 export async function isSlugAvailable(
   slug: string,
-  prisma: any,
+  prisma: PrismaClient,
   excludeEventId?: string,
 ): Promise<boolean> {
   const existing = await prisma.event.findUnique({
@@ -63,7 +65,7 @@ export async function isSlugAvailable(
  */
 export async function generateUniqueSlug(
   text: string,
-  prisma: any,
+  prisma: PrismaClient,
   excludeEventId?: string,
 ): Promise<string> {
   const baseSlug = generateSlug(text);

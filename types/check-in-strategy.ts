@@ -131,7 +131,13 @@ export interface StrategyDecisionContext {
   config: CheckInStrategyConfig;
 }
 
-export type StrategyMode = "IDB" | "SERVER" | "PARALLEL";
+export const StrategyMode = {
+  IDB: "IDB",
+  SERVER: "SERVER",
+  PARALLEL: "PARALLEL",
+} as const;
+
+export type StrategyMode = (typeof StrategyMode)[keyof typeof StrategyMode];
 
 // ============================================
 // HELPER TYPE GUARDS

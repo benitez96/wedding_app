@@ -91,37 +91,18 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
   const fetchDelta = async () => {
     if (!isOnline) return;
 
-    // TODO: delete test comment
-    console.log(
-      `[🔄 Delta Sync] Fetching updates since cursor: ${deltaCursorRef.current}`,
-    );
-
     try {
       const response = await fetch(
         `/api/events/${eventId}/invitations/delta?cursor=${encodeURIComponent(deltaCursorRef.current)}`,
       );
 
       if (!response.ok) {
-        // TODO: delete test comment
-        console.warn(
-          `[⚠️ Delta Sync] Server responded with ${response.status}`,
-        );
         return;
       }
 
       const data = await response.json();
 
       if (data.success && data.invitations?.length > 0) {
-        // TODO: delete test comment
-        console.log(
-          `[📦 Delta Sync] Received ${data.invitations.length} updated invitations:`,
-          data.invitations.map((inv: any) => ({
-            id: inv.id,
-            name: inv.guestName,
-            checkInCount: inv.checkInCount,
-          })),
-        );
-
         // Update local cache with delta
         for (const inv of data.invitations) {
           await updateInvitationCache({
@@ -136,20 +117,11 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
         }
 
         // Update cursor for next delta fetch
-        const oldCursor = deltaCursorRef.current;
         deltaCursorRef.current = data.cursor;
-
-        // TODO: delete test comment
-        console.log(
-          `[✅ Delta Sync] IDB cache updated. Cursor: ${oldCursor} → ${data.cursor}`,
-        );
       } else {
-        // TODO: delete test comment
-        console.log(`[✓ Delta Sync] No new updates (cache is up-to-date)`);
       }
     } catch (error) {
-      // TODO: delete test comment
-      console.error("[❌ Delta Sync] Fetch error:", error);
+      // Silent error - delta sync is best effort
     }
   };
 
@@ -166,18 +138,10 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
       // If we just did a check-in in the last 5 seconds, ignore SSE
       // (this is OUR check-in, IDB is already updated optimistically)
       if (timeSinceOurCheckIn < 5000) {
-        // TODO: delete test comment
-        console.log(
-          `[⏭️ SSE] Ignoring check-in event (our own check-in ${timeSinceOurCheckIn}ms ago)`,
-        );
         return;
       }
 
       // This is from ANOTHER device → fetch delta
-      // TODO: delete test comment
-      console.log(
-        "[⚡ SSE] Check-in event from another device → Triggering delta sync",
-      );
       fetchDelta();
     },
     pollingIntervalMs: 15000, // 15s fallback polling
@@ -189,11 +153,6 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
 
     const initialLoad = async () => {
       setIsCaching(true);
-
-      // TODO: delete test comment
-      console.log(
-        `[📥 Initial Cache] Loading invitations for event ${eventId}...`,
-      );
 
       try {
         // Download full cache from server
@@ -207,17 +166,10 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
           });
 
           // Initialize delta cursor to now (future deltas only)
-          const cursorTime = new Date().toISOString();
-          deltaCursorRef.current = cursorTime;
-
-          // TODO: delete test comment
-          console.log(
-            `[✅ Initial Cache] Loaded ${result.invitations.length} invitations to IDB. Delta cursor initialized: ${cursorTime}`,
-          );
+          deltaCursorRef.current = new Date().toISOString();
         }
       } catch (error) {
-        // TODO: delete test comment
-        console.error("[❌ Initial Cache] Load error:", error);
+        // Silent error - cache load is best effort
       } finally {
         setIsCaching(false);
       }
@@ -227,51 +179,23 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
 
     // Periodic outbound sync (upload pending check-ins)
     if (isOnline) {
-      // TODO: delete test comment
-      console.log(
-        `[⏰ Outbound Sync] Starting periodic sync every 30s (online mode)`,
-      );
-
       intervalId = setInterval(() => {
-        // TODO: delete test comment
-        console.log(`[📤 Outbound Sync] Running periodic check-in upload...`);
-        syncPendingCheckIns()
-          .then(() => {
-            // TODO: delete test comment
-            console.log(`[✅ Outbound Sync] Completed successfully`);
-          })
-          .catch((err) => {
-            // TODO: delete test comment
-            console.error("[❌ Outbound Sync] Error:", err);
-          });
+        syncPendingCheckIns().catch(() => {
+          // Silent error - will retry on next interval
+        });
       }, 30000); // 30s interval for outbound sync
 
       // Run initial sync after 2s (give time for cache to load, avoid race with interval)
       setTimeout(() => {
-        // TODO: delete test comment
-        console.log(
-          `[📤 Outbound Sync] Running initial sync (2s after mount)...`,
-        );
-        syncPendingCheckIns()
-          .then(() => {
-            // TODO: delete test comment
-            console.log(`[✅ Outbound Sync] Initial sync completed`);
-          })
-          .catch((err) => {
-            // TODO: delete test comment
-            console.error("[❌ Outbound Sync] Initial sync error:", err);
-          });
+        syncPendingCheckIns().catch(() => {
+          // Silent error - will retry on next interval
+        });
       }, 2000);
-    } else {
-      // TODO: delete test comment
-      console.log(`[⚠️ Outbound Sync] Offline mode - periodic sync disabled`);
     }
 
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
-        // TODO: delete test comment
-        console.log(`[🛑 Outbound Sync] Stopped periodic sync`);
       }
     };
   }, [eventId, isOnline]);
@@ -288,22 +212,12 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
       setScanError(null);
 
       try {
-        // TODO: delete test comment
-        console.log(
-          `[🔍 QR Scan] Token detected: ${tokenId.substring(0, 8)}... | Strategy: ${strategyName}`,
-        );
-
         // Use strategy to validate QR (IDB_FIRST, SERVER_FIRST, or HYBRID_SMART)
         const result = await validateQRWithStrategy(tokenId, eventId);
 
         if (result.success && result.invitation) {
           const inv = result.invitation;
           const remaining = inv.maxGuests - inv.checkInCount;
-
-          // TODO: delete test comment
-          console.log(
-            `[✅ QR Scan] Validated via ${result.source} (${strategyName}) | Guest: ${inv.guestName} | Remaining: ${remaining}/${inv.maxGuests}`,
-          );
 
           setScannedInvitation({
             id: inv.id,
@@ -315,17 +229,11 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
             remaining,
           });
         } else {
-          // TODO: delete test comment
-          console.warn(
-            `[❌ QR Scan] Validation failed via ${result.source}: ${result.error}`,
-          );
           // TODO: i18n
           setScanError(result.error || "Error al validar el código QR");
           busyRef.current = false;
         }
       } catch (error) {
-        // TODO: delete test comment
-        console.error("[❌ QR Scan] Unexpected error:", error);
         // TODO: i18n
         setScanError("Error inesperado al validar el código QR");
         busyRef.current = false;
@@ -353,10 +261,6 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
     // If a check-in was made, track timestamp to avoid syncing our own event
     if (checkInWasMade) {
       lastCheckInTimestampRef.current = Date.now();
-      // TODO: delete test comment
-      console.log(
-        `[📝 Check-In] Tracked our check-in timestamp to avoid self-sync`,
-      );
     }
 
     setScannedInvitation(null);
