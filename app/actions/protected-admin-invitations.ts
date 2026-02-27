@@ -19,4 +19,4 @@ export {
   revokeInvitationToken,
   reactivateInvitationToken,
   deleteInvitationToken,
-} from "./invitations";
+} from "./invitations/index";
