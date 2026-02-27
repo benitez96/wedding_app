@@ -4,7 +4,13 @@ import type { RSVPStepConfig } from "@/components/sections/RSVPSectionClient";
 // Types
 // ---------------------------------------------------------------------------
 
-export type AttendanceValue = "attending" | "declining";
+export const AttendanceValue = {
+  ATTENDING: "attending",
+  DECLINING: "declining",
+} as const;
+
+export type AttendanceValue =
+  (typeof AttendanceValue)[keyof typeof AttendanceValue];
 
 // Step identifiers
 export const STEP = {

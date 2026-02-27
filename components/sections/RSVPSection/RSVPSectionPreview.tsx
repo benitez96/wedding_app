@@ -14,7 +14,13 @@ interface RSVPSectionPreviewProps {
   settings?: RSVPSectionSettings;
 }
 
-type PreviewState = "pending" | "confirmed" | "declined";
+const PreviewState = {
+  PENDING: "pending",
+  CONFIRMED: "confirmed",
+  DECLINED: "declined",
+} as const;
+
+type PreviewState = (typeof PreviewState)[keyof typeof PreviewState];
 
 const MOCK_USERS: Record<PreviewState, SectionUser> = {
   pending: {

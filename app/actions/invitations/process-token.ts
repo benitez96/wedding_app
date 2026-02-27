@@ -1,15 +1,6 @@
-/**
- * @deprecated This file is deprecated. Use app/actions/invitations/ modular structure instead.
- * - processInvitationToken → app/actions/invitations/process-token.ts
- * - getCurrentUser → app/actions/invitations/get-current-user.ts
- *
- * This file is kept for backward compatibility only.
- * Will be removed in a future version.
- */
 "use server";
 
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import * as jose from "jose";
 import { headers, cookies } from "next/headers";
 import crypto from "crypto";
@@ -18,37 +9,6 @@ import { tokenSchema, validateAndSanitize } from "@/utils/validation";
 import { getClientIP, recordAttempt } from "@/lib/rate-limiter-prisma";
 import { logError } from "@/lib/logger";
 import { validateTokenState } from "@/lib/invitation-tokens";
-
-/**
- * Helper: Validate invitation token exists and is active
- */
-async function validateToken(tokenId: string) {
-  const token = await prisma.invitationToken.findUnique({
-    where: { id: tokenId },
-    include: { invitation: true },
-  });
-
-  if (!token) {
-    return { valid: false, error: "Token not found" };
-  }
-
-  // Use pure validation logic
-  const validation = validateTokenState({
-    isActive: token.isActive,
-    isUsed: token.isUsed,
-    expiresAt: token.expiresAt,
-  });
-
-  if (!validation.valid) {
-    return { valid: false, error: validation.reason || "Token invalid" };
-  }
-
-  if (!token.invitation) {
-    return { valid: false, error: "Invitation not found" };
-  }
-
-  return { valid: true, token, invitation: token.invitation };
-}
 
 /**
  * Process invitation token: validate and create JWT session
@@ -209,68 +169,5 @@ export async function processInvitationToken(token: string) {
   } catch (error) {
     logError("Error processing invitation token", error);
     return { success: false, action: "error", error: "error-processing-token" };
-  }
-}
-
-/**
- * Get current invitation guest user from session
- */
-export async function getCurrentUser() {
-  try {
-    // Load config once
-    const JWT_SECRET = getJwtSecret();
-    const SECURITY_CONFIG = getSecurityConfig();
-
-    const cookieStore = await cookies();
-    const session = cookieStore.get("invitation_session");
-
-    if (!session) {
-      return { success: false, user: null };
-    }
-
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jose.jwtVerify(session.value, secret, {
-      issuer: SECURITY_CONFIG.JWT_ISSUER,
-      audience: SECURITY_CONFIG.JWT_INVITATION_AUDIENCE,
-      algorithms: [SECURITY_CONFIG.JWT_ALGORITHM],
-    });
-
-    // Verify claims
-    if (
-      payload.iss !== SECURITY_CONFIG.JWT_ISSUER ||
-      payload.aud !== SECURITY_CONFIG.JWT_INVITATION_AUDIENCE
-    ) {
-      return { success: false, user: null };
-    }
-
-    // Get token and invitation (no state validation needed - user already has valid JWT session)
-    // The JWT itself proves the token was valid when the session was created
-    const token = await prisma.invitationToken.findUnique({
-      where: { id: payload.tokenId as string },
-      include: { invitation: true },
-    });
-
-    if (!token || !token.invitation) {
-      return { success: false, user: null };
-    }
-
-    return {
-      success: true,
-      user: {
-        invitationId: payload.invitationId,
-        tokenId: payload.tokenId,
-        eventId: token.invitation.eventId,
-        guestName: token.invitation.guestName,
-        guestNickname: token.invitation.guestNickname,
-        maxGuests: token.invitation.maxGuests,
-        hasResponded: token.invitation.hasResponded,
-        isAttending: token.invitation.isAttending,
-        guestCount: token.invitation.guestCount,
-        respondedAt: token.invitation.respondedAt,
-      },
-    };
-  } catch (error) {
-    logError("Error getting current user", error);
-    return { success: false, user: null };
   }
 }

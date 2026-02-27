@@ -2,8 +2,7 @@
 
 import CustomRadioGroup from "@/components/sections/RSVPStatus/CustomRadioGroup";
 import { RSVPAttendanceStep } from "@/components/sections/RSVPSection/RSVPSection.metadata";
-
-export type AttendanceValue = "attending" | "declining";
+import type { AttendanceValue } from "@/lib/rsvp-modal-utils";
 
 interface RSVPStepAttendanceProps {
   value: AttendanceValue | null;

@@ -105,15 +105,8 @@ export function useSSEStream({
     setStatus("polling");
     setError("SSE unavailable, using polling");
 
-    // TODO: delete test comment
-    console.log(
-      `[🔄 SSE] Falling back to polling mode (interval: ${pollingIntervalMs}ms)`,
-    );
-
     pollingIntervalRef.current = setInterval(() => {
       if (mountedRef.current) {
-        // TODO: delete test comment
-        console.log(`[🔄 Polling] Triggering check-in event callback`);
         onCheckInEvent();
       }
     }, pollingIntervalMs);
@@ -155,38 +148,25 @@ export function useSSEStream({
           setStatus("connected");
           setError(null);
           reconnectDelayRef.current = INITIAL_RECONNECT_DELAY; // Reset backoff
-          // TODO: delete test comment
-          console.log(`[🔌 SSE] Connected to event ${eventId}`);
         }
       };
 
       eventSource.addEventListener("check-in", () => {
         if (mountedRef.current) {
-          // TODO: delete test comment
-          console.log(`[⚡ SSE] Check-in event received for event ${eventId}`);
           onCheckInEvent();
         }
       });
 
       eventSource.addEventListener("heartbeat", () => {
         // Keep-alive, no action needed
-        // TODO: delete test comment
-        console.log(`[💓 SSE] Heartbeat received for event ${eventId}`);
       });
 
-      eventSource.onerror = (event) => {
-        // TODO: delete test comment
-        console.error(`[❌ SSE] Connection error for event ${eventId}:`, event);
-
+      eventSource.onerror = () => {
         if (eventSource.readyState === EventSource.CLOSED) {
           // Connection permanently closed
           if (mountedRef.current) {
             setStatus("disconnected");
             setError("Connection lost");
-            // TODO: delete test comment
-            console.log(
-              `[🔄 SSE] Connection closed, scheduling reconnect in ${reconnectDelayRef.current}ms`,
-            );
             // Try to reconnect after delay
             scheduleReconnect();
           }
@@ -194,8 +174,6 @@ export function useSSEStream({
           // Browser is attempting to reconnect
           if (mountedRef.current) {
             setStatus("connecting");
-            // TODO: delete test comment
-            console.log(`[🔄 SSE] Reconnecting...`);
           }
         }
       };

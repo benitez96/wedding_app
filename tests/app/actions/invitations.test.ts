@@ -29,6 +29,7 @@ vi.mock("@/lib/prisma", () => ({
     invitationToken: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -152,6 +153,10 @@ describe("processInvitationToken", () => {
       makeDbToken() as any,
     );
     vi.mocked(prisma.invitationToken.update).mockResolvedValue({} as any);
+    // Mock updateMany for atomic token usage (race condition fix)
+    vi.mocked(prisma.invitationToken.updateMany).mockResolvedValue({
+      count: 1,
+    } as any);
     vi.mocked(recordAttempt).mockResolvedValue({
       allowed: true,
       remainingAttempts: 9,
@@ -284,6 +289,25 @@ describe("processInvitationToken", () => {
       });
     });
 
+    it("returns token-already-used when updateMany returns 0 (race condition)", async () => {
+      // Token appears valid on read, but another concurrent request already used it
+      vi.mocked(prisma.invitationToken.findUnique).mockResolvedValue(
+        makeDbToken({ isUsed: false }) as any,
+      );
+
+      // Atomic update returns count=0 (no rows updated)
+      vi.mocked(prisma.invitationToken.updateMany).mockResolvedValue({
+        count: 0,
+      } as any);
+
+      const result = await processInvitationToken(VALID_TOKEN);
+      expect(result).toEqual({
+        success: false,
+        action: "error",
+        error: "token-already-used",
+      });
+    });
+
     it("returns token-expired when token has past expiration", async () => {
       const yesterday = new Date(Date.now() - 86400000);
       vi.mocked(prisma.invitationToken.findUnique).mockResolvedValue(
@@ -317,9 +341,10 @@ describe("processInvitationToken", () => {
       const result = await processInvitationToken(VALID_TOKEN);
 
       expect(result).toEqual({ success: true, action: "authenticated" });
-      expect(prisma.invitationToken.update).toHaveBeenCalledWith(
+      // Verify atomic updateMany (race condition fix)
+      expect(prisma.invitationToken.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: VALID_TOKEN },
+          where: { id: VALID_TOKEN, isUsed: false },
           data: expect.objectContaining({ isUsed: true }),
         }),
       );

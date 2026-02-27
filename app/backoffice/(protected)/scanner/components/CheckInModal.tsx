@@ -66,19 +66,9 @@ export default function CheckInModal({
     setIsPending(true);
     setState(null);
 
-    // TODO: delete test comment
-    console.log(
-      `[💳 Check-In] Submitting check-in | Invitation: ${invitation.id} | Guests: ${guestsCount} | Online: ${isOnline}`,
-    );
-
     // OFFLINE MODE: Save directly to IDB queue
     if (!isOnline) {
       try {
-        // TODO: delete test comment
-        console.log(
-          `[📴 Check-In] Offline mode detected → Saving to IDB queue`,
-        );
-
         const queuedCheckIn = await saveCheckInToQueue({
           invitationId: invitation.id,
           tokenId: invitation.tokenId,
@@ -86,18 +76,10 @@ export default function CheckInModal({
           timestamp: Date.now(),
         });
 
-        // TODO: delete test comment
-        console.log(
-          `[✅ Check-In] Saved to offline queue: ${queuedCheckIn.id} | Will sync when online`,
-        );
-
         setIsPending(false);
         onClose(true); // true = check-in was made
         return;
       } catch (error) {
-        // TODO: delete test comment
-        console.error(`[❌ Check-In] Failed to save to offline queue:`, error);
-
         setState({
           success: false,
           error: "No se pudo guardar el check-in offline. Intenta de nuevo.",
@@ -109,9 +91,6 @@ export default function CheckInModal({
 
     // ONLINE MODE: Try server first, fallback to queue if fails
     try {
-      // TODO: delete test comment
-      console.log(`[🌐 Check-In] Online mode → POSTing to server`);
-
       const response = await fetch("/api/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -125,12 +104,6 @@ export default function CheckInModal({
       const result: CheckInResult = await response.json();
 
       if (result.success) {
-        // TODO: delete test comment
-        console.log(
-          `[✅ Check-In] Server accepted check-in | Response:`,
-          result,
-        );
-
         // Update local cache immediately (optimistic UI)
         await updateCachedInvitationCheckInCount(invitation.id, guestsCount);
 
@@ -138,17 +111,9 @@ export default function CheckInModal({
         return;
       }
 
-      // TODO: delete test comment
-      console.warn(`[⚠️ Check-In] Server rejected check-in:`, result);
       setState(result);
     } catch (error) {
       // Network error during online mode → fallback to offline queue
-      // TODO: delete test comment
-      console.error(
-        `[❌ Check-In] Server request failed, falling back to offline queue:`,
-        error,
-      );
-
       try {
         const queuedCheckIn = await saveCheckInToQueue({
           invitationId: invitation.id,
@@ -157,17 +122,9 @@ export default function CheckInModal({
           timestamp: Date.now(),
         });
 
-        // TODO: delete test comment
-        console.log(
-          `[✅ Check-In] Saved to offline queue as fallback: ${queuedCheckIn.id}`,
-        );
-
         onClose(true); // true = check-in was made
         return;
       } catch (queueError) {
-        // TODO: delete test comment
-        console.error(`[❌ Check-In] Even offline queue failed:`, queueError);
-
         setState({
           success: false,
           error: "No se pudo registrar el check-in. Intenta de nuevo.",

@@ -7,7 +7,14 @@ import {
   deleteInvitationToken,
 } from "@/app/actions/protected-admin-invitations";
 
-export type TokenAction = "create" | "revoke" | "reactivate" | "delete";
+export const TokenAction = {
+  CREATE: "create",
+  REVOKE: "revoke",
+  REACTIVATE: "reactivate",
+  DELETE: "delete",
+} as const;
+
+export type TokenAction = (typeof TokenAction)[keyof typeof TokenAction];
 
 interface UseTokenActionsOptions {
   /**

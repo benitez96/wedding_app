@@ -103,7 +103,7 @@ export async function updateInvitationResponseAction(
 ) {
   const isAttending = formData.get("isAttending") === "true";
   const guestCount = formData.get("guestCount")
-    ? parseInt(formData.get("guestCount") as string)
+    ? parseInt(formData.get("guestCount") as string, 10)
     : null;
 
   const result = await updateInvitationResponse({

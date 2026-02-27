@@ -26,26 +26,33 @@ const nextConfig = {
           // X-XSS-Protection intentionally omitted - deprecated in modern browsers
           // and can introduce vulnerabilities. CSP replaces it.
           // Content Security Policy
-          // Content Security Policy
-          // NOTE: 'unsafe-eval' is required in development for Next.js React Refresh (hot reload).
-          // In production, it is removed for security.
+          // NOTE: 'unsafe-inline' is required for:
+          // - Next.js hydration scripts
+          // - HeroUI inline styles
+          // - Framer Motion animations
+          // 'unsafe-eval' is required ONLY in development for Next.js React Refresh (hot reload).
+          // XSS protection is enforced via:
+          // - Input sanitization (lib/sanitize.ts)
+          // - Zod validation with anti-XSS regex
+          // - HTTP-only cookies
+          // - Strict output escaping (React auto-escapes)
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
               process.env.NODE_ENV === "development"
                 ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-                : "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
-              "worker-src 'self' blob:", //TODO: keep blob?
-              "img-src 'self' data: https:",
+                : "script-src 'self' 'unsafe-inline'", // No eval in production
+              "style-src 'self' 'unsafe-inline'", // Required for CSS-in-JS
+              "worker-src 'self' blob:", // IndexedDB sync workers
+              "img-src 'self' data: https:", // Allow external images (user uploads)
               "font-src 'self'",
-              "connect-src 'self'",
+              "connect-src 'self'", // API calls only to same origin
               "media-src 'self'",
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "frame-ancestors 'none'",
+              "object-src 'none'", // Block Flash/Java
+              "base-uri 'self'", // Prevent base tag injection
+              "form-action 'self'", // Forms only submit to same origin
+              "frame-ancestors 'none'", // No iframes (same as X-Frame-Options: DENY)
               ...(process.env.NODE_ENV === "production"
                 ? ["upgrade-insecure-requests"]
                 : []),

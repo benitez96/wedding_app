@@ -152,38 +152,53 @@ export const auth = betterAuth({
       create: {
         // Hook que se ejecuta DESPUÉS de crear un usuario
         async after(user) {
-          // Cargar las funciones dinámicamente para evitar dependencias circulares
-          // y ejecutar en background sin bloquear el registro
-          Promise.resolve()
-            .then(async () => {
-              try {
-                // Importar dinámicamente para evitar circular dependencies
-                const { createSubscription, createDefaultEventForUser } =
-                  await import("@/lib/subscription-manager-prisma");
+          // CRITICAL: Setup user subscription and default event
+          // This runs synchronously to ensure user setup is complete
+          try {
+            // Importar dinámicamente para evitar circular dependencies
+            const { createSubscription, createDefaultEventForUser } =
+              await import("@/lib/subscription-manager-prisma");
 
-                // 1. Crear suscripción FREE automáticamente
-                await createSubscription({
-                  userId: user.id,
-                  tier: "FREE",
-                  status: "active",
-                  reason: "New user registration",
-                  changedBy: "system",
-                });
-
-                // 2. Crear evento por defecto para que comience a editar
-                await createDefaultEventForUser(user.id);
-              } catch (error) {
-                if (process.env.NODE_ENV === "development") {
-                  console.error(
-                    `[Auth] Error setting up new user ${user.id}:`,
-                    error,
-                  );
-                }
-              }
-            })
-            .catch(() => {
-              // Non-blocking
+            // 1. Crear suscripción FREE automáticamente
+            await createSubscription({
+              userId: user.id,
+              tier: "FREE",
+              status: "active",
+              reason: "New user registration",
+              changedBy: "system",
             });
+
+            // 2. Crear evento por defecto para que comience a editar
+            await createDefaultEventForUser(user.id);
+          } catch (error) {
+            // CRITICAL ERROR: User was created but setup failed
+            // Log to security logs for monitoring
+            console.error(
+              `[CRITICAL] Failed to setup user ${user.id}:`,
+              error instanceof Error ? error.message : "Unknown error",
+            );
+
+            // Store in SecurityLog for admin visibility
+            await prisma.securityLog
+              .create({
+                data: {
+                  type: "user_setup_failed",
+                  ip: "127.0.0.1", // Internal system operation
+                  userAgent: "better-auth-hook",
+                  details: {
+                    userId: user.id,
+                    email: user.email,
+                    error: error instanceof Error ? error.message : "Unknown",
+                  },
+                },
+              })
+              .catch(() => {
+                // If even logging fails, there's nothing more we can do
+              });
+
+            // Re-throw to signal failure (Better Auth will handle)
+            throw error;
+          }
         },
       },
     },

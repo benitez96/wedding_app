@@ -47,17 +47,10 @@ export class HybridSmartStrategy implements ICheckInStrategy {
   ): Promise<CheckInAttemptResult> {
     if (!context) {
       // No context → default to IDB for safety
-      // TODO: delete test comment
-      console.log(`[🧠 HYBRID] No context provided, defaulting to IDB`);
       return this.idbStrategy.validateQR(tokenId, eventId);
     }
 
     const mode = this.decideMode(context);
-
-    // TODO: delete test comment
-    console.log(
-      `[🧠 HYBRID] Decision: ${mode} | Network: ${context.networkMetrics.isOnline ? "online" : "offline"}, Latency: ${context.networkMetrics.latencyMs}ms, Cache stale: ${context.cacheStaleness.isStale}`,
-    );
 
     switch (mode) {
       case "IDB":

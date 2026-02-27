@@ -4,12 +4,30 @@ import { z } from "zod";
 import { emitCheckInEvent } from "@/app/api/events/[eventId]/stream/route";
 import { checkInvitationPermission } from "@/lib/middleware/auth-middleware";
 
+// Security: Max clock skew tolerance (1 minute)
+const MAX_CLOCK_SKEW_MS = 60 * 1000;
+// Security: Max age for check-ins (24 hours)
+const MAX_CHECKIN_AGE_MS = 24 * 60 * 60 * 1000;
+
 const syncCheckInSchema = z.object({
   clientId: z.string().uuid(),
   invitationId: z.string().cuid(),
   guestsCount: z.number().int().min(1).max(20),
   deviceId: z.string().optional(),
-  timestamp: z.number(),
+  timestamp: z.number().refine(
+    (ts) => {
+      const now = Date.now();
+      // Reject future timestamps (clock skew attack)
+      if (ts > now + MAX_CLOCK_SKEW_MS) return false;
+      // Reject very old timestamps (replay attack)
+      if (ts < now - MAX_CHECKIN_AGE_MS) return false;
+      return true;
+    },
+    {
+      message:
+        "Timestamp inválido: debe estar dentro de las últimas 24 horas y no en el futuro",
+    },
+  ),
 });
 
 /**
