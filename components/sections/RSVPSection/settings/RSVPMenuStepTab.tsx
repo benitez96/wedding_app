@@ -6,7 +6,7 @@ import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Chip } from "@heroui/chip";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { RSVPSectionSettings } from "../RSVPSection.metadata";
 
 interface RSVPMenuStepTabProps {

@@ -3,12 +3,12 @@
 import { useState, useOptimistic, useTransition } from "react";
 import { Card, CardBody } from "@heroui/card";
 import { Plus, CheckCircle } from "lucide-react";
+import clsx from "clsx";
 import {
   SECTION_METADATA,
   type SectionKey,
 } from "@/components/sections/metadata";
 import { addSection } from "@/app/actions/sections";
-import clsx from "clsx";
 
 interface SectionCatalogProps {
   activeSectionKeys: Set<string>;

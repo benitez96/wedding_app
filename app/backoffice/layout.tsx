@@ -2,6 +2,7 @@ import { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
 
+import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 import { siteConfig } from "@/config/site";
 import { auth } from "@/lib/auth";
 import { getUserEventContext } from "@/lib/event-context-prisma";
@@ -10,7 +11,6 @@ import { THEME_IDS } from "@/types/theme";
 import type { EventThemeData } from "@/app/actions/theme";
 import { ThemeSync } from "@/components/providers/ThemeSync";
 import ThemeStyleTag from "@/components/providers/ThemeStyleTag";
-import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
   title: {

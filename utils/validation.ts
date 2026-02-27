@@ -1,5 +1,18 @@
 import { z, type ZodError } from "zod";
 
+// Re-export sanitization functions from the canonical source
+// This maintains backward compatibility for existing imports
+export {
+  sanitizeString,
+  sanitizeName,
+  sanitizePhone,
+  sanitizeText,
+  sanitizeHtml,
+  sanitizeId,
+  sanitizeSearch,
+  sanitizeObject,
+} from "@/lib/sanitize";
+
 // Invitation validation schemas
 export const invitationSchema = z.object({
   guestName: z
@@ -102,59 +115,6 @@ export const messageSchema = z.object({
     .regex(/^[^<>]*$/, "Message cannot contain HTML characters"),
   type: z.enum(["wish", "memory", "advice"]).optional(),
 });
-
-// Basic string sanitization
-export function sanitizeString(input: string): string {
-  return input
-    .trim()
-    .replace(/[<>]/g, "") // Remove dangerous HTML characters
-    .replace(/\s+/g, " "); // Normalize spaces
-}
-
-// Sanitize HTML to prevent XSS
-export function sanitizeHtml(input: string): string {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
-}
-
-// Sanitize names (allows letters, spaces and common characters)
-export function sanitizeName(input: string): string {
-  return input
-    .trim()
-    .replace(/[<>\\"']/g, "") // Remove dangerous characters
-    .replace(/\s+/g, " ") // Normalize spaces
-    .slice(0, 100); // Limit length
-}
-
-// Sanitize phone numbers (only numbers, spaces, +, -, parentheses)
-export function sanitizePhone(input: string): string {
-  return input
-    .trim()
-    .replace(/[^\d\s+\-()]/g, "") // Only allow valid phone characters
-    .slice(0, 20); // Limit length
-}
-
-// Sanitize IDs (alphanumeric, hyphens, underscores)
-export function sanitizeId(input: string): string {
-  return input
-    .trim()
-    .replace(/[^a-zA-Z0-9_-]/g, "") // Only alphanumeric, hyphens and underscores
-    .slice(0, 50); // Limit length
-}
-
-// Sanitize search queries (remove dangerous special characters)
-export function sanitizeSearch(input: string): string {
-  return input
-    .trim()
-    .replace(/[<>\\"'%&;\\/]/g, "") // Remove dangerous search characters
-    .replace(/\s+/g, " ") // Normalize spaces
-    .slice(0, 100); // Limit length
-}
 
 // Validate and sanitize data with Zod schemas
 export function validateAndSanitize<T>(

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  CommonSectionFieldsSchema,
   DecorationSvgSchema,
   DecorationPatternSchema,
 } from "@/types/section-settings-schemas";

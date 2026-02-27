@@ -61,7 +61,7 @@ export default function InvitationsHeader() {
           isIconOnly
           onPress={onOpen}
           startContent={<Plus />}
-        ></Button>
+         />
       </div>
 
       <div className="mb-6">

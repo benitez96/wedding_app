@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/app/actions/invitations";
+import { getCurrentUser } from "@/app/actions/invitations/";
 import { getSectionConfigurations } from "@/app/actions/sections";
 import {
   getWeddingDate,

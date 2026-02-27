@@ -21,7 +21,7 @@ interface InvitationQRCodeProps {
  */
 export default function InvitationQRCode({
   tokenId,
-  guestName,
+  guestName: _guestName,
   className = "",
 }: InvitationQRCodeProps) {
   const { Canvas } = useQRCode();

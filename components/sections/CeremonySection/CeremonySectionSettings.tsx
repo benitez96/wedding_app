@@ -6,14 +6,19 @@ import { Switch } from "@heroui/switch";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { useState } from "react";
-import { CeremonySectionSettings } from "./CeremonySection.metadata";
 import { Save } from "lucide-react";
+import { CeremonySectionSettings } from "./CeremonySection.metadata";
 import {
   SectionSettingsFormProps,
   createSettingsUpdater,
 } from "@/types/section-settings-form";
 import { DecorationSettingsCard } from "@/components/ui/DecorationSettingsCard";
-import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import {
+  DecorationSvg,
+  DecorationSVGs,
+  DecorationPattern,
+  DecorationPatterns,
+} from "@/types/decoration";
 import { SectionIconSelector } from "@/components/ui/SectionIconSelector";
 import { SectionIcon } from "@/types/section-icon";
 import { useToastFeedback } from "@/hooks/useToastFeedback";
@@ -34,8 +39,9 @@ export function CeremonySectionSettingsForm({
       showDirectionsButton: initialSettings.showDirectionsButton ?? true,
       hasAlternateBg: initialSettings.hasAlternateBg ?? false,
       // Decoraciones
-      decorationSvg: initialSettings.decorationSvg || "none",
-      decorationPattern: initialSettings.decorationPattern || "none",
+      decorationSvg: initialSettings.decorationSvg || DecorationSVGs.NONE,
+      decorationPattern:
+        initialSettings.decorationPattern || DecorationPatterns.CORNERS,
       decorationOpacity: initialSettings.decorationOpacity ?? 10,
       decorationSize: initialSettings.decorationSize ?? 60,
     }),
@@ -52,7 +58,7 @@ export function CeremonySectionSettingsForm({
     try {
       await onSave(settings as CeremonySectionSettings);
       toastSuccess("Cambios guardados correctamente");
-    } catch (error) {
+    } catch {
       toastError("Error al guardar los cambios");
     } finally {
       setIsSaving(false);

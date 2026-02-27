@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { logError, logWarning } from "@/lib/logger";
 
 interface UseQRScannerOptions {
   onScan: (data: string) => void;
@@ -136,11 +137,11 @@ export function useQRScanner({
         const e = toError(err);
 
         if (e.name === "AbortError") {
-          console.warn("[QR] AbortError (start interrumpido).");
+          logWarning("QR Scanner", "AbortError (start interrumpido)");
           return;
         }
 
-        console.error("[QR] startScanning error:", err);
+        logError("QR startScanning error", err);
         setError(e.message);
         setHasPermission(false);
         setIsScanning(false);

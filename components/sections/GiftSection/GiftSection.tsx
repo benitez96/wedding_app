@@ -1,9 +1,9 @@
 import { Snippet } from "@heroui/snippet";
+import { GiftSectionSettings } from "./GiftSection.metadata";
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import { GiftSectionSettings } from "./GiftSection.metadata";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
-import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { DecorationSVGs, DecorationPatterns } from "@/types/decoration";
 import { SectionIcon } from "@/components/ui/SectionIcon";
 import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
@@ -25,9 +25,9 @@ export default function GiftSection({ settings }: GiftSectionProps) {
   const sectionIcon = (settings?.icon || "gift-2") as SectionIconType;
 
   // Decoraciones
-  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
-  const decorationPattern = (settings?.decorationPattern ||
-    "none") as DecorationPattern;
+  const decorationSvg = settings?.decorationSvg ?? DecorationSVGs.NONE;
+  const decorationPattern =
+    settings?.decorationPattern ?? DecorationPatterns.CORNERS;
   const decorationOpacity = settings?.decorationOpacity ?? 10;
   const decorationSize = settings?.decorationSize ?? 60;
 

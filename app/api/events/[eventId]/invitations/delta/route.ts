@@ -19,6 +19,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { checkEventPermission } from "@/lib/middleware/auth-middleware";
+import { logError } from "@/lib/logger";
 
 interface DeltaInvitation {
   id: string;
@@ -92,7 +93,7 @@ export async function GET(
       hasMore: delta.length === 100, // If we hit limit, there may be more
     });
   } catch (error) {
-    console.error("[Delta] Error:", error);
+    logError("GET /api/events/[eventId]/invitations/delta", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 },

@@ -2,39 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Section } from "@/components/section";
-import RSVPModal from "@/components/RSVPModal";
 import PendingRSVP from "./RSVPStatus/PendingRSVP";
 import ConfirmedRSVP from "./RSVPStatus/ConfirmedRSVP";
 import DeclinedRSVP from "./RSVPStatus/DeclinedRSVP";
+import type { RSVPStepConfig } from "./RSVPSection/RSVPSection.metadata";
+import { Section } from "@/components/section";
+import RSVPModal from "@/components/RSVPModal";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
-import { DecorationSvg, DecorationPattern } from "@/types/decoration";
-import {
-  RSVPAttendanceStep,
-  RSVPPendingContent,
-  RSVPConfirmedContent,
-  RSVPDeclinedContent,
-  RSVPMenuStep,
-  RSVPDietaryStep,
-  RSVPMessageStep,
-} from "./RSVPSection/RSVPSection.metadata";
+import type { DecorationSvg, DecorationPattern } from "@/types/decoration";
+
+// Re-export for backwards compatibility
+export type { RSVPStepConfig } from "./RSVPSection/RSVPSection.metadata";
 
 interface RSVPUser {
   hasResponded: boolean;
   isAttending?: boolean | null;
   guestCount?: number | null;
   maxGuests: number;
-}
-
-// Full config passed down from section settings to modal and status components
-export interface RSVPStepConfig {
-  attendanceStep: RSVPAttendanceStep;
-  pendingContent: RSVPPendingContent;
-  confirmedContent: RSVPConfirmedContent;
-  declinedContent: RSVPDeclinedContent;
-  menuStep: RSVPMenuStep;
-  dietaryStep: RSVPDietaryStep;
-  messageStep: RSVPMessageStep;
 }
 
 interface RSVPSectionClientProps {

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { getCurrentUserData } from "@/app/actions/protected-invitations";
 import RSVPReminderModal from "./RSVPReminderModal";
+import { getCurrentUserData } from "@/app/actions/protected-invitations";
 import { shouldShowReminder } from "@/lib/rsvp-reminder-utils";
+import { logError } from "@/lib/logger";
 
 interface RSVPReminderHandlerProps {
   weddingTimestamp: number;
@@ -42,7 +43,7 @@ export default function RSVPReminderHandler({
           setShowModal(true);
         }
       } catch (error) {
-        console.error("Error al verificar recordatorio RSVP:", error);
+        logError("Error al verificar recordatorio RSVP", error);
       } finally {
         if (isActive) {
           setHasChecked(true);

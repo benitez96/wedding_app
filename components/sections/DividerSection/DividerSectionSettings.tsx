@@ -7,8 +7,8 @@ import { Select, SelectItem } from "@heroui/select";
 import { Slider } from "@heroui/slider";
 import { Switch } from "@heroui/switch";
 import { useState } from "react";
-import { DividerSectionSettings } from "./DividerSection.metadata";
 import { Save } from "lucide-react";
+import { DividerSectionSettings } from "./DividerSection.metadata";
 import {
   SectionSettingsFormProps,
   createSettingsUpdater,
@@ -46,7 +46,7 @@ export function DividerSectionSettingsForm({
     try {
       await onSave(settings as DividerSectionSettings);
       toastSuccess("Cambios guardados correctamente");
-    } catch (error) {
+    } catch {
       toastError("Error al guardar los cambios");
     } finally {
       setIsSaving(false);

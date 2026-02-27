@@ -11,20 +11,19 @@ import {
   WifiOff,
   Activity,
 } from "lucide-react";
+import CheckInModal from "./CheckInModal";
 import { useQRScanner } from "@/lib/qr/useQRScanner";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useSSEStream } from "@/hooks/useSSEStream";
 import { useCheckInStrategy } from "@/hooks/useCheckInStrategy";
-import { scanQR } from "@/app/actions/check-in/scanQR";
 import { getInvitationsForCache } from "@/app/actions/check-in/getInvitationsForCache";
 import {
   cacheInvitations,
-  getInvitationByToken,
   updateInvitationCache,
 } from "@/lib/offline/indexedDB";
 import { syncPendingCheckIns } from "@/lib/offline/syncQueue";
-import CheckInModal from "./CheckInModal";
 import type { CheckInStrategyConfig } from "@/types/check-in-strategy";
+import { logError } from "@/lib/logger";
 
 interface QRScannerProps {
   eventId: string;
@@ -120,7 +119,7 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
         deltaCursorRef.current = data.cursor;
       } else {
       }
-    } catch (error) {
+    } catch {
       // Silent error - delta sync is best effort
     }
   };
@@ -168,7 +167,7 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
           // Initialize delta cursor to now (future deltas only)
           deltaCursorRef.current = new Date().toISOString();
         }
-      } catch (error) {
+      } catch {
         // Silent error - cache load is best effort
       } finally {
         setIsCaching(false);
@@ -233,7 +232,7 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
           setScanError(result.error || "Error al validar el código QR");
           busyRef.current = false;
         }
-      } catch (error) {
+      } catch {
         // TODO: i18n
         setScanError("Error inesperado al validar el código QR");
         busyRef.current = false;
@@ -242,7 +241,7 @@ export default function QRScanner({ eventId, config }: QRScannerProps) {
       }
     },
     onError: (err) => {
-      console.error("[Scanner] Error:", err);
+      logError("Scanner error", err);
       setScanError(err.message);
     },
   });

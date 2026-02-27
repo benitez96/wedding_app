@@ -68,8 +68,9 @@ describe("CheckInStrategyFactory", () => {
       const strategy = CheckInStrategyFactory.create(config);
 
       expect(strategy).toBeInstanceOf(IDBFirstStrategy);
+      // Logger uses logWarning which formats as "[context]"
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Unknown strategy: UNKNOWN_STRATEGY"),
+        "[Unknown check-in strategy]",
       );
 
       consoleWarnSpy.mockRestore();

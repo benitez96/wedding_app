@@ -72,7 +72,7 @@ export class IDBFirstStrategy implements ICheckInStrategy {
         source: "SERVER",
         invitation: serverResult.invitation,
       };
-    } catch (error) {
+    } catch {
       // IDB error → try server as last resort
       try {
         const serverResult = await scanQR({ tokenId, eventId });
@@ -138,7 +138,7 @@ export class IDBFirstStrategy implements ICheckInStrategy {
 
       // Server returned error → fallback to queue
       return this.queueCheckIn(input);
-    } catch (error) {
+    } catch {
       // Network error or timeout → fallback to queue
       return this.queueCheckIn(input);
     }
@@ -163,7 +163,7 @@ export class IDBFirstStrategy implements ICheckInStrategy {
         source: "OFFLINE_QUEUE",
         queued: true,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         source: "OFFLINE_QUEUE",

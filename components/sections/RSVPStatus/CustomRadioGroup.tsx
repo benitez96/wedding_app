@@ -2,6 +2,7 @@
 
 import { RadioGroup, Radio } from "@heroui/radio";
 import { Heart, HeartOff } from "lucide-react";
+import type { AttendanceValue } from "@/lib/rsvp-modal-utils";
 
 interface RadioOptionText {
   label: string;
@@ -9,8 +10,8 @@ interface RadioOptionText {
 }
 
 interface CustomRadioGroupProps {
-  value: "attending" | "declining" | null;
-  onValueChange: (value: "attending" | "declining") => void;
+  value: AttendanceValue | null;
+  onValueChange: (value: AttendanceValue) => void;
   acceptText?: RadioOptionText;
   declineText?: RadioOptionText;
 }

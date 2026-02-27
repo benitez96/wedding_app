@@ -1,7 +1,7 @@
 // Server Component Wrapper - Fetchea data y la pasa al client component
-import { getCurrentUserData } from "@/app/actions/protected-invitations";
 import RSVPSectionClient from "./RSVPSection";
 import { RSVPSectionSettings } from "./RSVPSection.metadata";
+import { getCurrentUserData } from "@/app/actions/protected-invitations";
 
 interface RSVPSectionProps {
   settings?: RSVPSectionSettings;

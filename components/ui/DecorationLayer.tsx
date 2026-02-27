@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { DecorationLayerProps, DecorationPatterns } from "@/types/decoration";
 import { getPatternPositions } from "@/lib/decoration-patterns";

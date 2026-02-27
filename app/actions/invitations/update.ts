@@ -1,11 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { extractInvitationData } from "./_shared";
 import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { PERMISSIONS } from "@/lib/permissions";
 import { logError } from "@/lib/logger";
-import { extractInvitationData } from "./_shared";
 import {
   validateGuestCount,
   prepareInvitationUpdateData,

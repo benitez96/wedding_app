@@ -5,11 +5,11 @@ import { Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/modal";
 import { Button } from "@heroui/button";
 import { useDisclosure } from "@heroui/use-disclosure";
 import { Edit } from "lucide-react";
-import type { InvitationWithTokens } from "@/app/backoffice/(protected)/invitations/types";
 import InvitationInfoCard from "./InvitationDetailModal/InvitationInfoCard";
 import RSVPResponseCard from "./InvitationDetailModal/RSVPResponseCard";
 import TokensTable from "./InvitationDetailModal/TokensTable";
 import EditInvitationModal from "./EditInvitationModal";
+import type { InvitationWithTokens } from "@/app/backoffice/(protected)/invitations/types";
 
 interface InvitationDetailModalProps {
   invitation: InvitationWithTokens;

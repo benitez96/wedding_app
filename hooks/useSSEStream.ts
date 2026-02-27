@@ -199,7 +199,7 @@ export function useSSEStream({
       mountedRef.current = false;
       cleanup();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [eventId, enabled]);
 
   return {

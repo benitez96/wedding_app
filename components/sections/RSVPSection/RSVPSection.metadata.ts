@@ -157,3 +157,14 @@ export type RSVPDeclinedContent = RSVPSectionSettings["declinedContent"];
 export type RSVPMenuStep = RSVPSectionSettings["menuStep"];
 export type RSVPDietaryStep = RSVPSectionSettings["dietaryStep"];
 export type RSVPMessageStep = RSVPSectionSettings["messageStep"];
+
+// Full config passed down from section settings to modal and status components
+export interface RSVPStepConfig {
+  attendanceStep: RSVPAttendanceStep;
+  pendingContent: RSVPPendingContent;
+  confirmedContent: RSVPConfirmedContent;
+  declinedContent: RSVPDeclinedContent;
+  menuStep: RSVPMenuStep;
+  dietaryStep: RSVPDietaryStep;
+  messageStep: RSVPMessageStep;
+}

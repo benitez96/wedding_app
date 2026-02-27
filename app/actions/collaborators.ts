@@ -1,17 +1,15 @@
 "use server";
 
+import crypto from "crypto";
+import { revalidatePath } from "next/cache";
 import { withAuth, withEventAuth } from "@/lib/server-auth";
 import type { User } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { enforceCollaboratorAccess } from "@/lib/tier-enforcement-prisma";
-import { verifyEventAccess } from "@/lib/event-context-prisma";
 import {
   PERMISSIONS,
   PERMISSION_PRESETS,
-  hasPermission,
 } from "@/lib/permissions";
-import crypto from "crypto";
 import { logError } from "@/lib/logger";
 
 /**

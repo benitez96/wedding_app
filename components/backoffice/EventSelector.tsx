@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Select, SelectItem } from "@heroui/select";
-import { switchActiveEvent } from "@/app/actions/events";
 import { useRouter } from "next/navigation";
+import { switchActiveEvent } from "@/app/actions/events";
+import { logError } from "@/lib/logger";
 
 interface EventOption {
   id: string;
@@ -33,7 +34,7 @@ export default function EventSelector({
         router.refresh();
       }
     } catch (error) {
-      console.error("Error switching event:", error);
+      logError("Error switching event", error);
     } finally {
       setIsLoading(false);
     }

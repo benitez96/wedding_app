@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { processInvitationToken } from "@/app/actions/invitations";
+import { processInvitationToken } from "@/app/actions/invitations/";
 import HeartLoader from "@/components/HeartLoader";
+import { logError } from "@/lib/logger";
 
 interface TokenProcessorProps {
   token: string;
@@ -52,7 +53,7 @@ export default function TokenProcessor({ token }: TokenProcessorProps) {
             router.replace("/error?message=error-desconocido");
         }
       } catch (error) {
-        console.error("Error al procesar token:", error);
+        logError("Error al procesar token", error);
         router.replace("/error?message=error-procesando-token");
       }
     };

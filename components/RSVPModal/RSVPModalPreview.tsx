@@ -3,36 +3,17 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { Button } from "@heroui/button";
-import { RSVPStepConfig } from "@/components/sections/RSVPSectionClient";
-import { RSVPStepAttendance, type AttendanceValue } from "./RSVPStepAttendance";
+import { RSVPStepAttendance } from "./RSVPStepAttendance";
 import { RSVPStepGuestCount } from "./RSVPStepGuestCount";
 import { RSVPStepMenu } from "./RSVPStepMenu";
 import { RSVPStepDietary } from "./RSVPStepDietary";
 import { RSVPStepMessage } from "./RSVPStepMessage";
+import { RSVPStepConfig } from "@/components/sections/RSVPSectionClient";
 
-// Step identifiers — mirrors RSVPModal
-export const PREVIEW_STEP = {
-  ATTENDANCE: "attendance",
-  GUEST_COUNT: "guest_count",
-  MENU: "menu",
-  DIETARY: "dietary",
-  MESSAGE: "message",
-} as const;
+import { type AttendanceValue, buildSteps, STEP } from "@/lib/rsvp-modal-utils";
 
-export type PreviewStepId = (typeof PREVIEW_STEP)[keyof typeof PREVIEW_STEP];
-
-export function buildPreviewSteps(
-  attending: AttendanceValue | null,
-  stepConfig: RSVPStepConfig,
-): PreviewStepId[] {
-  const steps: PreviewStepId[] = [PREVIEW_STEP.ATTENDANCE];
-  if (attending !== "attending") return steps;
-  steps.push(PREVIEW_STEP.GUEST_COUNT);
-  if (stepConfig.menuStep.enabled) steps.push(PREVIEW_STEP.MENU);
-  if (stepConfig.dietaryStep.enabled) steps.push(PREVIEW_STEP.DIETARY);
-  if (stepConfig.messageStep.enabled) steps.push(PREVIEW_STEP.MESSAGE);
-  return steps;
-}
+// Preview uses a fixed maxGuests value for display purposes
+const PREVIEW_MAX_GUESTS = 2;
 
 // ---------------------------------------------------------------------------
 // Clickable dot progress indicator
@@ -105,10 +86,10 @@ export function RSVPModalPreview({
   );
   const [messageForCouple, setMessageForCouple] = useState("");
 
-  const steps = buildPreviewSteps(attendance, stepConfig);
+  const steps = buildSteps(attendance, PREVIEW_MAX_GUESTS, stepConfig);
   // Clamp index in case steps shrink (e.g. attendance switches to declining)
   const safeIndex = Math.min(currentStepIndex, steps.length - 1);
-  const currentStep = steps[safeIndex] ?? PREVIEW_STEP.ATTENDANCE;
+  const currentStep = steps[safeIndex] ?? STEP.ATTENDANCE;
   const isLastStep = safeIndex === steps.length - 1;
 
   function handleAttendanceChange(value: AttendanceValue) {
@@ -123,7 +104,7 @@ export function RSVPModalPreview({
 
   function renderStep() {
     switch (currentStep) {
-      case PREVIEW_STEP.ATTENDANCE:
+      case STEP.ATTENDANCE:
         return (
           <RSVPStepAttendance
             value={attendance}
@@ -131,15 +112,15 @@ export function RSVPModalPreview({
             attendanceStep={stepConfig.attendanceStep}
           />
         );
-      case PREVIEW_STEP.GUEST_COUNT:
+      case STEP.GUEST_COUNT:
         return (
           <RSVPStepGuestCount
             value={guestCount}
-            max={2}
+            max={PREVIEW_MAX_GUESTS}
             onChange={setGuestCount}
           />
         );
-      case PREVIEW_STEP.MENU:
+      case STEP.MENU:
         return (
           <RSVPStepMenu
             question={stepConfig.menuStep.question}
@@ -148,7 +129,7 @@ export function RSVPModalPreview({
             onValueChange={setMenuPreference}
           />
         );
-      case PREVIEW_STEP.DIETARY:
+      case STEP.DIETARY:
         return (
           <RSVPStepDietary
             question={stepConfig.dietaryStep.question}
@@ -156,7 +137,7 @@ export function RSVPModalPreview({
             onValueChange={setDietaryRestrictions}
           />
         );
-      case PREVIEW_STEP.MESSAGE:
+      case STEP.MESSAGE:
         return (
           <RSVPStepMessage
             question={stepConfig.messageStep.question}

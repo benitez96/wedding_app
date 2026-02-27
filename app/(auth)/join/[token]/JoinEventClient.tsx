@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/button";
 import { Card, CardBody, CardHeader, CardFooter } from "@heroui/card";
-import { acceptInviteLink } from "@/app/actions/collaborators";
 import Link from "next/link";
+import { acceptInviteLink } from "@/app/actions/collaborators";
 
 interface JoinEventClientProps {
   token: string;
@@ -37,7 +37,7 @@ export default function JoinEventClient({
       } else {
         setError(result.error ?? "Error al aceptar la invitación");
       }
-    } catch (err) {
+    } catch {
       setError("Error al aceptar la invitación");
     } finally {
       setIsLoading(false);

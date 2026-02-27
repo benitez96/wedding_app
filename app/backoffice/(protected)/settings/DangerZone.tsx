@@ -58,7 +58,7 @@ export default function DangerZone({ eventId, eventName }: DangerZoneProps) {
         router.push("/backoffice/no-events");
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       toastError("Error inesperado al eliminar el evento");
       setIsDeleting(false);
     }
@@ -121,6 +121,7 @@ export default function DangerZone({ eventId, eventName }: DangerZoneProps) {
               placeholder={`Escribe: ${eventName}`}
               variant="bordered"
               isDisabled={isDeleting}
+              // eslint-disable-next-line jsx-a11y/no-autofocus -- Deliberate UX: focus input on modal open
               autoFocus
             />
           </ModalBody>

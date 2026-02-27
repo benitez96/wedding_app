@@ -101,7 +101,7 @@ export class ServerFirstStrategy implements ICheckInStrategy {
 
       // Server returned error → fallback to queue
       return this.queueCheckIn(input);
-    } catch (error) {
+    } catch {
       // Network error or timeout → fallback to queue
       return this.queueCheckIn(input);
     }
@@ -126,7 +126,7 @@ export class ServerFirstStrategy implements ICheckInStrategy {
         source: "OFFLINE_QUEUE",
         queued: true,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         source: "OFFLINE_QUEUE",

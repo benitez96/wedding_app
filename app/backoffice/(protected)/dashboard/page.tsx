@@ -1,11 +1,12 @@
 import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Users, Mail, CheckCircle, XCircle, UserCheck } from "lucide-react";
+import { Users, Mail, XCircle, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import ExportConfirmedGuestsButton from "@/components/ExportConfirmedGuestsButton";
 import { verifyUserAuth } from "@/lib/server-auth";
 import { getUserEventContext } from "@/lib/event-context-prisma";
+import { logError } from "@/lib/logger";
 
 // Forzar renderizado dinámico
 export const dynamic = "force-dynamic";
@@ -54,7 +55,7 @@ async function getDashboardStats(eventId: string) {
           : 0,
     };
   } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
+    logError("getDashboardStats", error);
     // Return default values if database is not available
     return {
       totalInvitations: 0,

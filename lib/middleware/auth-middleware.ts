@@ -31,7 +31,7 @@ interface AuthCheckError {
   response: NextResponse;
 }
 
-const AuthCheckResponseType = {
+const _AuthCheckResponseType = {
   RESULT: "result",
   ERROR: "error",
 } as const;

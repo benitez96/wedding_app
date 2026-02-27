@@ -1,15 +1,15 @@
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { SectionEditor } from "./SectionEditor";
+import { auth } from "@/lib/auth";
 import { getUserEventContext } from "@/lib/event-context-prisma";
 import { SECTION_METADATA, isSectionKey } from "@/components/sections/metadata";
 import {
   getSectionConfigurations,
   updateSectionSettings,
 } from "@/app/actions/sections";
-import { SectionEditor } from "./SectionEditor";
 
 // Forzar renderizado dinámico
 export const dynamic = "force-dynamic";

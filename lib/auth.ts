@@ -5,6 +5,7 @@ import { createAuthMiddleware, APIError } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "../app/generated/prisma";
 import { validatePasswordStrength } from "@/lib/password-policy";
+import { logError } from "@/lib/logger";
 
 // Crear instancia de Prisma para Better Auth
 // Esta instancia se crea aquí porque es necesaria para el adapter
@@ -173,10 +174,7 @@ export const auth = betterAuth({
           } catch (error) {
             // CRITICAL ERROR: User was created but setup failed
             // Log to security logs for monitoring
-            console.error(
-              `[CRITICAL] Failed to setup user ${user.id}:`,
-              error instanceof Error ? error.message : "Unknown error",
-            );
+            logError(`Failed to setup user ${user.id}`, error);
 
             // Store in SecurityLog for admin visibility
             await prisma.securityLog

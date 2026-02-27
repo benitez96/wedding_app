@@ -35,7 +35,7 @@ export default function SimpleConfetti() {
         const angle = (Math.random() - 0.5) * 40 - 90; // Cono de 40° centrado hacia arriba (-90°)
         const distance = Math.random() * 400 + 300; // Distancia variable (más alta)
         const endX = Math.cos((angle * Math.PI) / 180) * distance * 0.01;
-        const endY = -Math.sin((angle * Math.PI) / 180) * distance * 0.01;
+        const _endY = -Math.sin((angle * Math.PI) / 180) * distance * 0.01; // Reserved for future vertical animation
 
         confetti.style.position = "fixed";
         confetti.style.left = startX + "vw";

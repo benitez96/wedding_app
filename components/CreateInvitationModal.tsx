@@ -2,10 +2,6 @@
 
 import { useRef, useActionState, useEffect, useState } from "react";
 import {
-  createInvitation,
-  getInvitationUsage,
-} from "../app/actions/protected-admin-invitations";
-import {
   Modal,
   ModalContent,
   ModalHeader,
@@ -16,6 +12,10 @@ import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Spinner } from "@heroui/spinner";
 import { Progress } from "@heroui/progress";
+import {
+  createInvitation,
+  getInvitationUsage,
+} from "../app/actions/protected-admin-invitations";
 
 const NumberInput = Input;
 import { Form } from "@heroui/form";

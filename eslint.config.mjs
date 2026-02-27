@@ -37,6 +37,7 @@ export default defineConfig([
     "**/coverage",
     "**/.next",
     "**/build",
+    "app/generated/**", // Prisma generated files
     "!**/.commitlintrc.cjs",
     "!**/.lintstagedrc.cjs",
     "!**/jest.config.js",

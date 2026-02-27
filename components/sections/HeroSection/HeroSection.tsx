@@ -1,13 +1,13 @@
 import { ChevronDown } from "lucide-react";
-import { Section } from "@/components/section";
 import Image from "next/image";
-import { Logo } from "@/components/Logo";
 import {
   HeroSectionSettings,
   TEXT_COLORS,
   LAYOUT_MODES,
   OBJECT_FIT_MODES,
 } from "./HeroSection.metadata";
+import { Section } from "@/components/section";
+import { Logo } from "@/components/Logo";
 
 interface HeroSectionProps {
   settings?: HeroSectionSettings;

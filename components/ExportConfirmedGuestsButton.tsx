@@ -1,53 +1,56 @@
-'use client'
+"use client";
 
-import { Button } from '@heroui/button'
-import { FileSpreadsheet } from 'lucide-react'
-import { useState } from 'react'
+import { Button } from "@heroui/button";
+import { FileSpreadsheet } from "lucide-react";
+import { useState } from "react";
+import { logError } from "@/lib/logger";
 
 export default function ExportConfirmedGuestsButton() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleExport = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/backoffice/export-confirmed-guests')
-      
+      const response = await fetch("/api/backoffice/export-confirmed-guests");
+
       if (!response.ok) {
-        throw new Error('Error al exportar datos')
+        throw new Error("Error al exportar datos");
       }
 
       // Obtener el blob del archivo
-      const blob = await response.blob()
-      
+      const blob = await response.blob();
+
       // Crear URL para descarga
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `invitados-confirmados-${new Date().toISOString().split('T')[0]}.xlsx`
-      document.body.appendChild(a)
-      a.click()
-      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invitados-confirmados-${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+
       // Limpiar
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
-      console.error('Error al exportar:', error)
-      alert('Error al exportar los datos. Por favor, intenta de nuevo.')
+      logError("Error al exportar invitados confirmados", error);
+      alert("Error al exportar los datos. Por favor, intenta de nuevo.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Button
       color="success"
       variant="flat"
-      startContent={isLoading ? undefined : <FileSpreadsheet className="w-4 h-4" />}
+      startContent={
+        isLoading ? undefined : <FileSpreadsheet className="w-4 h-4" />
+      }
       isLoading={isLoading}
       onClick={handleExport}
       className="w-full"
     >
-      {isLoading ? 'Generando...' : 'Exportar Confirmados'}
+      {isLoading ? "Generando..." : "Exportar Confirmados"}
     </Button>
-  )
+  );
 }

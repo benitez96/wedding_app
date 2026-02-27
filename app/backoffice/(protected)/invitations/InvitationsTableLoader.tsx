@@ -1,5 +1,5 @@
-import { getInvitations } from "@/app/actions/protected-admin-invitations";
 import InvitationsTable from "./InvitationsTable";
+import { getInvitations } from "@/app/actions/protected-admin-invitations";
 
 interface InvitationsTableLoaderProps {
   searchTerm: string;

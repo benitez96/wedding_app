@@ -1,8 +1,8 @@
 import { Card, CardBody } from "@heroui/card";
-import { getInvitationsStats } from "@/app/actions/protected-admin-invitations";
 import { InvitationsStats } from "./types";
+import { getInvitationsStats } from "@/app/actions/protected-admin-invitations";
 
-interface InvitationsSummaryProps {
+interface _InvitationsSummaryProps {
   // No necesita props, siempre muestra estadísticas globales
 }
 

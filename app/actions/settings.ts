@@ -1,14 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { updateEventSettingsSchema } from "./schemas/event-settings";
 import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import { logError } from "@/lib/logger";
 import { PERMISSIONS } from "@/lib/permissions";
 import { generateUniqueSlug } from "@/lib/slug";
-import { updateEventSettingsSchema } from "./schemas/event-settings";
 
 interface ActionState {
   success: boolean;

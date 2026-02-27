@@ -8,13 +8,13 @@ import { Card, CardBody } from "@heroui/card";
 import { RadioGroup, Radio } from "@heroui/radio";
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { Save } from "lucide-react";
 import {
   HeroSectionSettings,
   TEXT_COLORS,
   LAYOUT_MODES,
   OBJECT_FIT_MODES,
 } from "./HeroSection.metadata";
-import { Save } from "lucide-react";
 import {
   SectionSettingsFormProps,
   createSettingsUpdater,
@@ -72,7 +72,7 @@ export function HeroSectionSettingsForm({
     try {
       await onSave(settings as HeroSectionSettings);
       toastSuccess("Cambios guardados correctamente");
-    } catch (error) {
+    } catch {
       toastError("Error al guardar los cambios");
     } finally {
       setIsSaving(false);
