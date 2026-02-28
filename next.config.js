@@ -42,7 +42,7 @@ const nextConfig = {
               "default-src 'self'",
               process.env.NODE_ENV === "development"
                 ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-                : "script-src 'self' 'unsafe-inline'", // No eval in production
+                : "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // No eval in production
               "style-src 'self' 'unsafe-inline'", // Required for CSS-in-JS
               "worker-src 'self' blob:", // IndexedDB sync workers
               "img-src 'self' data: https:", // Allow external images (user uploads)

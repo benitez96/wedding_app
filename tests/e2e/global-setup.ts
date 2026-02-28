@@ -29,6 +29,10 @@ export type TestUserKey = (typeof TEST_USERS)[number]["key"];
 export interface Credentials {
   email: string;
   password: string;
+  /** InvitationToken.id for the test invitation — used by public invitation flow tests */
+  invitationToken: string;
+  /** EventInviteLink.token — only populated for the 'company' tier */
+  inviteLinkToken?: string;
 }
 
 export type CredentialsMap = Record<TestUserKey, Credentials>;
@@ -65,7 +69,11 @@ export default async function globalSetup() {
       // Better Auth uses scrypt (salt:key hex format) — NOT bcrypt
       const hashedPassword = await hashPassword(password);
 
-      credentials[def.key] = { email: def.email, password };
+      credentials[def.key] = {
+        email: def.email,
+        password,
+        invitationToken: "", // filled below
+      };
 
       const user = await prisma.user.create({
         data: {
@@ -99,13 +107,72 @@ export default async function globalSetup() {
       }
 
       // Create a default event so the dashboard renders (not /backoffice/events/new)
-      await prisma.event.create({
+      const event = await prisma.event.create({
         data: {
           name: `E2E ${def.key.toUpperCase()} Wedding`,
           slug: generateSlug(def.key),
           ownerId: user.id,
         },
       });
+
+      // ── 2a. Create a test invitation + token for the public invitation flow ─
+      //
+      // The InvitationToken.id is a 21-char base64url string used as the URL
+      // token: /r/{token}. Tests read this from credentials.json.
+      const invitation = await prisma.invitation.create({
+        data: {
+          eventId: event.id,
+          guestName: "E2E Guest",
+          maxGuests: 2,
+        },
+      });
+
+      // InvitationToken.id must be a 21-char base64url string (matches app convention)
+      const invitationTokenId = crypto
+        .randomBytes(16)
+        .toString("base64url")
+        .slice(0, 21);
+
+      await prisma.invitationToken.create({
+        data: {
+          id: invitationTokenId,
+          invitationId: invitation.id,
+          isActive: true,
+          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365), // 1 year
+        },
+      });
+
+      credentials[def.key].invitationToken = invitationTokenId;
+
+      // ── 2c. Seed default sections so the public invitation page renders content ─
+      //
+      // DynamicSectionRenderer only renders enabled SectionConfiguration records.
+      // Without seeded sections the public invitation page is blank and the
+      // should-display-public-invitation test cannot assert RSVP or QR content.
+      await prisma.sectionConfiguration.createMany({
+        data: [
+          { eventId: event.id, key: "rsvp", isEnabled: true, order: 0, settings: {} },
+          { eventId: event.id, key: "qr", isEnabled: true, order: 1, settings: {} },
+        ],
+      });
+
+      // ── 2b. For COMPANY tier: create an invite link for collaborator join tests ─
+      if (def.tier === "COMPANY") {
+        const inviteLinkToken = crypto.randomBytes(16).toString("hex");
+
+        await prisma.eventInviteLink.create({
+          data: {
+            eventId: event.id,
+            token: inviteLinkToken,
+            permissions: BigInt(0),
+            createdBy: user.id,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365), // 1 year
+            maxUses: 10,
+          },
+        });
+
+        credentials[def.key].inviteLinkToken = inviteLinkToken;
+      }
 
       console.log(
         `[E2E Setup] Created ${def.key} user (${def.tier ?? "FREE"}): ${def.email}`,

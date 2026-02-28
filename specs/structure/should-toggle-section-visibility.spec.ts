@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Estructura", () => {
   test("should toggle section visibility", async ({ page }) => {
-    await page.goto("/backoffice/estructura");
+    await page.goto("/backoffice/structure");
 
     // Ensure there is at least one section in the list
     // (runs after should-add-new-section which adds one)

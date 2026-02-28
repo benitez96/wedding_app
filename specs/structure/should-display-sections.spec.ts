@@ -4,7 +4,7 @@ test.describe("Estructura", () => {
   test("should display the structure page with section catalog", async ({
     page,
   }) => {
-    await page.goto("/backoffice/estructura");
+    await page.goto("/backoffice/structure");
 
     // Page heading
     await expect(

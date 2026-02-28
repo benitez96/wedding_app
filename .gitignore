@@ -43,6 +43,7 @@ package-lock.json
 .e2e-state/
 .e2e-report/
 bun.lockb
+test-results
 
 .claude
 .codex
@@ -53,4 +54,3 @@ app/generated/
 # uploaded images
 /public/uploads/*
 !/public/uploads/.gitkeep
-

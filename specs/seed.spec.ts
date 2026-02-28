@@ -1,18 +1,45 @@
-import { test } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 
 /**
- * Seed file for the Playwright MCP planner/generator.
- * Logs in as the admin user and navigates to the backoffice so the planner
- * can explore the full feature set.
+ * Seed spec — runs first (root-level file, discovered before subdirectories).
  *
- * This file is for exploration only — actual tests use per-tier auth states
- * created by the global setup (tests/e2e/global-setup.ts).
+ * Verifies that global-setup produced the required artifacts for the current
+ * project tier before any other spec accesses credentials.json or the database.
  */
-test("seed", async ({ page }) => {
-  await page.goto("http://localhost:3000/backoffice/login");
-  await page.locator('input[name="email"]').fill("admin@invify.ar");
-  await page.locator('input[name="password"]').fill("Admin123_admin");
-  await page.getByRole("button", { name: "Iniciar Sesión" }).click();
-  // /backoffice redirects to /backoffice/dashboard — wait for that, not the login page
-  await page.waitForURL("**/backoffice/dashboard**", { timeout: 15_000 });
+test.describe("Seed", () => {
+  test("global setup artifacts are present and valid", async () => {
+    const credentialsPath = path.join(
+      process.cwd(),
+      ".e2e-state",
+      "credentials.json",
+    );
+
+    // credentials.json must exist (created by global-setup.ts)
+    expect(
+      fs.existsSync(credentialsPath),
+      "credentials.json must exist — run global-setup first",
+    ).toBe(true);
+
+    const credentials = JSON.parse(fs.readFileSync(credentialsPath, "utf-8"));
+    const tier = test.info().project.name as "free" | "basic" | "company";
+
+    // Each tier entry must have the required fields
+    expect(credentials[tier], `credentials entry for "${tier}" must exist`).toBeDefined();
+    expect(credentials[tier].email, "email must be set").toBeTruthy();
+    expect(credentials[tier].password, "password must be set").toBeTruthy();
+    expect(
+      credentials[tier].invitationToken,
+      "invitationToken must be set",
+    ).toBeTruthy();
+
+    // COMPANY tier additionally requires an invite-link token
+    if (tier === "company") {
+      expect(
+        credentials[tier].inviteLinkToken,
+        "inviteLinkToken must be set for company tier",
+      ).toBeTruthy();
+    }
+  });
 });

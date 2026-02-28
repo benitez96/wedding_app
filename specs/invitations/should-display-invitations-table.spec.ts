@@ -26,5 +26,14 @@ test.describe("Invitations Management", () => {
     await expect(
       page.getByRole("columnheader", { name: "MÁX. INVITADOS" }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "CONFIRMADOS" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "FECHA RESPUESTA" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "ACCIONES" }),
+    ).toBeVisible();
   });
 });

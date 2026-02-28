@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Estructura", () => {
   test("should add a new section from the catalog", async ({ page }) => {
-    await page.goto("/backoffice/estructura");
+    await page.goto("/backoffice/structure");
 
     // Find the first non-active catalog item and hover to reveal the add button
     const firstCatalogButton = page

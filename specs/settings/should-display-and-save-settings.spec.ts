@@ -45,5 +45,11 @@ test.describe("Settings", () => {
     await expect(page.locator(".text-red-600")).not.toBeVisible({
       timeout: 10_000,
     });
+
+    // Settings are persisted: reload the page and verify the value is still 35
+    await page.reload();
+    await expect(
+      page.getByRole("spinbutton", { name: /Días de Recordatorio RSVP/ }),
+    ).toHaveValue("35", { timeout: 10_000 });
   });
 });
