@@ -3,10 +3,8 @@
 import { useState } from "react";
 import RSVPSection, { DEFAULT_STEP_CONFIG } from "./RSVPSection";
 import { RSVPSectionSettings } from "./RSVPSection.metadata";
-import {
-  RSVPModalPreview,
-  buildPreviewSteps,
-} from "@/components/RSVPModal/RSVPModalPreview";
+import { RSVPModalPreview } from "@/components/RSVPModal/RSVPModalPreview";
+import { buildSteps } from "@/lib/rsvp-modal-utils";
 import type { SectionUser } from "@/types/sections";
 import type { RSVPStepConfig } from "@/components/sections/RSVPSectionClient";
 
@@ -102,7 +100,8 @@ export default function RSVPSectionPreview({
 
     if (isModalPreview) {
       const requestedStepId = rawPreviewState.slice("modal:".length);
-      const steps = buildPreviewSteps("attending", stepConfig);
+      // Preview uses maxGuests=2 for display purposes
+      const steps = buildSteps("attending", 2, stepConfig);
       const requestedIndex = steps.indexOf(
         requestedStepId as (typeof steps)[number],
       );

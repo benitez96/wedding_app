@@ -95,3 +95,52 @@ export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
 
   return result;
 }
+
+/**
+ * Escapes HTML entities to prevent XSS when rendering user content as HTML
+ * Use this when you need to display user input in a non-React context
+ */
+export function sanitizeHtml(input: string): string {
+  if (typeof input !== "string") {
+    return "";
+  }
+
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;");
+}
+
+/**
+ * Sanitizes IDs (alphanumeric, hyphens, underscores only)
+ * Use for database IDs, slugs, etc.
+ */
+export function sanitizeId(input: string, maxLength = 50): string {
+  if (typeof input !== "string") {
+    return "";
+  }
+
+  return input
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]/g, "")
+    .slice(0, maxLength);
+}
+
+/**
+ * Sanitizes search queries
+ * Removes dangerous special characters while preserving search functionality
+ */
+export function sanitizeSearch(input: string, maxLength = 100): string {
+  if (typeof input !== "string") {
+    return "";
+  }
+
+  return input
+    .trim()
+    .replace(/[<>\\"'%&;\\/]/g, "")
+    .replace(/\s+/g, " ")
+    .slice(0, maxLength);
+}

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import AppSidebar from "@/components/backoffice/AppSidebar";
 import { getUserTierContext } from "@/lib/tier-enforcement-prisma";
 import {

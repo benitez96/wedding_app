@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import BackofficeNavbar from "../BackofficeNavbar";
+import { auth } from "@/lib/auth";
 
 interface LoginLayoutProps {
   children: ReactNode;

@@ -1,13 +1,14 @@
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { PERMISSION_PRESETS } from "@/lib/permissions";
+import { logError } from "@/lib/logger";
 
 /**
  * GET /api/events
  * Obtiene los eventos del usuario autenticado (propios + colaborador)
  */
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
 
     return Response.json([...owned, ...collaborated]);
   } catch (error) {
-    console.error("Error fetching events:", error);
+    logError("GET /api/events", error);
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

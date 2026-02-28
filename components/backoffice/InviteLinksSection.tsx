@@ -13,9 +13,9 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import { Copy, Plus, Check } from "lucide-react";
+import InviteCollaboratorModal from "./InviteCollaboratorModal";
 import { getEventInviteLinks } from "@/app/actions/collaborators";
 import { PERMISSION_PRESETS } from "@/lib/permissions";
-import InviteCollaboratorModal from "./InviteCollaboratorModal";
 
 interface InviteLink {
   id: string;

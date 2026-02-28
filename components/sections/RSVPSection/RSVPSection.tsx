@@ -1,8 +1,8 @@
-import RSVPSectionClient from "@/components/sections/RSVPSectionClient";
 import { RSVPSectionSettings } from "./RSVPSection.metadata";
+import RSVPSectionClient from "@/components/sections/RSVPSectionClient";
 import { Section } from "@/components/section";
 import { SectionUser } from "@/types/sections";
-import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { DecorationSVGs, DecorationPatterns } from "@/types/decoration";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 
 interface RSVPSectionProps {
@@ -59,9 +59,9 @@ export const DEFAULT_STEP_CONFIG = {
 export default function RSVPSection({ settings, user }: RSVPSectionProps) {
   const hasAlternateBg = settings?.hasAlternateBg ?? false;
 
-  const decorationSvg = (settings?.decorationSvg ?? "none") as DecorationSvg;
-  const decorationPattern = (settings?.decorationPattern ??
-    "none") as DecorationPattern;
+  const decorationSvg = settings?.decorationSvg ?? DecorationSVGs.NONE;
+  const decorationPattern =
+    settings?.decorationPattern ?? DecorationPatterns.CORNERS;
   const decorationOpacity = settings?.decorationOpacity ?? 10;
   const decorationSize = settings?.decorationSize ?? 60;
 

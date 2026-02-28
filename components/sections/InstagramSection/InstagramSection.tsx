@@ -1,12 +1,12 @@
 import { Instagram } from "lucide-react";
 import { Button } from "@heroui/button";
-import { Section } from "@/components/section";
-import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
 import Link from "next/link";
 import { InstagramSectionSettings } from "./InstagramSection.metadata";
+import { Section } from "@/components/section";
+import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
-import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { DecorationSVGs, DecorationPatterns } from "@/types/decoration";
 import { SectionIcon } from "@/components/ui/SectionIcon";
 import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
@@ -28,9 +28,9 @@ export default function InstagramSection({ settings }: InstagramSectionProps) {
   const sectionIcon = (settings?.icon || "instagram") as SectionIconType;
 
   // Decoraciones
-  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
-  const decorationPattern = (settings?.decorationPattern ||
-    "none") as DecorationPattern;
+  const decorationSvg = settings?.decorationSvg ?? DecorationSVGs.NONE;
+  const decorationPattern =
+    settings?.decorationPattern ?? DecorationPatterns.CORNERS;
   const decorationOpacity = settings?.decorationOpacity ?? 10;
   const decorationSize = settings?.decorationSize ?? 60;
 

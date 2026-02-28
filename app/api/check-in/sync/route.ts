@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { emitCheckInEvent } from "@/app/api/events/[eventId]/stream/route";
+import prisma from "@/lib/prisma";
+import { emitCheckInEvent } from "@/lib/check-in-events";
 import { checkInvitationPermission } from "@/lib/middleware/auth-middleware";
+import { logError } from "@/lib/logger";
 
 // Security: Max clock skew tolerance (1 minute)
 const MAX_CLOCK_SKEW_MS = 60 * 1000;
@@ -10,7 +11,7 @@ const MAX_CLOCK_SKEW_MS = 60 * 1000;
 const MAX_CHECKIN_AGE_MS = 24 * 60 * 60 * 1000;
 
 const syncCheckInSchema = z.object({
-  clientId: z.string().uuid(),
+  clientId: z.uuid(),
   invitationId: z.string().cuid(),
   guestsCount: z.number().int().min(1).max(20),
   deviceId: z.string().optional(),
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[Sync] Error:", error);
+    logError("POST /api/check-in/sync", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

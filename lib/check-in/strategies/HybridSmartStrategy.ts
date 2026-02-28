@@ -11,6 +11,8 @@
  * Use case: Variable network conditions, production default
  */
 
+import { IDBFirstStrategy } from "./IDBFirstStrategy";
+import { ServerFirstStrategy } from "./ServerFirstStrategy";
 import type {
   ICheckInStrategy,
   CheckInAttemptInput,
@@ -19,8 +21,6 @@ import type {
   StrategyDecisionContext,
   StrategyMode,
 } from "@/types/check-in-strategy";
-import { IDBFirstStrategy } from "./IDBFirstStrategy";
-import { ServerFirstStrategy } from "./ServerFirstStrategy";
 import { scanQR } from "@/app/actions/check-in/scanQR";
 import { getInvitationByToken } from "@/lib/offline/indexedDB";
 

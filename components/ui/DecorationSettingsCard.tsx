@@ -3,13 +3,14 @@
 import { Card, CardBody } from "@heroui/card";
 import { Select, SelectItem } from "@heroui/select";
 import { Slider } from "@heroui/slider";
+import { DecorationSvgSelector } from "./DecorationSvgSelector";
 import {
   DecorationSvg,
+  DecorationSVGs,
   DecorationPattern,
   DecorationPatterns,
 } from "@/types/decoration";
 import { getPatternLabel } from "@/lib/decoration-patterns";
-import { DecorationSvgSelector } from "./DecorationSvgSelector";
 
 export interface DecorationSettingsCardProps {
   decorationSvg: DecorationSvg;
@@ -48,7 +49,7 @@ export function DecorationSettingsCard({
         />
 
         {/* Controles adicionales solo si hay SVG seleccionado */}
-        {decorationSvg !== "none" && (
+        {decorationSvg !== DecorationSVGs.NONE && (
           <>
             {/* Select Pattern */}
             <Select

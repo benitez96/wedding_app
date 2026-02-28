@@ -1,8 +1,8 @@
 "use client";
 
-import { DecorationPreviewProps } from "@/types/decoration";
-import { DecorationLayer } from "./DecorationLayer";
 import { Card, CardBody } from "@heroui/card";
+import { DecorationLayer } from "./DecorationLayer";
+import { DecorationPreviewProps } from "@/types/decoration";
 
 /**
  * Preview visual del patrón de decoración seleccionado

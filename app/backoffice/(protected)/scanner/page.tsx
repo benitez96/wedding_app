@@ -1,14 +1,14 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { QrCode } from "lucide-react";
+import QRScanner from "./components/QRScanner";
+import OfflineIndicator from "./components/OfflineIndicator";
 import { auth } from "@/lib/auth";
 import { getUserEventContext } from "@/lib/event-context-prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import prisma from "@/lib/prisma";
-import { redirect } from "next/navigation";
 import { getCheckInConfig } from "@/lib/check-in/getCheckInConfig";
-import QRScanner from "./components/QRScanner";
-import OfflineIndicator from "./components/OfflineIndicator";
 import PermissionRequired from "@/components/backoffice/PermissionRequired";
-import { QrCode } from "lucide-react";
 
 export const metadata = {
   title: "Scanner QR - Check-in",

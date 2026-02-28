@@ -6,6 +6,7 @@ import { Spinner } from "@heroui/spinner";
 import { SectionEditorLayout } from "./SectionEditorLayout";
 import type { SectionKey } from "@/components/sections/metadata";
 import { PreviewPlaceholder } from "@/components/sections/PreviewPlaceholder";
+import { logError } from "@/lib/logger";
 
 // Import directo de los client components (no los wrappers server)
 import AccommodationSectionClient from "@/components/sections/AccommodationSection/AccommodationSection";
@@ -83,7 +84,10 @@ const SECTION_SETTINGS_FORMS = {
         "@/components/sections/DividerSection/DividerSectionSettings"
       ).then((mod) => {
         if (!mod.DividerSectionSettingsForm) {
-          console.error("DividerSectionSettingsForm not found in module");
+          logError(
+            "DividerSectionSettingsForm not found in module",
+            new Error("Missing export"),
+          );
         }
         return { default: mod.DividerSectionSettingsForm };
       }),

@@ -17,7 +17,7 @@ export const PhotoUploadSectionSettingsSchema = z
     quoteText: z.string().default("Queremos ver como la pasaste!"),
     buttonText: z.string().default("SUBIR FOTOS Y VIDEOS"),
     description: z.string().default("Subi las fotos y videos desde tu mesa"),
-    uploadUrl: z.string().url().optional(),
+    uploadUrl: z.url().optional(),
   })
   .merge(CommonSectionFieldsSchema)
   .merge(

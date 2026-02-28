@@ -5,12 +5,13 @@ import { Plus } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
 import { useRouter } from "next/navigation";
+import { useDisclosure } from "@heroui/use-disclosure";
 import { useSidebar } from "./SidebarContext";
 import EventAvatar from "./EventAvatar";
-import { useDisclosure } from "@heroui/use-disclosure";
 import CreateEventModal from "@/components/backoffice/CreateEventModal";
 import { switchActiveEvent } from "@/app/actions/events";
 import { Logo } from "@/components/Logo";
+import { logError } from "@/lib/logger";
 
 export default function EventSwitcher() {
   const { events, activeEventId, tier } = useSidebar();
@@ -29,10 +30,13 @@ export default function EventSwitcher() {
       if (result.success) {
         router.refresh();
       } else {
-        console.error("Error switching event:", result.error);
+        logError(
+          "Error switching event",
+          new Error(result.error || "Unknown error"),
+        );
       }
     } catch (error) {
-      console.error("Error switching event:", error);
+      logError("Error switching event", error);
     } finally {
       setSwitchingEventId(null);
     }

@@ -13,14 +13,14 @@ import {
   TableCell,
 } from "@heroui/table";
 import { Plus, Copy, Check } from "lucide-react";
+import TokenStatusChip from "./TokenStatusChip";
+import TokenActionsCell from "./TokenActionsCell";
 import type { InvitationToken } from "@/types/invitation";
 import { formatDateTime } from "@/utils/date";
 import { getDeviceInfo, getDeviceLabel } from "@/lib/device-detection";
 import { useClipboard } from "@/hooks/useClipboard";
 import { useErrorTimeout } from "@/hooks/useErrorTimeout";
 import { useTokenActions } from "@/hooks/useTokenActions";
-import TokenStatusChip from "./TokenStatusChip";
-import TokenActionsCell from "./TokenActionsCell";
 
 interface TokensTableProps {
   invitationId: string;

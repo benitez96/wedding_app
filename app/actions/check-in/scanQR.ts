@@ -1,11 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
-import { z } from "zod";
 import { scanQRSchema } from "@/app/actions/schemas";
+import { logError } from "@/lib/logger";
 
 interface ScanQRResult {
   success: boolean;
@@ -131,7 +132,7 @@ export async function scanQR(
       },
     };
   } catch (error) {
-    console.error("[scanQR] Error:", error);
+    logError("scanQR", error);
 
     if (error instanceof z.ZodError) {
       return {

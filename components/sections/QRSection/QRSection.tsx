@@ -1,8 +1,8 @@
-import { getCurrentUser } from "@/app/actions/invitations";
+import { QRSectionSettings } from "./QRSection.metadata";
+import { getCurrentUser } from "@/app/actions/invitations/";
 import InvitationQRCode from "@/components/invitation/InvitationQRCode";
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import { QRSectionSettings } from "./QRSection.metadata";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 import { SectionIcon } from "@/components/ui/SectionIcon";

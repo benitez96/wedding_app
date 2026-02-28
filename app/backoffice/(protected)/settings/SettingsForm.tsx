@@ -7,12 +7,12 @@ import { Textarea } from "@heroui/input";
 import { Accordion, AccordionItem } from "@heroui/accordion";
 import { Select, SelectItem } from "@heroui/select";
 import { Save, Info, Zap, AlertTriangle, ArrowRight } from "lucide-react";
+import DangerZone from "./DangerZone";
 import { CONFIGURATION_KEYS } from "@/types/configuration";
 import { updateEventSettings } from "@/app/actions/settings";
 import { useToastFeedback } from "@/hooks/useToastFeedback";
 import { useSlugPreview } from "@/hooks/useSlugPreview";
 import { CheckInStrategyType } from "@/types/check-in-strategy";
-import DangerZone from "./DangerZone";
 
 interface ConfigurationItem {
   id: string;

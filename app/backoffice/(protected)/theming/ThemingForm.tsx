@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { RadioGroup, Radio } from "@heroui/radio";
 import { Button } from "@heroui/button";
+import { useRouter } from "next/navigation";
+import CustomThemePicker from "./CustomThemePicker";
 import {
   updateActiveTheme,
   updateCustomThemeColors,
@@ -13,9 +15,7 @@ import {
   type ThemeId,
   type CustomThemeColors,
 } from "@/types/theme";
-import { useRouter } from "next/navigation";
 import { useToastFeedback } from "@/hooks/useToastFeedback";
-import CustomThemePicker from "./CustomThemePicker";
 
 interface ThemingFormProps {
   initialThemeId: ThemeId;

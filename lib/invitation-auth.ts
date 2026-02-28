@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import * as jose from "jose";
 import prisma from "@/lib/prisma";
 import { getJwtSecret, getSecurityConfig } from "@/lib/config";
+import { logError } from "@/lib/logger";
 
 /**
  * Invitation guest user (NOT a registered User)
@@ -78,9 +79,7 @@ export async function verifyInvitationAuth(): Promise<{
     };
   } catch (error) {
     // Error during invitation auth verification
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error verifying invitation auth:", error);
-    }
+    logError("Error verifying invitation auth", error);
     return { success: false, error: "verification-error" };
   }
 }
@@ -109,9 +108,7 @@ async function validateToken(tokenId: string) {
       invitation: invitationToken.invitation,
     };
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error validating token:", error);
-    }
+    logError("Error validating token", error);
     return { valid: false };
   }
 }

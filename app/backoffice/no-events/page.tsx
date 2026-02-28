@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { getUserAccessibleEvents } from "@/lib/event-context-prisma";
 import NoEventsView from "./NoEventsView";
+import { auth } from "@/lib/auth";
+import { getUserAccessibleEvents } from "@/lib/event-context-prisma";
 
 export default async function NoEventsPage() {
   // Verificar autenticación

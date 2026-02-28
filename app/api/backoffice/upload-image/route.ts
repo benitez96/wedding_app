@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
+import { NextRequest, NextResponse } from "next/server";
 import { fileTypeFromBuffer } from "file-type";
 import { verifyUserAuth } from "@/lib/server-auth";
+import { logError } from "@/lib/logger";
 
 // Forzar renderizado dinámico (no estático)
 export const dynamic = "force-dynamic";
@@ -141,9 +142,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     // Error logged server-side only - do not expose details to client
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error al subir imagen:", error);
-    }
+    logError("POST /api/backoffice/upload-image", error);
     return NextResponse.json(
       { success: false, error: "Error al procesar la imagen" },
       { status: 500 },

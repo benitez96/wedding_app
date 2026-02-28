@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { deleteInvitation } from "../app/actions/protected-admin-invitations";
 import {
   Modal,
   ModalContent,
@@ -11,6 +10,7 @@ import {
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
 import { AlertTriangle } from "lucide-react";
+import { deleteInvitation } from "../app/actions/protected-admin-invitations";
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -43,7 +43,7 @@ export default function DeleteConfirmationModal({
       } else {
         setError(result.error || "Error al eliminar la invitación");
       }
-    } catch (error) {
+    } catch {
       setError("Error inesperado al eliminar la invitación");
     } finally {
       setIsDeleting(false);

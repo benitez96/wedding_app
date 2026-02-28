@@ -10,26 +10,23 @@ import {
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
 import { Heart } from "lucide-react";
-import {
-  getCurrentUserData,
-  updateInvitationResponse,
-} from "@/app/actions/protected-invitations";
 import SimpleConfetti from "./SimpleConfetti";
 import { RSVPStepConfig } from "./sections/RSVPSectionClient";
-import {
-  RSVPStepAttendance,
-  type AttendanceValue,
-} from "./RSVPModal/RSVPStepAttendance";
+import { RSVPStepAttendance } from "./RSVPModal/RSVPStepAttendance";
 import { RSVPStepGuestCount } from "./RSVPModal/RSVPStepGuestCount";
 import { RSVPStepMenu } from "./RSVPModal/RSVPStepMenu";
 import { RSVPStepDietary } from "./RSVPModal/RSVPStepDietary";
 import { RSVPStepMessage } from "./RSVPModal/RSVPStepMessage";
 import { RSVPStepProgress } from "./RSVPModal/RSVPStepProgress";
 import {
+  getCurrentUserData,
+  updateInvitationResponse,
+} from "@/app/actions/protected-invitations";
+import {
+  type AttendanceValue,
   buildSteps,
   isStepValid,
   STEP,
-  type StepId,
 } from "@/lib/rsvp-modal-utils";
 
 // ---------------------------------------------------------------------------
@@ -171,7 +168,7 @@ export default function RSVPModal({
     // stepConfig is intentionally excluded: it's stable after mount and its
     // identity changes on every render of RSVPSection (object literal).
     // Attendance and maxGuests are the only values that actually resize the list.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [attendance, user?.maxGuests]);
 
   function resetForm() {

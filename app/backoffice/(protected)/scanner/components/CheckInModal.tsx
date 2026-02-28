@@ -69,7 +69,7 @@ export default function CheckInModal({
     // OFFLINE MODE: Save directly to IDB queue
     if (!isOnline) {
       try {
-        const queuedCheckIn = await saveCheckInToQueue({
+        await saveCheckInToQueue({
           invitationId: invitation.id,
           tokenId: invitation.tokenId,
           guestsCount,
@@ -79,7 +79,7 @@ export default function CheckInModal({
         setIsPending(false);
         onClose(true); // true = check-in was made
         return;
-      } catch (error) {
+      } catch {
         setState({
           success: false,
           error: "No se pudo guardar el check-in offline. Intenta de nuevo.",
@@ -112,10 +112,10 @@ export default function CheckInModal({
       }
 
       setState(result);
-    } catch (error) {
+    } catch {
       // Network error during online mode → fallback to offline queue
       try {
-        const queuedCheckIn = await saveCheckInToQueue({
+        await saveCheckInToQueue({
           invitationId: invitation.id,
           tokenId: invitation.tokenId,
           guestsCount,
@@ -124,7 +124,7 @@ export default function CheckInModal({
 
         onClose(true); // true = check-in was made
         return;
-      } catch (queueError) {
+      } catch {
         setState({
           success: false,
           error: "No se pudo registrar el check-in. Intenta de nuevo.",

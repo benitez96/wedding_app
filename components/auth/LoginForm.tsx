@@ -3,12 +3,12 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Mail } from "lucide-react";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 import PasswordInput from "@/components/ui/PasswordInput";
 
 interface LoginFormProps {
@@ -130,7 +130,7 @@ export function LoginForm({
               {/* Divider */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+                  <div className="w-full border-t border-gray-300 dark:border-gray-700" />
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
@@ -152,7 +152,7 @@ export function LoginForm({
                       provider: "google",
                       callbackURL: safeRedirectTo,
                     });
-                  } catch (err) {
+                  } catch {
                     setError("Error al iniciar sesión con Google");
                     setIsPending(false);
                   }

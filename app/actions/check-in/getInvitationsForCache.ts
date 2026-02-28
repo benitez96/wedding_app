@@ -1,11 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
-import { z } from "zod";
 import { getInvitationsCacheSchema } from "@/app/actions/schemas";
+import { logError } from "@/lib/logger";
 
 interface InvitationCacheData {
   id: string;
@@ -120,7 +121,7 @@ export async function getInvitationsForCache(
       total: cacheData.length,
     };
   } catch (error) {
-    console.error("[getInvitationsForCache] Error:", error);
+    logError("getInvitationsForCache", error);
 
     if (error instanceof z.ZodError) {
       return {

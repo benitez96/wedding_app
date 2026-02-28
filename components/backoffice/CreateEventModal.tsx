@@ -13,8 +13,9 @@ import {
   Textarea,
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { createEvent } from "@/app/actions/events";
 import { z } from "zod";
+import { createEvent } from "@/app/actions/events";
+import { logError } from "@/lib/logger";
 
 const createEventSchema = z.object({
   // TODO i18n: validation messages
@@ -74,7 +75,7 @@ export default function CreateEventModal({
       setIsLoading(false);
       onClose();
     } catch (err) {
-      console.error("Error creating event:", err);
+      logError("Error creating event", err);
       // TODO i18n: error message
       setError("Error inesperado al crear el evento");
       setIsLoading(false);

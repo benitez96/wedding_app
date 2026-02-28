@@ -1,8 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { withInvitationAuth, InvitationUser } from "@/lib/invitation-auth";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import {
   invitationResponseSchema,
   validateAndSanitize,

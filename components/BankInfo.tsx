@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Copy, Check } from "lucide-react";
+import { logError } from "@/lib/logger";
 
 interface BankInfoProps {
   alias: string;
@@ -37,7 +38,7 @@ export default function BankInfo({
       }
       copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Error al copiar:", err);
+      logError("Error al copiar al portapapeles", err);
     }
   };
 

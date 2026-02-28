@@ -6,6 +6,7 @@ import type { EventContext } from "./event-context";
 import { getUserTierContext } from "./tier-enforcement-prisma";
 import type { UserTierContext } from "./tier-enforcement";
 import { hasPermission } from "./permissions";
+import { logError } from "./logger";
 
 /**
  * Verificar autenticación del usuario
@@ -31,9 +32,7 @@ export async function verifyUserAuth(): Promise<{
     };
   } catch (error) {
     // Error during auth verification - do not leak details
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error verificando autenticación:", error);
-    }
+    logError("Error verificando autenticación", error);
     return { success: false, error: "verification-error" };
   }
 }

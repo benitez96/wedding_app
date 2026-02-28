@@ -5,13 +5,15 @@
  * En producción: loggea solo contexto para evitar exposición de información sensible
  */
 
-const LOG_LEVEL = {
+/* eslint-disable no-console */
+
+const _LOG_LEVEL = {
   ERROR: "error",
   WARN: "warn",
   INFO: "info",
 } as const;
 
-type LogLevel = (typeof LOG_LEVEL)[keyof typeof LOG_LEVEL];
+type LogLevel = (typeof _LOG_LEVEL)[keyof typeof _LOG_LEVEL];
 
 interface LogOptions {
   level?: LogLevel;

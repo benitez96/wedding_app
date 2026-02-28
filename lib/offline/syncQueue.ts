@@ -13,6 +13,7 @@ import {
   markCheckInAsSynced,
   clearSyncedCheckIns,
 } from "./indexedDB";
+import { logError } from "@/lib/logger";
 
 export interface SyncResult {
   total: number;
@@ -107,7 +108,7 @@ async function performSync(): Promise<SyncResult> {
           });
         }
       } catch (error) {
-        console.error(`[Sync] Failed to sync check-in ${checkIn.id}:`, error);
+        logError(`Failed to sync check-in ${checkIn.id}`, error);
         result.failed++;
       }
     }
@@ -129,7 +130,7 @@ async function performSync(): Promise<SyncResult> {
 
     return result;
   } catch (error) {
-    console.error("[Sync] Fatal error:", error);
+    logError("Sync fatal error", error);
     throw error;
   }
 }

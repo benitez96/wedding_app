@@ -12,6 +12,7 @@ import { useSidebar } from "./SidebarContext";
 import { authClient } from "@/lib/auth-client";
 import TierBadge from "@/components/backoffice/TierBadge";
 import { BACKOFFICE_MENU_ITEMS } from "@/config/backoffice-menu";
+import { logError } from "@/lib/logger";
 
 export default function NavigationSidebar() {
   const { isExpanded, toggleSidebar, events, activeEventId, tier } =
@@ -36,7 +37,7 @@ export default function NavigationSidebar() {
       router.replace("/backoffice/login");
       router.refresh();
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      logError("Error al cerrar sesión", error);
       router.replace("/backoffice/login");
       router.refresh();
     } finally {

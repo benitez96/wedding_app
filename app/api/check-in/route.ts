@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import prisma from "@/lib/prisma";
 import { createCheckInSchema } from "@/app/actions/schemas";
-import { emitCheckInEvent } from "@/app/api/events/[eventId]/stream/route";
+import { emitCheckInEvent } from "@/lib/check-in-events";
 import { checkInvitationPermission } from "@/lib/middleware/auth-middleware";
+import { logError } from "@/lib/logger";
 
 /**
  * POST /api/check-in
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
       checkIn: { id: checkIn.id, guestsCount: checkIn.guestsCount },
     });
   } catch (error) {
-    console.error("[POST /api/check-in] Error:", error);
+    logError("POST /api/check-in", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

@@ -23,7 +23,6 @@ import {
   LogOut,
   Palette,
   UserPlus,
-  CalendarDays,
 } from "lucide-react";
 import clsx from "clsx";
 import { authClient } from "@/lib/auth-client";
@@ -31,6 +30,7 @@ import type { SubscriptionTier } from "@/types/subscription";
 import TierBadge from "@/components/backoffice/TierBadge";
 import EventListSelector from "@/components/backoffice/EventListSelector";
 import CreateEventModal from "@/components/backoffice/CreateEventModal";
+import { logError } from "@/lib/logger";
 
 interface MenuItem {
   label: string;
@@ -107,7 +107,7 @@ export default function BackofficeMenu({
       router.replace("/backoffice/login");
       router.refresh();
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      logError("Error al cerrar sesión", error);
       router.replace("/backoffice/login");
       router.refresh();
     } finally {

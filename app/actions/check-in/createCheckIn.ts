@@ -1,12 +1,13 @@
 "use server";
 
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { createCheckInSchema } from "@/app/actions/schemas";
+import { logError } from "@/lib/logger";
 
 interface CreateCheckInResult {
   success: boolean;
@@ -148,7 +149,7 @@ export async function createCheckIn(
       },
     };
   } catch (error) {
-    console.error("[createCheckIn] Error:", error);
+    logError("createCheckIn", error);
 
     if (error instanceof z.ZodError) {
       return {

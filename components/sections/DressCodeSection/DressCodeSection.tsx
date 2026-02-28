@@ -1,8 +1,8 @@
+import { DressCodeSectionSettings } from "./DressCodeSection.metadata";
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import { DressCodeSectionSettings } from "./DressCodeSection.metadata";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
-import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { DecorationSVGs, DecorationPatterns } from "@/types/decoration";
 import { SectionIcon } from "@/components/ui/SectionIcon";
 import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
@@ -19,9 +19,9 @@ export default function DressCodeSection({ settings }: DressCodeSectionProps) {
   const sectionIcon = (settings?.icon || "dress-code") as SectionIconType;
 
   // Decoraciones
-  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
-  const decorationPattern = (settings?.decorationPattern ||
-    "none") as DecorationPattern;
+  const decorationSvg = settings?.decorationSvg ?? DecorationSVGs.NONE;
+  const decorationPattern =
+    settings?.decorationPattern ?? DecorationPatterns.CORNERS;
   const decorationOpacity = settings?.decorationOpacity ?? 10;
   const decorationSize = settings?.decorationSize ?? 60;
 
@@ -52,23 +52,23 @@ export default function DressCodeSection({ settings }: DressCodeSectionProps) {
                 <span
                   className="w-8 h-8 rounded-full bg-neutral-900 border-2 border-neutral-800 inline-block"
                   title="Marrón"
-                ></span>
+                />
                 <span
                   className="w-8 h-8 rounded-full bg-violet-800 border-2 border-violet-900 inline-block"
                   title="Negro"
-                ></span>
+                />
                 <span
                   className="w-8 h-8 rounded-full bg-sky-900 border-2 border-sky-950 inline-block"
                   title="Azul marino"
-                ></span>
+                />
                 <span
                   className="w-8 h-8 rounded-full bg-pink-700 border-2 border-pink-800 inline-block"
                   title="Beige"
-                ></span>
+                />
                 <span
                   className="w-8 h-8 rounded-full bg-emerald-600 border-2 border-emerald-800 inline-block"
                   title="Gris"
-                ></span>
+                />
               </div>
             </>
           )}

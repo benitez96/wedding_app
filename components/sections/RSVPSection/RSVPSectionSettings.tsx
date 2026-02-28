@@ -7,11 +7,6 @@ import { Button } from "@heroui/button";
 import { useState } from "react";
 import { Save } from "lucide-react";
 import { RSVPSectionSettings } from "./RSVPSection.metadata";
-import {
-  SectionSettingsFormProps,
-  createSettingsUpdater,
-} from "@/types/section-settings-form";
-import { useToastFeedback } from "@/hooks/useToastFeedback";
 import { RSVPGeneralTab } from "./settings/RSVPGeneralTab";
 import { RSVPAttendanceStepTab } from "./settings/RSVPAttendanceStepTab";
 import { RSVPPendingContentTab } from "./settings/RSVPPendingContentTab";
@@ -20,6 +15,12 @@ import { RSVPDeclinedContentTab } from "./settings/RSVPDeclinedContentTab";
 import { RSVPMenuStepTab } from "./settings/RSVPMenuStepTab";
 import { RSVPDietaryStepTab } from "./settings/RSVPDietaryStepTab";
 import { RSVPMessageStepTab } from "./settings/RSVPMessageStepTab";
+import { DecorationSVGs, DecorationPatterns } from "@/types/decoration";
+import {
+  SectionSettingsFormProps,
+  createSettingsUpdater,
+} from "@/types/section-settings-form";
+import { useToastFeedback } from "@/hooks/useToastFeedback";
 
 export function RSVPSectionSettingsForm({
   initialSettings,
@@ -75,8 +76,9 @@ export function RSVPSectionSettingsForm({
         question: "¿Querés dejarnos un mensaje?", // TODO: i18n
       },
 
-      decorationSvg: initialSettings.decorationSvg ?? "none",
-      decorationPattern: initialSettings.decorationPattern ?? "none",
+      decorationSvg: initialSettings.decorationSvg ?? DecorationSVGs.NONE,
+      decorationPattern:
+        initialSettings.decorationPattern ?? DecorationPatterns.CORNERS,
       decorationOpacity: initialSettings.decorationOpacity ?? 10,
       decorationSize: initialSettings.decorationSize ?? 60,
     }),

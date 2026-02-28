@@ -21,11 +21,11 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardBody } from "@heroui/card";
 import { Button } from "@heroui/button";
 import { GripVertical, Trash2, Settings, Eye, EyeOff } from "lucide-react";
+import clsx from "clsx";
+import { useRouter } from "next/navigation";
 import { SectionConfiguration } from "@/types/sections";
 import { SECTION_METADATA } from "@/components/sections/metadata";
 import { updateSectionsOrder, removeSection } from "@/app/actions/sections";
-import clsx from "clsx";
-import { useRouter } from "next/navigation";
 
 interface SectionsListProps {
   initialSections: SectionConfiguration[];
@@ -188,7 +188,7 @@ type OptimisticAction =
 export default function SectionsList({ initialSections }: SectionsListProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
 
   // Fix hydration mismatch - solo renderizar DnD en cliente
   useEffect(() => {

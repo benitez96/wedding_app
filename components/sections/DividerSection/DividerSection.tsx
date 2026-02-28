@@ -1,7 +1,7 @@
-import AnimatedDividerCSS from "@/components/AnimatedDividerCSS";
-import { DividerSectionSettings } from "./DividerSection.metadata";
-import { getAlternateBgClasses } from "@/lib/section-styles";
 import clsx from "clsx";
+import { DividerSectionSettings } from "./DividerSection.metadata";
+import AnimatedDividerCSS from "@/components/AnimatedDividerCSS";
+import { getAlternateBgClasses } from "@/lib/section-styles";
 
 interface DividerSectionProps {
   settings?: DividerSectionSettings;

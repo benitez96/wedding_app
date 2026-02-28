@@ -1,13 +1,13 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Chip } from "@heroui/chip";
+import { ClipboardList, AlertTriangle, Users, CheckCircle } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { getUserEventContext } from "@/lib/event-context-prisma";
 import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import prisma from "@/lib/prisma";
-import { redirect } from "next/navigation";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Chip } from "@heroui/chip";
 import PermissionRequired from "@/components/backoffice/PermissionRequired";
-import { ClipboardList, AlertTriangle, Users, CheckCircle } from "lucide-react";
 
 export const metadata = {
   title: "Check-ins - Backoffice",
@@ -61,7 +61,7 @@ export default async function CheckInsPage() {
   }
 
   // Obtener datos
-  const [totalInvitations, checkIns, stats] = await Promise.all([
+  const [_totalInvitations, checkIns, stats] = await Promise.all([
     prisma.invitation.count({
       where: { eventId: eventContext.eventId },
     }),

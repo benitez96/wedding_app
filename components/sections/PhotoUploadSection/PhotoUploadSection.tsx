@@ -1,12 +1,12 @@
 import { Camera } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
+import { PhotoUploadSectionSettings } from "./PhotoUploadSection.metadata";
 import { Section } from "@/components/section";
 import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import { PhotoUploadSectionSettings } from "./PhotoUploadSection.metadata";
 import { getAlternateBgClasses } from "@/lib/section-styles";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
-import { DecorationSvg, DecorationPattern } from "@/types/decoration";
+import { DecorationSVGs, DecorationPatterns } from "@/types/decoration";
 import { SectionIcon } from "@/components/ui/SectionIcon";
 import { SectionIcon as SectionIconType } from "@/types/section-icon";
 
@@ -27,9 +27,9 @@ export default function PhotoUploadSection({
   const sectionIcon = (settings?.icon || "photos-1") as SectionIconType;
 
   // Decoraciones
-  const decorationSvg = (settings?.decorationSvg || "none") as DecorationSvg;
-  const decorationPattern = (settings?.decorationPattern ||
-    "none") as DecorationPattern;
+  const decorationSvg = settings?.decorationSvg ?? DecorationSVGs.NONE;
+  const decorationPattern =
+    settings?.decorationPattern ?? DecorationPatterns.CORNERS;
   const decorationOpacity = settings?.decorationOpacity ?? 10;
   const decorationSize = settings?.decorationSize ?? 60;
 

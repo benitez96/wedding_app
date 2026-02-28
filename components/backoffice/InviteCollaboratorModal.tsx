@@ -107,7 +107,7 @@ export default function InviteCollaboratorModal({
           isLoading: false,
         }));
       }
-    } catch (err) {
+    } catch {
       setUIState((prev) => ({
         ...prev,
         // TODO i18n: error message

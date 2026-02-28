@@ -8,7 +8,7 @@ interface InvitationDetailPageProps {
 }
 
 export default async function InvitationDetailPage({
-  params,
+  params: _params,
 }: InvitationDetailPageProps) {
   return <></>;
 }

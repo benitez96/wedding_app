@@ -80,7 +80,7 @@ async function handleServiceWorkerMessage(event: MessageEvent) {
           icon: "/favicon.ico",
         });
       }
-    } catch (error) {
+    } catch {
       // Silent error - best effort
     }
   }
@@ -89,7 +89,7 @@ async function handleServiceWorkerMessage(event: MessageEvent) {
     try {
       const { syncPendingCheckIns } = await import("@/lib/offline/syncQueue");
       await syncPendingCheckIns();
-    } catch (error) {
+    } catch {
       // Silent error - will retry later
     }
   }

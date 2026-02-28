@@ -8,15 +8,16 @@ import { Menu, X, LogOut, Plus } from "lucide-react";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
 import clsx from "clsx";
+import { useDisclosure } from "@heroui/use-disclosure";
 import { useSidebar } from "./SidebarContext";
+import EventAvatar from "./EventAvatar";
 import { authClient } from "@/lib/auth-client";
 import TierBadge from "@/components/backoffice/TierBadge";
-import EventAvatar from "./EventAvatar";
-import { useDisclosure } from "@heroui/use-disclosure";
 import CreateEventModal from "@/components/backoffice/CreateEventModal";
 import { switchActiveEvent } from "@/app/actions/events";
 import { Logo } from "@/components/Logo";
 import { BACKOFFICE_MENU_ITEMS } from "@/config/backoffice-menu";
+import { logError } from "@/lib/logger";
 
 export default function MobileMenu() {
   const { events, activeEventId, tier } = useSidebar();
@@ -46,10 +47,13 @@ export default function MobileMenu() {
         setIsOpen(false);
         router.refresh();
       } else {
-        console.error("Error switching event:", result.error);
+        logError(
+          "Error switching event",
+          new Error(result.error || "Unknown error"),
+        );
       }
     } catch (error) {
-      console.error("Error switching event:", error);
+      logError("Error switching event", error);
     } finally {
       setSwitchingEventId(null);
     }
@@ -62,7 +66,7 @@ export default function MobileMenu() {
       router.replace("/backoffice/login");
       router.refresh();
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      logError("Error al cerrar sesión", error);
       router.replace("/backoffice/login");
       router.refresh();
     } finally {

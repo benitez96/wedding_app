@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Button } from "@heroui/react";
 import { Plus, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { switchActiveEvent } from "@/app/actions/events";
-import EventBadge from "./EventBadge";
 import clsx from "clsx";
+import EventBadge from "./EventBadge";
+import { switchActiveEvent } from "@/app/actions/events";
+import { logError } from "@/lib/logger";
 
 interface Event {
   id: string;
@@ -37,7 +38,10 @@ export default function EventListSelector({
       const result = await switchActiveEvent(eventId);
 
       if (!result.success) {
-        console.error("Failed to switch event:", result.error);
+        logError(
+          "Failed to switch event",
+          new Error(result.error || "Unknown error"),
+        );
         setSwitchingEventId(null);
         return;
       }
@@ -45,7 +49,7 @@ export default function EventListSelector({
       await router.refresh();
       setSwitchingEventId(null);
     } catch (error) {
-      console.error("Error switching event:", error);
+      logError("Error switching event", error);
       setSwitchingEventId(null);
     }
   };

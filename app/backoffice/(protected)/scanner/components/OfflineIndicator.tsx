@@ -6,6 +6,7 @@ import { WifiOff, Wifi, RefreshCw } from "lucide-react";
 import { Button } from "@heroui/button";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { hasPendingCheckIns, forceSyncCheckIns } from "@/lib/offline/syncQueue";
+import { logError } from "@/lib/logger";
 
 /**
  * Indicador de estado de conexión y sincronización
@@ -51,7 +52,7 @@ export default function OfflineIndicator() {
         await forceSyncCheckIns();
         if (!cancelled) setHasPending(false);
       } catch (error) {
-        console.error("[Offline] Auto-sync failed:", error);
+        logError("Offline auto-sync failed", error);
       } finally {
         if (!cancelled) setIsSyncing(false);
       }
@@ -71,7 +72,7 @@ export default function OfflineIndicator() {
       await forceSyncCheckIns();
       setHasPending(false);
     } catch (error) {
-      console.error("[Offline] Error al sincronizar:", error);
+      logError("Error al sincronizar check-ins", error);
     } finally {
       setIsSyncing(false);
     }

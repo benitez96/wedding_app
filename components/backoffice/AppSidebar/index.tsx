@@ -1,13 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
+import clsx from "clsx";
 import { SidebarProvider, useSidebar } from "./SidebarContext";
 import EventSwitcher from "./EventSwitcher";
 import NavigationSidebar from "./NavigationSidebar";
 import MobileMenu from "./MobileMenu";
 import type { EventOption, SidebarThemeData } from "./types";
 import type { SubscriptionTier } from "@/types/subscription";
-import clsx from "clsx";
 
 interface AppSidebarProps {
   children: ReactNode;

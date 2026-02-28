@@ -112,7 +112,7 @@ beforeAll(() => {
 beforeAll(() => {
   // Mockear Date para usar siempre UTC en tests si es necesario
   // Esto previene flakiness por diferencias de timezone
-  const originalDate = Date;
+  const _originalDate = Date;
 
   // Si necesitás mockear una fecha específica globalmente:
   // vi.setSystemTime(new Date('2026-02-14T19:30:00.000Z'));

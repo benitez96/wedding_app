@@ -1,4 +1,4 @@
-import type { RSVPStepConfig } from "@/components/sections/RSVPSectionClient";
+import type { RSVPStepConfig } from "@/components/sections/RSVPSection/RSVPSection.metadata";
 
 // ---------------------------------------------------------------------------
 // Types

@@ -62,7 +62,7 @@ export default function EditPermissionsModal({
         // TODO i18n: error message
         setError(result.error ?? "Error al actualizar permisos");
       }
-    } catch (err) {
+    } catch {
       // TODO i18n: error message
       setError("Error al actualizar los permisos");
     } finally {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useActionState } from "react";
-import { updateInvitation } from "../app/actions/protected-admin-invitations";
 import {
   Modal,
   ModalContent,
@@ -11,9 +10,10 @@ import {
 } from "@heroui/modal";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
+import { Form } from "@heroui/form";
+import { updateInvitation } from "../app/actions/protected-admin-invitations";
 
 const NumberInput = Input; // NumberInput is just an Input alias
-import { Form } from "@heroui/form";
 import InvitationStatusSelect from "./InvitationStatusSelect";
 import type { Invitation } from "@/types/invitation";
 

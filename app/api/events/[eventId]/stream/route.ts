@@ -15,17 +15,10 @@
 
 import { NextRequest } from "next/server";
 import { checkEventPermission } from "@/lib/middleware/auth-middleware";
+import { logError } from "@/lib/logger";
+import { registerCheckInListener } from "@/lib/check-in-events";
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
-
-// Global event emitter for check-in notifications (in-memory, simplified)
-// Production: Use Redis pub/sub or similar for multi-instance deployments
-declare global {
-  // eslint-disable-next-line no-var
-  var checkInEventListeners:
-    | Map<string, (data: { eventId: string; timestamp: string }) => void>
-    | undefined;
-}
 
 export async function GET(
   request: NextRequest,
@@ -41,6 +34,7 @@ export async function GET(
     // Setup SSE stream
     const encoder = new TextEncoder();
     let heartbeatId: ReturnType<typeof setInterval> | null = null;
+    let unregisterListener: (() => void) | null = null;
 
     const stream = new ReadableStream({
       start(controller) {
@@ -59,8 +53,7 @@ export async function GET(
           }
         }, HEARTBEAT_INTERVAL_MS);
 
-        // Listen for check-in events via global event emitter
-        // (this is a simplified version - production would use Redis pub/sub or similar)
+        // Listen for check-in events
         const handleCheckIn = (data: {
           eventId: string;
           timestamp: string;
@@ -76,16 +69,14 @@ export async function GET(
           }
         };
 
-        // Register listener (global in-memory, simplified)
-        global.checkInEventListeners =
-          global.checkInEventListeners || new Map();
-        global.checkInEventListeners.set(eventId, handleCheckIn);
+        // Register listener using the centralized event system
+        unregisterListener = registerCheckInListener(eventId, handleCheckIn);
       },
 
       cancel() {
         // Cleanup on disconnect
         if (heartbeatId) clearInterval(heartbeatId);
-        global.checkInEventListeners?.delete(eventId);
+        if (unregisterListener) unregisterListener();
       },
     });
 
@@ -97,22 +88,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("[SSE] Error:", error);
+    logError("GET /api/events/[eventId]/stream", error);
     return new Response("Internal Server Error", { status: 500 });
-  }
-}
-
-/**
- * Emit check-in event to all connected SSE clients for this event
- * Called from check-in routes after successful check-in creation
- */
-export function emitCheckInEvent(eventId: string) {
-  const listeners = global.checkInEventListeners as
-    | Map<string, (data: { eventId: string; timestamp: string }) => void>
-    | undefined;
-
-  const listener = listeners?.get(eventId);
-  if (listener) {
-    listener({ eventId, timestamp: new Date().toISOString() });
   }
 }

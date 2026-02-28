@@ -2,7 +2,7 @@ import { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { siteConfig } from "@/config/site";
-import { getCurrentUser } from "@/app/actions/invitations";
+import { getCurrentUser } from "@/app/actions/invitations/";
 import { getEventTheme } from "@/app/actions/theme";
 import { THEME_IDS } from "@/types/theme";
 import type { EventThemeData } from "@/app/actions/theme";

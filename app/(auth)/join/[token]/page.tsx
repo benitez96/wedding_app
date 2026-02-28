@@ -1,11 +1,11 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import JoinEventClient from "./JoinEventClient";
 import { auth } from "@/lib/auth";
 import {
   getInviteLinkInfo,
   acceptInviteLink,
 } from "@/app/actions/collaborators";
-import JoinEventClient from "./JoinEventClient";
 
 interface JoinPageProps {
   params: Promise<{ token: string }>;

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
 import { Button } from "@heroui/button";
 import { LogOut } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { logError } from "@/lib/logger";
 
 export default function LogoutButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +21,7 @@ export default function LogoutButton() {
       router.replace("/backoffice/login");
       router.refresh();
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      logError("Error al cerrar sesión", error);
       // Aún así redirigir al login
       router.replace("/backoffice/login");
       router.refresh();

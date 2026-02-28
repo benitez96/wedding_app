@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exportConfirmedGuestsToExcel } from "@/app/actions/backoffice";
 import { verifyUserAuth } from "@/lib/server-auth";
+import { logError } from "@/lib/logger";
 
 // Forzar renderizado dinámico (no estático)
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Verificar autenticación
     const authResult = await verifyUserAuth();
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error("Error en endpoint de exportación:", error);
+    logError("GET /api/backoffice/export-confirmed-guests", error);
     return NextResponse.json(
       { error: "Error interno del servidor" },
       { status: 500 },

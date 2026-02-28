@@ -7,7 +7,6 @@
  * - HYBRID_SMART: Dynamic strategy selection based on real-time conditions
  */
 
-import type { InvitationCache } from "@/lib/offline/indexedDB";
 
 // ============================================
 // STRATEGY TYPES

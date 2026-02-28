@@ -15,13 +15,14 @@ import {
 import { useDisclosure } from "@heroui/use-disclosure";
 import { Spinner } from "@heroui/spinner";
 import { UserPlus, Pencil, Trash2 } from "lucide-react";
+import InviteCollaboratorModal from "./InviteCollaboratorModal";
+import EditPermissionsModal from "./EditPermissionsModal";
 import {
   getEventCollaborators,
   removeCollaborator,
 } from "@/app/actions/collaborators";
-import { getPermissionNames, PERMISSION_PRESETS } from "@/lib/permissions";
-import InviteCollaboratorModal from "./InviteCollaboratorModal";
-import EditPermissionsModal from "./EditPermissionsModal";
+import { PERMISSION_PRESETS } from "@/lib/permissions";
+import { logError } from "@/lib/logger";
 
 interface Collaborator {
   id: string;
@@ -59,7 +60,7 @@ export default function CollaboratorsList() {
         setCollaborators(result.data);
       }
     } catch (error) {
-      console.error("Error loading collaborators:", error);
+      logError("Error loading collaborators", error);
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +82,7 @@ export default function CollaboratorsList() {
         loadCollaborators();
       }
     } catch (error) {
-      console.error("Error removing collaborator:", error);
+      logError("Error removing collaborator", error);
     }
   };
 

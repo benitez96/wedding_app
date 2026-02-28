@@ -308,8 +308,15 @@ describe("JWT Wrapper - Security Best Practices", () => {
 
     await verifyInvitationAuth();
 
-    // Should NOT log in production
-    expect(consoleSpy).not.toHaveBeenCalled();
+    // Logger logs in production but sanitizes sensitive data
+    // It should log the context but NOT the sensitive error details
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "[Error verifying invitation auth]",
+    );
+
+    // Verify it doesn't log the actual sensitive error message
+    const calls = consoleSpy.mock.calls.flat();
+    expect(calls.join(" ")).not.toContain("Sensitive error message");
 
     consoleSpy.mockRestore();
     process.env.NODE_ENV = originalEnv;

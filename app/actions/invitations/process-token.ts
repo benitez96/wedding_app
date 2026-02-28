@@ -1,9 +1,9 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import crypto from "crypto";
 import * as jose from "jose";
 import { headers, cookies } from "next/headers";
-import crypto from "crypto";
+import prisma from "@/lib/prisma";
 import { getJwtSecret, getSecurityConfig } from "@/lib/config";
 import { tokenSchema, validateAndSanitize } from "@/utils/validation";
 import { getClientIP, recordAttempt } from "@/lib/rate-limiter-prisma";
@@ -74,7 +74,7 @@ export async function processInvitationToken(token: string) {
         if (payload.tokenId === token) {
           return { success: true, action: "redirect" };
         }
-      } catch (jwtError) {
+      } catch {
         // Invalid session, continue with new token
       }
     }

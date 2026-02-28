@@ -1,6 +1,6 @@
-import { SectionConfiguration, SectionUser } from "@/types/sections";
-import { SECTION_COMPONENTS, SectionKey } from "./index";
 import { ComponentType } from "react";
+import { SECTION_COMPONENTS, SectionKey } from "./index";
+import { SectionConfiguration, SectionUser } from "@/types/sections";
 
 interface DynamicSectionRendererProps {
   sections: SectionConfiguration[];

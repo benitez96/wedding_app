@@ -66,7 +66,7 @@ import { recordAttempt } from "@/lib/rate-limiter-prisma";
 import {
   processInvitationToken,
   getCurrentUser,
-} from "@/app/actions/invitations";
+} from "@/app/actions/invitations/";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

@@ -1,14 +1,15 @@
-import { Section } from "@/components/section";
-import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
-import AccommodationList from "@/components/sections/AccommodationList";
 import {
   AccommodationSectionSettings,
   AccommodationSectionSettingsSchema,
 } from "./AccommodationSection.metadata";
+import { Section } from "@/components/section";
+import AnimatedSectionCSS from "@/components/AnimatedSectionCSS";
+import AccommodationList from "@/components/sections/AccommodationList";
 import { DecorationLayer } from "@/components/ui/DecorationLayer";
 import { DecorationSvg, DecorationPattern } from "@/types/decoration";
 import { SectionIcon } from "@/components/ui/SectionIcon";
 import { SectionIcon as SectionIconType } from "@/types/section-icon";
+import { logError } from "@/lib/logger";
 
 interface AccommodationSectionProps {
   settings?: AccommodationSectionSettings;
@@ -22,11 +23,9 @@ export default function AccommodationSection({
 
   // If validation fails, use defaults from schema
   if (!result.success) {
-    console.error(
-      "AccommodationSection schema validation failed:",
-      result.error.issues,
-    );
-    console.log("Settings received:", settings);
+    logError("AccommodationSection schema validation failed", result.error, {
+      metadata: { settings },
+    });
   }
 
   const parsed = result.success

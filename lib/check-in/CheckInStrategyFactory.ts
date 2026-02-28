@@ -5,14 +5,14 @@
  * Follows Factory Pattern for clean dependency injection.
  */
 
-import type {
-  ICheckInStrategy,
-  CheckInStrategyConfig,
-  CheckInStrategyType,
-} from "@/types/check-in-strategy";
 import { IDBFirstStrategy } from "./strategies/IDBFirstStrategy";
 import { ServerFirstStrategy } from "./strategies/ServerFirstStrategy";
 import { HybridSmartStrategy } from "./strategies/HybridSmartStrategy";
+import type {
+  ICheckInStrategy,
+  CheckInStrategyConfig,
+} from "@/types/check-in-strategy";
+import { logWarning } from "@/lib/logger";
 
 export class CheckInStrategyFactory {
   /**
@@ -31,7 +31,8 @@ export class CheckInStrategyFactory {
 
       default:
         // Type guard ensures exhaustive check, but fallback to safe default
-        console.warn(
+        logWarning(
+          "Unknown check-in strategy",
           `Unknown strategy: ${config.strategy}, falling back to IDB_FIRST`,
         );
         return new IDBFirstStrategy(config);
