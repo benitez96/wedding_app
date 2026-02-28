@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Card, CardBody } from "@heroui/card";
 import ThemingForm from "./ThemingForm";
 import { getActiveTheme, getCustomThemeColors } from "@/app/actions/theme";
 import { DEFAULT_CUSTOM_THEME_COLORS, THEME_IDS } from "@/types/theme";
@@ -22,15 +22,12 @@ export default async function ThemingPage() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Theming</h1>
         <p className="text-foreground/60 mt-2">
-          Selecciona el tema visual de la aplicación
+          Elegí el tema visual de tu invitación
         </p>
       </div>
 
       <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold">Temas Disponibles</h3>
-        </CardHeader>
-        <CardBody>
+        <CardBody className="p-4 sm:p-6">
           <ThemingForm
             initialThemeId={activeThemeId}
             initialCustomColors={customColors}

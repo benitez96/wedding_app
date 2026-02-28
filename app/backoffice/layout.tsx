@@ -9,8 +9,7 @@ import { getUserEventContext } from "@/lib/event-context-prisma";
 import { getEventTheme } from "@/app/actions/theme";
 import { THEME_IDS } from "@/types/theme";
 import type { EventThemeData } from "@/app/actions/theme";
-import { ThemeSync } from "@/components/providers/ThemeSync";
-import ThemeStyleTag from "@/components/providers/ThemeStyleTag";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -58,11 +57,10 @@ export default async function BackofficeLayout({
   return (
     <>
       <ServiceWorkerRegistration />
-      <ThemeStyleTag
+      <ThemeProvider
         themeId={themeData.themeId}
         customColors={themeData.customColors}
       />
-      <ThemeSync themeId={themeData.themeId} />
       {children}
     </>
   );

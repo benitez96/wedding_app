@@ -6,8 +6,7 @@ import { getCurrentUser } from "@/app/actions/invitations/";
 import { getEventTheme } from "@/app/actions/theme";
 import { THEME_IDS } from "@/types/theme";
 import type { EventThemeData } from "@/app/actions/theme";
-import { ThemeSync } from "@/components/providers/ThemeSync";
-import ThemeStyleTag from "@/components/providers/ThemeStyleTag";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -47,14 +46,10 @@ export default async function InvitationLayout({
 
   return (
     <>
-      {/* Inject custom theme CSS vars into <head> before first paint */}
-      <ThemeStyleTag
+      <ThemeProvider
         themeId={themeData.themeId}
         customColors={themeData.customColors}
       />
-      {/* Sync class on <html> for HeroUI (predefined themes) and client-side navigation */}
-      <ThemeSync themeId={themeData.themeId} />
-      {/* Wrapper full-screen con mask del corazón — revela el contenido */}
       <div id="invitation-content-mask">
         <main className="container mx-auto max-w-screen-sm">{children}</main>
       </div>

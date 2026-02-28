@@ -1,27 +1,43 @@
 "use client";
 
 import { useEffect } from "react";
-import type { ReactNode } from "react";
-import type { ThemeId } from "@/types/theme";
+import { buildCustomThemeCss, getThemeClass } from "@/lib/theme-utils";
+import { THEME_IDS, type ThemeId, type CustomThemeColors } from "@/types/theme";
 
 interface ThemeProviderProps {
-  children: ReactNode;
   themeId: ThemeId;
+  customColors?: CustomThemeColors | null;
+  children?: React.ReactNode;
 }
 
 /**
- * Provider that applies the selected theme via the class attribute on <html>.
+ * Single component that handles all theme setup:
+ * 1. Injects CSS variables for custom themes (via <style> tag)
+ * 2. Sets the correct class on <html> (theme class + dark/light for custom)
  *
- * NOTE: This provider is superseded by ThemeSync + ThemeStyleTag.
- * It is kept for backward compatibility with existing tests.
- * Colors are defined in tailwind.config.js.
- * No useMemo/useCallback — React Compiler handles optimization.
+ * For predefined themes: just sets the class (CSS comes from HeroUI build).
+ * For custom themes: injects CSS + sets "dark custom" or "light custom" class.
  */
-export function ThemeProvider({ children, themeId }: ThemeProviderProps) {
-  useEffect(() => {
-    // Apply theme by setting the class on <html>
-    document.documentElement.setAttribute("class", themeId);
-  }, [themeId]);
+export function ThemeProvider({
+  themeId,
+  customColors = null,
+  children,
+}: ThemeProviderProps) {
+  const isCustom = themeId === THEME_IDS.CUSTOM && customColors !== null;
+  const css = isCustom ? buildCustomThemeCss(customColors) : null;
+  const themeClass = getThemeClass(themeId, customColors);
 
-  return <>{children}</>;
+  // Sync class on <html>
+  useEffect(() => {
+    document.documentElement.className = themeClass;
+  }, [themeClass]);
+
+  return (
+    <>
+      {css && (
+        <style dangerouslySetInnerHTML={{ __html: css }} data-theme="custom" />
+      )}
+      {children}
+    </>
+  );
 }

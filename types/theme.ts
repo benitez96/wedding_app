@@ -1,9 +1,14 @@
 // Theme IDs
 export const THEME_IDS = {
+  // Light themes
   CLASSIC: "classic",
   WARM: "warm",
-  PASTEL_GREEN: "pastel-green",
+  ROSE_PINE_DAWN: "rose-pine-dawn",
+  SAGE: "sage",
+  // Dark themes
   MOCHA: "mocha",
+  MIDNIGHT_GOLD: "midnight-gold",
+  // Custom
   CUSTOM: "custom",
 } as const;
 
@@ -40,6 +45,10 @@ export interface Theme {
 }
 
 export const THEMES: Record<Exclude<ThemeId, "custom">, Theme> = {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LIGHT THEMES
+  // ═══════════════════════════════════════════════════════════════════════════
+
   [THEME_IDS.CLASSIC]: {
     id: THEME_IDS.CLASSIC,
     name: "Clásico",
@@ -52,6 +61,7 @@ export const THEMES: Record<Exclude<ThemeId, "custom">, Theme> = {
       accent: "#4A4A4A",
     },
   },
+
   [THEME_IDS.WARM]: {
     id: THEME_IDS.WARM,
     name: "Cálido",
@@ -64,29 +74,60 @@ export const THEMES: Record<Exclude<ThemeId, "custom">, Theme> = {
       accent: "#D4AF37",
     },
   },
-  [THEME_IDS.PASTEL_GREEN]: {
-    id: THEME_IDS.PASTEL_GREEN,
-    name: "Verde Pastel",
-    description: "Verde menta suave y elegante",
+
+  [THEME_IDS.ROSE_PINE_DAWN]: {
+    id: THEME_IDS.ROSE_PINE_DAWN,
+    name: "Rosé",
+    description: "Rosados suaves y románticos",
     colors: {
-      background: "#f1faee",
-      foreground: "#1A2E1A",
-      primary: "#7FB069",
-      secondary: "#A8DADC",
-      accent: "#98C1A3",
+      background: "#faf4ed", // Dawn Base
+      foreground: "#575279", // Dawn Text
+      primary: "#d7827e", // Dawn Rose
+      secondary: "#f2e9e1", // Dawn Surface
+      accent: "#b4637a", // Dawn Love
     },
   },
-  // Catppuccin Mocha — dark, cozy, purple-tinted
+
+  [THEME_IDS.SAGE]: {
+    id: THEME_IDS.SAGE,
+    name: "Sage",
+    description: "Verde salvia sofisticado",
+    colors: {
+      background: "#f8faf8",
+      foreground: "#2d3a2d",
+      primary: "#6b8e6b",
+      secondary: "#e8f0e8",
+      accent: "#8fab8f",
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DARK THEMES
+  // ═══════════════════════════════════════════════════════════════════════════
+
   [THEME_IDS.MOCHA]: {
     id: THEME_IDS.MOCHA,
     name: "Mocha",
-    description: "Oscuro y acogedor, inspirado en Catppuccin",
+    description: "Oscuro y acogedor",
     colors: {
       background: "#1e1e2e", // Mocha Base
       foreground: "#cdd6f4", // Mocha Text
       primary: "#cba6f7", // Mocha Mauve
       secondary: "#313244", // Mocha Surface0
       accent: "#f38ba8", // Mocha Pink
+    },
+  },
+
+  [THEME_IDS.MIDNIGHT_GOLD]: {
+    id: THEME_IDS.MIDNIGHT_GOLD,
+    name: "Midnight Gold",
+    description: "Elegancia nocturna con dorados",
+    colors: {
+      background: "#0a0a0f",
+      foreground: "#e8e6e3",
+      primary: "#d4af37", // Gold
+      secondary: "#1a1a24",
+      accent: "#c9a227",
     },
   },
 } as const;
@@ -113,4 +154,15 @@ export function isPredefinedTheme(
   id: string,
 ): id is Exclude<ThemeId, "custom"> {
   return id in THEMES;
+}
+
+/**
+ * Validates a theme ID and returns CLASSIC if invalid.
+ * Use this when reading from DB where old/deleted theme IDs may exist.
+ */
+export function getValidThemeId(id: string | null | undefined): ThemeId {
+  if (!id) return THEME_IDS.CLASSIC;
+  if (id === THEME_IDS.CUSTOM) return THEME_IDS.CUSTOM;
+  if (isPredefinedTheme(id)) return id;
+  return THEME_IDS.CLASSIC;
 }

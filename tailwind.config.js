@@ -24,9 +24,6 @@ const config = {
           "100%": { opacity: "1" },
         },
       },
-      // accent: token temático para decoraciones y gradientes.
-      // El valor real lo setea cada clase de tema en globals.css via --color-accent,
-      // y ThemeSync.tsx para el tema custom.
       colors: {
         accent: "var(--color-accent)",
       },
@@ -36,58 +33,37 @@ const config = {
   plugins: [
     heroui({
       themes: {
-        // ── CLASSIC ─────────────────────────────────────────────────────────
-        // Blanco, negro y grises elegantes
+        // ═══════════════════════════════════════════════════════════════════
+        // LIGHT THEMES
+        // ═══════════════════════════════════════════════════════════════════
+
+        // ── CLASSIC ────────────────────────────────────────────────────────
         classic: {
           extend: "light",
           colors: {
             primary: {
               DEFAULT: "#000000",
               foreground: "#FFFFFF",
-              50: "#f7f7f7",
-              100: "#e3e3e3",
-              200: "#c8c8c8",
-              300: "#a4a4a4",
-              400: "#818181",
-              500: "#666666",
-              600: "#515151",
-              700: "#434343",
-              800: "#383838",
-              900: "#000000",
             },
             secondary: {
               DEFAULT: "#2C2C2C",
               foreground: "#FFFFFF",
             },
-            // Usado en: text-accent (dividers), from-primary to-accent (música)
-            // border-accent/* (music button rings)
             background: "#FFFFFF",
             foreground: "#000000",
           },
         },
 
-        // ── WARM ────────────────────────────────────────────────────────────
-        // Marrón dorado — tonos tierra cálidos
+        // ── WARM ───────────────────────────────────────────────────────────
         warm: {
           extend: "light",
           colors: {
             primary: {
               DEFAULT: "#8B5A3C",
               foreground: "#FFFFFF",
-              50: "#faf6f3",
-              100: "#f4ede6",
-              200: "#e8d4c4",
-              300: "#d9b599",
-              400: "#c88f6d",
-              500: "#b8744f",
-              600: "#8B5A3C",
-              700: "#6f4830",
-              800: "#5d3d2a",
-              900: "#4e3425",
             },
             secondary: {
               DEFAULT: "#B89A7A",
-              // #3D2B1F sobre #B89A7A → contraste ~5.2:1 ✓ WCAG AA
               foreground: "#3D2B1F",
             },
             background: "#FFFFF0",
@@ -95,60 +71,75 @@ const config = {
           },
         },
 
-        // ── PASTEL GREEN ─────────────────────────────────────────────────────
-        // Verde menta suave
-        "pastel-green": {
+        // ── ROSÉ PINE DAWN ─────────────────────────────────────────────────
+        "rose-pine-dawn": {
           extend: "light",
           colors: {
             primary: {
-              DEFAULT: "#7FB069",
-              foreground: "#FFFFFF",
-              50: "#f4f9f2",
-              100: "#e6f2e1",
-              200: "#d4e8cc",
-              300: "#b0d6a1",
-              400: "#9dc389",
-              500: "#7FB069",
-              600: "#5d8c4d",
-              700: "#4a703e",
-              800: "#3e5a34",
-              900: "#354b2d",
+              DEFAULT: "#d7827e", // Rose
+              foreground: "#faf4ed",
             },
             secondary: {
-              DEFAULT: "#A8DADC",
-              // #1D3557 sobre #A8DADC → contraste ~5.8:1 ✓ WCAG AA
-              foreground: "#1D3557",
+              DEFAULT: "#f2e9e1", // Surface
+              foreground: "#575279",
             },
-            background: "#F1FAEE",
-            foreground: "#1D3557",
+            background: "#faf4ed", // Base
+            foreground: "#575279", // Text
           },
         },
 
-        // ── MOCHA ────────────────────────────────────────────────────────────
-        // Catppuccin Mocha — dark, cozy, purple-tinted
+        // ── SAGE ───────────────────────────────────────────────────────────
+        sage: {
+          extend: "light",
+          colors: {
+            primary: {
+              DEFAULT: "#6b8e6b",
+              foreground: "#ffffff",
+            },
+            secondary: {
+              DEFAULT: "#e8f0e8",
+              foreground: "#2d3a2d",
+            },
+            background: "#f8faf8",
+            foreground: "#2d3a2d",
+          },
+        },
+
+        // ═══════════════════════════════════════════════════════════════════
+        // DARK THEMES
+        // ═══════════════════════════════════════════════════════════════════
+
+        // ── MOCHA (Catppuccin) ─────────────────────────────────────────────
         mocha: {
           extend: "dark",
           colors: {
             primary: {
               DEFAULT: "#cba6f7", // Mauve
-              foreground: "#1e1e2e", // Base — dark text on lavender button
-              50: "#f5f0fe",
-              100: "#ede4fd",
-              200: "#d9c5fb",
-              300: "#cba6f7",
-              400: "#b387f3",
-              500: "#9a68ef",
-              600: "#7c49d6",
-              700: "#6337b0",
-              800: "#4e2c8a",
-              900: "#3b2169",
+              foreground: "#1e1e2e",
             },
             secondary: {
               DEFAULT: "#313244", // Surface0
-              foreground: "#cdd6f4", // Text — light text on surface
+              foreground: "#cdd6f4",
             },
             background: "#1e1e2e", // Base
             foreground: "#cdd6f4", // Text
+          },
+        },
+
+        // ── MIDNIGHT GOLD ──────────────────────────────────────────────────
+        "midnight-gold": {
+          extend: "dark",
+          colors: {
+            primary: {
+              DEFAULT: "#d4af37", // Gold
+              foreground: "#0a0a0f",
+            },
+            secondary: {
+              DEFAULT: "#1a1a24",
+              foreground: "#e8e6e3",
+            },
+            background: "#0a0a0f",
+            foreground: "#e8e6e3",
           },
         },
       },

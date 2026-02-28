@@ -53,7 +53,7 @@ export default async function ProtectedLayout({
       tier={tierContext.tier}
       themeData={themeData}
     >
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="bg-background text-foreground">
         <div className="container mx-auto max-w-screen-xl px-2 md:px-4 py-4 md:py-6">
           {children}
         </div>

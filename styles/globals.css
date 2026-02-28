@@ -39,10 +39,8 @@
 }
 
 /* Custom theme — ThemeStyleTag.tsx injects --heroui-* and --color-* via an inline <style> tag.
-   This selector is just a CSS anchor; it does not hardcode any color values. */
-.custom {
-  color-scheme: light;
-}
+   The .light.custom or .dark.custom selector handles color-scheme dynamically.
+   No hardcoded values here — everything is injected at runtime. */
 
 /* Animations for button with concentric ripple waves */
 @keyframes ripple {

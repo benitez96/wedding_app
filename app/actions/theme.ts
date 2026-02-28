@@ -8,6 +8,7 @@ import {
   DEFAULT_CUSTOM_THEME_COLORS,
   getThemeById,
   isPredefinedTheme,
+  getValidThemeId,
 } from "@/types/theme";
 import { withEventAuth } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
@@ -35,7 +36,7 @@ export const getActiveTheme = withEventAuth(
         select: { activeTheme: true },
       });
 
-      const themeId = (event?.activeTheme ?? THEME_IDS.CLASSIC) as ThemeId;
+      const themeId = getValidThemeId(event?.activeTheme);
 
       return {
         success: true,
@@ -191,7 +192,7 @@ export async function getEventTheme(eventId: string): Promise<EventThemeData> {
       select: { activeTheme: true, customTheme: true },
     });
 
-    const themeId = (event?.activeTheme ?? THEME_IDS.CLASSIC) as ThemeId;
+    const themeId = getValidThemeId(event?.activeTheme);
 
     if (themeId !== THEME_IDS.CUSTOM || !event?.customTheme) {
       return { themeId, customColors: null };
